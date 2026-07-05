@@ -5,7 +5,7 @@
 ```
 File: <filename>
 Author: Curtis Chou
-Email: brokendays611@gmail.com
+Email: <your-email>
 Created Date: <YYYY-MM-DD>
 Version: <x.x.x>
 Copyright (c) <created_year>[-<current_year>] Curtis Chou

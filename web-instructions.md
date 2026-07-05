@@ -87,7 +87,7 @@
   ```
   File: <檔名>
   Author: Curtis Chou
-  Email: brokendays611@gmail.com
+  Email: your-email@example.com
   Created Date: <YYYY-MM-DD>
   Version: <x.x.x>
   Copyright (c) <建立年份>[-<目前年份，若與建立年份相同則省略>] Curtis Chou
