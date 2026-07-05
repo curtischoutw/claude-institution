@@ -1,13 +1,14 @@
 ---
 name: institution-map
-description: 2026-07-05 Fable 5 session 建立的完整制度架構 v3：索引式 CLAUDE.md + rules/ 八檔 + 三 skill
+description: 2026-07-05 Fable 5 session 建立的完整制度架構 v3：索引式 CLAUDE.md + rules/ 九檔 + 三 skill
 metadata: 
   node_type: memory
   type: project
   originSessionId: 4dd139ff-7dd8-4f89-9410-a331472fcb05
 ---
 
-Curtis 用唯一一次 Fable 5 session 建立跨專案制度（fable_once 專案只是建制現場，無程式碼）。
+Curtis 用唯一一次 Fable 5 session 建立跨專案制度（claude-institution 專案，2026-07-05 由
+fable_once 改名，只是建制現場，無程式碼）。
 
 **架構 v3**：`~/.claude/CLAUDE.md`（40 行純索引路由）@import `rules/hard-rules.md` 與
 `rules/code-standards.md`（常載合計約 135 行）；按需檔在 `~/.claude/rules/`：
