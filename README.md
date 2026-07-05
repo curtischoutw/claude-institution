@@ -1,4 +1,4 @@
-# fable_once — 制度快照
+# claude-institution — 制度快照
 
 這是 2026-07-05 一次性 Fable 5 session 建立的「Claude Code 跨專案制度」的**快照存檔**。
 
