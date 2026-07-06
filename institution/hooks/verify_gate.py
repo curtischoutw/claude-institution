@@ -4,7 +4,7 @@ File: verify_gate.py
 Author: Curtis Chou
 Email: <your-email>
 Created Date: 2026-07-05
-Version: 1.0.0
+Version: 1.1.0
 Copyright (c) 2026 Curtis Chou
 
 Description:
@@ -24,20 +24,39 @@ Description:
 
 Features:
   - 只在偵測到「動了程式碼卻無測試證據」時才擋下；純文件/設定改動不觸發。
+  - 派 subagent 驗證（Task/Agent 呼叫且 prompt 含測試/驗證意圖）視同有驗證，
+    與 hard-rules #11-12「驗證派 subagent、不自驗」對齊——層 0 不再懲罰合規流程。
+  - 測試指令採「指令位置」比對（行首或 ;、&、|、( 之後），`cat pytest.ini`
+    這類夾帶不再誤判為有跑測試。
   - stop_hook_active（第二次 stop）一律放行，避免純討論 session 被卡死。
-  - fail-open：解析 transcript 或任何步驟出錯 → 直接放行，絕不因 hook 本身
-    的 bug 卡死使用者的 session。
+  - fail-open：任何內部錯誤 → 放行，但寫入 hooks.log 留痕；block 事件與二次
+    Stop 放行也記 log，供人工稽核「被擋後是否敷衍了事」。
+
+已知極限（機制上修不掉；2026-07-06 紅隊審查明文記載，勿誤信層 0 全能）:
+  - 只驗「測試指令／驗證 agent 是否出現」，驗不了測試是否通過、驗證是否認真。
+  - 雙 Stop 逃逸：被 block 後隨便回一句再停就放行（stop_hook_active 放行是
+    防卡死的必要洩壓閥）。log 留痕是唯一補償。
+  - 偵測窗口只涵蓋「最後一則真人 prompt 之後」；改碼後若使用者再發話，先前
+    的 edit 落在窗外。
+  - 帶環境變數前綴的指令（FOO=1 pytest）不會被比對到。
 
 Dependencies:
-  - Python 3.8+（僅標準函式庫：json, re, sys）
+  - Python 3.8+（僅標準函式庫：datetime, json, os, re, sys, traceback）
 
 Version History:
+  1.1.0 (2026-07-06): Fable 5 收尾審查修補——認可 subagent 驗證（修層 0/層 1
+    激勵相反）、測試指令比對綁指令位置（堵 cat pytest.ini 夾帶）、補
+    .ipynb/.tf/.pl/.pm/.groovy 副檔名、fail-open 與 block 寫 log 留痕、
+    明文記載已知極限。
   1.0.0 (2026-07-05): 初版，改寫自 fable-harness verify_gate.py。
 """
 
+import datetime
 import json
+import os
 import re
 import sys
+import traceback
 
 # ==============================
 # 常數：程式碼副檔名、測試指令 pattern、可視為「一次改動」的工具
@@ -45,17 +64,23 @@ import sys
 
 EDIT_TOOLS = {"Edit", "Write", "NotebookEdit", "MultiEdit"}
 
+# 派 subagent 的工具名（本 harness 為 Agent；舊版/其他 harness 為 Task）
+AGENT_TOOLS = {"Task", "Agent"}
+
 CODE_EXTENSIONS = {
     ".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
     ".go", ".rs", ".java", ".rb", ".php", ".c", ".cpp", ".cc", ".h", ".hpp",
     ".cs", ".swift", ".kt", ".kts", ".scala", ".sh", ".bash", ".zsh",
     ".sql", ".lua", ".ex", ".exs", ".clj", ".cljs", ".hs", ".ml", ".mli",
     ".r", ".m", ".mm", ".vue", ".svelte", ".dart", ".jl",
+    ".ipynb", ".tf", ".pl", ".pm", ".groovy",
 }
 
 TEST_CMD_RE = re.compile(
-    r"\b("
-    r"pytest|py\.test|python\s+-m\s+pytest|"
+    r"(?:^|[\n;&|(]\s*)"  # 指令位置：行首或分隔符之後（堵 cat pytest.ini 之類的夾帶）
+    r"(?:(?:time|npx|uv\s+run|poetry\s+run|pdm\s+run)\s+)?"  # 常見執行器前綴
+    r"("
+    r"pytest|py\.test|python3?\s+-m\s+pytest|"
     r"npm\s+(?:run\s+)?test|yarn\s+test|pnpm\s+test|"
     r"jest|vitest|"
     r"go\s+test|cargo\s+test|"
@@ -66,7 +91,33 @@ TEST_CMD_RE = re.compile(
     re.IGNORECASE,
 )
 
+# 派 subagent 驗證的意圖判定：Task/Agent 呼叫的 prompt/description 含任一即視同驗證
+VERIFY_INTENT_RE = re.compile(
+    r"(驗證|實跑|跑.{0,6}測試|read-?back|第二意見|"
+    r"verif(?:y|ication)|run\s+(?:the\s+)?tests?)",
+    re.IGNORECASE,
+)
+
+LOG_PATH = os.path.expanduser("~/.claude/hooks/hooks.log")
+
 LOCAL_COMMAND_MARKERS = ("<local-command-stdout>", "<command-name>", "<local-command-caveat>")
+
+
+def _log(line):
+    """把一行事件寫入 LOG_PATH（best-effort；log 失敗絕不影響主流程）。
+
+    Args:
+        line: 要記錄的訊息（不含時間戳與元件名，本函式自加）。
+
+    Returns:
+        None。
+    """
+    try:
+        ts = datetime.datetime.now().isoformat(timespec="seconds")
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(f"{ts} verify_gate: {line}\n")
+    except Exception:
+        pass
 
 
 # ==============================
@@ -142,7 +193,8 @@ def analyze(entries):
         entries: transcript 條目清單。
 
     Returns:
-        tuple(bool, bool)：(edited_code, test_seen)。
+        tuple(bool, bool)：(edited_code, test_seen)；test_seen 含「派出帶
+        測試/驗證意圖的 subagent」（與 hard-rules #11-12 對齊）。
     """
     last_idx = find_last_prompt_index(entries)
     if last_idx is None:
@@ -174,6 +226,13 @@ def analyze(entries):
                 if TEST_CMD_RE.search(command):
                     test_seen = True
 
+            if name in AGENT_TOOLS:
+                prompt_text = " ".join(
+                    str(tool_input.get(k) or "") for k in ("prompt", "description")
+                )
+                if VERIFY_INTENT_RE.search(prompt_text):
+                    test_seen = True
+
     return edited_code, test_seen
 
 
@@ -195,6 +254,7 @@ def main():
         data = json.loads(raw) if raw.strip() else {}
 
         if data.get("stop_hook_active"):
+            _log("PASS stop_hook_active（二次 Stop 放行——洩壓閥，留痕供稽核）")
             return 0
 
         transcript_path = data.get("transcript_path")
@@ -207,20 +267,24 @@ def main():
         if edited_code and not test_seen:
             reason = (
                 "偵測到本回合用 Edit/Write/NotebookEdit 修改了程式碼檔案，"
-                "但這個回合裡沒看到任何測試執行指令（如 pytest/npm test 等；"
-                "本 hook 只檢查指令是否出現，不檢查其輸出/是否通過）。\n"
+                "但這個回合裡沒看到任何測試執行指令（如 pytest/npm test 等），"
+                "也沒有派出帶驗證意圖的 subagent"
+                "（本 hook 只檢查兩者是否出現，不檢查輸出/是否通過）。\n"
                 "依 ~/.claude/rules/hard-rules.md #5：宣稱「完成」之前必走 /done-check，"
                 "回報必附實際指令與輸出，不得只寫「測試通過」。\n"
-                "請先實際跑相關測試/驗證指令並貼出輸出，或走 /done-check；"
+                "請三選一：實際跑相關測試/驗證指令並貼出輸出；"
+                "派 fresh-context agent 驗證（見 dispatch.md「驗證」節）；或走 /done-check。"
                 "若這次改動真的不需要測試（例如純設定調整且已用其他方式驗證），"
                 "請在結束前說明理由。"
             )
+            _log("BLOCK edited_code=True 且無測試指令/驗證 agent")
             print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
             return 0
 
         return 0
     except Exception:
-        # fail-open：hook 本身出任何錯都不可以卡死使用者的 session。
+        # fail-open：hook 本身出任何錯都不可以卡死使用者的 session；但要留痕。
+        _log("ERROR " + traceback.format_exc().replace("\n", " | "))
         return 0
 
 

@@ -26,6 +26,7 @@
 | 讀文件並摘要、查網頁、read-back 驗證 | `general-purpose` + `model: haiku` | 同上 |
 | 一般實作、批次改檔、跑測試修測試 | `general-purpose` + `model: sonnet` | 執行為主，判斷中等 |
 | 架構決策、難 bug 根因、審查仲裁、多答案評審 | `general-purpose` + `model: opus` | 判斷深，值得貴模型 |
+| 對抗審查（uplift.md 方法 2/3）：正確性/攻擊面/簡潔性 | `skeptic` / `red-team` / `simplifier`（模型照各自定義，不另指定） | 重大結論交付前的三鏡頭審查 |
 | `fable` | 不派 | 額度稀缺，僅使用者明說才用 |
 
 拿不準用哪級 → 先派便宜的，照下方升級路徑走，別直接上貴的。
@@ -52,8 +53,8 @@
 - **同一子任務的「交辦」最多重試 2 輪**（升級也算輪）：仍失敗 → 停，向使用者回報事實、
   已排除假設、卡點。
 - 層級區分（別跟除錯搞混）：本節的「輪」指指揮官重新交辦 subagent 的次數；
-  hard-rules #6 與 /debug-protocol 的「3 次」指單一 agent 在自己 context 內的除錯修改次數。
-  兩者各自計數，互不抵扣。
+  hard-rules #6 的「2 次沒好進 /debug-protocol、第 3 次停手 revert」指單一 agent
+  在自己 context 內的除錯修改次數。兩者各自計數，互不抵扣。
 
 ## 驗證（不自驗）
 
