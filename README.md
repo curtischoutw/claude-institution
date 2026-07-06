@@ -5,7 +5,7 @@
 ## 這是什麼、不是什麼
 
 - **正本**在 `~/.claude/`（`CLAUDE.md`、`rules/`、`skills/`）與
-  `~/.claude/projects/-Users-curtis-GitHub-claude-institution/memory/`。
+  `~/.claude/projects/-Users-<username>-GitHub-claude-institution/memory/`。
   制度靠正本運作：每個新 session 由 `~/.claude/CLAUDE.md` 經 `@import` 載入常載規則。
 - **本專案 `institution/` 是複製快照**，不是運作中的檔案。它的用途是：可攜、可版本控管
   （git）、可災難還原（`restore.sh`）。改快照不會影響任何 session；要改制度請改正本。

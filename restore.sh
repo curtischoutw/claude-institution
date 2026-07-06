@@ -102,7 +102,7 @@ fi
 echo
 echo "提醒：memory 屬 project-scope，未自動還原。若需要，手動複製："
 echo "  cp $SRC/memory/*.md \\"
-echo "     \"$DEST/projects/-Users-curtis-GitHub-claude-institution/memory/\""
+echo "     \"$DEST/projects/-Users-$(whoami)-GitHub-claude-institution/memory/\""
 
 echo
 if [ "$DRY_RUN" = 1 ]; then
