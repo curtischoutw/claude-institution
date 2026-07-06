@@ -14,14 +14,17 @@
 #
 # Features:
 #   - 還原 CLAUDE.md、rules/、三個 skills/ 到 ~/.claude/
+#   - 還原 agents/（對抗審查 subagent）、hooks/（層 0 hook 腳本，還原後補可執行位元）
 #   - 覆寫前自動時間戳備份，可回溯
 #   - --dry-run 只印動作不實際複製
 #
 # Dependencies:
-#   - bash >= 3.2, coreutils (cp, mkdir)
+#   - bash >= 3.2, coreutils (cp, mkdir, chmod)
 #
 # Version History:
 #   1.0.0 (2026-07-05): 初版
+#   1.1.0 (2026-07-05): 新增 agents/ 與 hooks/ 還原（借鑑 fable-harness 補層 0 hooks
+#                        與對抗 subagent 後同步）；hooks/* 還原後補 +x。
 
 set -euo pipefail
 
@@ -82,13 +85,24 @@ for skill in done-check lesson debug-protocol; do
   restore_file "skills/$skill/SKILL.md"
 done
 
+for f in "$SRC"/agents/*.md; do
+  restore_file "agents/$(basename "$f")"
+done
+
+for f in "$SRC"/hooks/*; do
+  restore_file "hooks/$(basename "$f")"
+done
+if [ "$DRY_RUN" = 0 ]; then
+  chmod +x "$DEST"/hooks/* 2>/dev/null || true
+fi
+
 # ==============================
 # memory：project-scope，不自動覆寫
 # ==============================
 echo
 echo "提醒：memory 屬 project-scope，未自動還原。若需要，手動複製："
 echo "  cp $SRC/memory/*.md \\"
-echo "     \"$DEST/projects/-Users-curtis-GitHub-fable-once/memory/\""
+echo "     \"$DEST/projects/-Users-curtis-GitHub-claude-institution/memory/\""
 
 echo
 if [ "$DRY_RUN" = 1 ]; then

@@ -5,7 +5,7 @@
 ## 這是什麼、不是什麼
 
 - **正本**在 `~/.claude/`（`CLAUDE.md`、`rules/`、`skills/`）與
-  `~/.claude/projects/-Users-curtis-GitHub-fable-once/memory/`。
+  `~/.claude/projects/-Users-curtis-GitHub-claude-institution/memory/`。
   制度靠正本運作：每個新 session 由 `~/.claude/CLAUDE.md` 經 `@import` 載入常載規則。
 - **本專案 `institution/` 是複製快照**，不是運作中的檔案。它的用途是：可攜、可版本控管
   （git）、可災難還原（`restore.sh`）。改快照不會影響任何 session；要改制度請改正本。
@@ -16,7 +16,7 @@
 多步驟程序與範例 → 按需檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
 讀者是較弱的模型，所以每條規則都力求「具體、可執行、有 if-then 判準與正反例」。
 
-## 檔案清單（快照內容，共 19 檔）
+## 檔案清單（快照內容，共 24 檔）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式、路由表、制度分層表，`@import` 兩個常載檔。
@@ -39,6 +39,24 @@
 - `lesson` — 被糾正後把教訓寫成 if-then 規則，含第 2 次觸發的升級程序
 - `debug-protocol` — 系統化除錯 + 3-strike 停損規則
 
+### institution/hooks/（2 檔，層 0 機器可判定規則）
+借鑑自 Miguok/fable-harness 的同款機制，判斷邏輯保留、訊息改寫成指向本專案自己的規則；
+不引入 fable 的 FABLE-PROTOCOL 命名或協定文字。
+- `verify_gate.py` — Stop hook。本回合動了程式碼卻無測試指令 → 擋下並指向
+  `hard-rules.md` #5 與 `/done-check`；fail-open，任何例外一律放行。
+- `prompt_nudge.sh` — UserPromptSubmit hook。每回合一行提醒（指揮官不下場／
+  /done-check／對抗審查），內容綁定本專案制度。
+
+### institution/agents/（3 個對抗審查 subagent）
+同樣借鑑自 fable-harness，指示改為引用 `rules/uplift.md` 方法 2（多答案評審）／
+方法 3（對抗自查）。**正本放在 `~/.claude/agents/`，但該目錄已是第三方
+`wshobson/agents` 的 git clone**——三個檔名已加進該 clone 的
+`.git/info/exclude`，避免污染其 git status 或被 `git clean` 誤刪；
+真正的還原保障是這份快照 + `restore.sh`。
+- `skeptic.md` — 正確性鏡頭，預設「推翻它」，找邏輯漏洞與反例
+- `red-team.md` — 安全／失效模式鏡頭，固定 5 項攻擊清單
+- `simplifier.md` — 過度工程鏡頭，須提出實際簡化程式碼
+
 ### institution/memory/（2 檔）
 - `institution-map.md` — 制度全貌，供 recall
 - `MEMORY.md` — memory 索引
@@ -52,8 +70,9 @@ CLAUDE.md 的三個演進版本（Fable5 原版 → v2 路由化 → v3 加 upli
 bash restore.sh
 ```
 
-腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、三個 `skills/` 複製回 `~/.claude/`，
-**覆寫前先把現有檔備份到 `~/.claude/backups/restore-<timestamp>/`**。
+腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、三個 `skills/`、`agents/`、`hooks/`
+複製回 `~/.claude/`，**覆寫前先把現有檔備份到 `~/.claude/backups/restore-<timestamp>/`**；
+`hooks/` 還原後會自動補上可執行位元。
 memory 因路徑含專案名、屬 project-scope，腳本只印提示、不自動覆寫。
 
 ## 唯一未確認事項

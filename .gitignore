@@ -1,0 +1,3 @@
+# 本機專屬設定,含絕對路徑,不進公開版控
+.claude/settings.local.json
+.claude/worktrees/
