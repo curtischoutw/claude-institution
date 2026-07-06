@@ -1,7 +1,7 @@
 #!/bin/sh
 # File: prompt_nudge.sh
 # Author: Curtis Chou
-# Email: brokendays611@gmail.com
+# Email: <your-email>
 # Created Date: 2026-07-05
 # Version: 1.0.0
 # Copyright (c) 2026 Curtis Chou
