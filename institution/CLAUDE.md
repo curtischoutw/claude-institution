@@ -38,4 +38,5 @@
 ## 常載規則（@import）
 
 @~/.claude/rules/hard-rules.md
+
 @~/.claude/rules/code-standards.md
