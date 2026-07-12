@@ -70,7 +70,7 @@
 - `MEMORY.md` — memory 索引
 - `fable5-final-assessment.md` — 最終評估與收尾審查結果的位置指標（frontmatter 版，供 recall）
 
-### institution/backups/（今日 4 個 .bak）
+### institution/backups/（2026-07-05 當日的 4 個 .bak）
 CLAUDE.md 的三個演進版本（Fable5 原版 → v2 路由化 → v3 加 uplift）與 letter-to-future 前一版。
 
 ## 執行需求（Python 與 git）
