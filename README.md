@@ -16,24 +16,23 @@
 多步驟程序與範例 → 按需檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
 讀者是較弱的模型，所以每條規則都力求「具體、可執行、有 if-then 判準與正反例」。
 
-## 檔案清單（快照內容，共 29 檔）
+## 檔案清單（快照內容，共 23 檔）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式、路由表、制度分層表，`@import` 兩個常載檔。
 
-### institution/rules/（10 檔）
+### institution/rules/（9 檔）
 | 檔案 | 載入方式 | 內容 |
 |---|---|---|
-| `hard-rules.md` | 常載（@import） | 13 條硬規則：行為、調度、計畫、Git |
-| `code-standards.md` | 常載（@import） | File Docstring 規範、Core Principles |
-| `dispatch.md` | 按需 | 模型調度守則、型號表（2026-07-05 查證）、升降級路徑、驗證不自驗 |
+| `hard-rules.md` | 常載（@import） | 14 條硬規則：元規則、行為、調度、計畫、Git |
+| `code-standards.md` | 常載（@import） | In-file Structure、Core Principles、檔頭要求（模板見 code-header.md） |
+| `code-header.md` | 按需 | File Docstring 完整模板；建立新原始碼檔時讀 |
+| `dispatch.md` | 按需 | 模型調度守則、升降級路徑、驗證不自驗 |
 | `judgment.md` | 按需 | 五個 rubric：升級／完成／問人／換路／品質底線，各附正反例 |
 | `uplift.md` | 按需 | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程 |
 | `prompt-templates.md` | 按需 | 五種交辦範本：搜尋／實作／重構／研究／審查 |
 | `diagnosis.md` | 按需 | 本 harness 三大耗損源與弱模型可照做的修法 |
 | `maintenance.md` | 按需 | 制度檔維護：權限分級、精簡門檻、過期檢查 |
-| `letter-to-future.md` | 按需 | 給未來 session 的交接信；含唯一未確認事項 |
-| `final-assessment-fable5.md` | 按需 | 最後一個 Fable 5 session 的收尾評估與對抗審查結果（歷史文件，只讀） |
 
 ### institution/skills/（3 個 SKILL.md）
 - `done-check` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出
@@ -65,13 +64,9 @@
 - `red-team.md` — 安全／失效模式鏡頭，固定 5 項攻擊清單
 - `simplifier.md` — 過度工程鏡頭，須提出實際簡化程式碼
 
-### institution/memory/（3 檔）
-- `institution-map.md` — 制度全貌，供 recall
+### institution/memory/（2 檔）
+- `institution-map.md` — 制度結構指標，供 recall
 - `MEMORY.md` — memory 索引
-- `fable5-final-assessment.md` — 最終評估與收尾審查結果的位置指標（frontmatter 版，供 recall）
-
-### institution/backups/（2026-07-05 當日的 4 個 .bak）
-CLAUDE.md 的三個演進版本（Fable5 原版 → v2 路由化 → v3 加 uplift）與 letter-to-future 前一版。
 
 ## 執行需求（Python 與 git）
 
@@ -108,5 +103,5 @@ memory 因路徑含專案名、屬 project-scope，腳本只印提示、不自�
 ## 唯一未確認事項
 
 「被安全機制導向到 Opus 4.8 的請求是否消耗當前窗口額度」——本環境查不到，未確認。
-建議到 claude.ai 的 usage 儀表板實測。詳見 `institution/rules/letter-to-future.md`。
+建議到 claude.ai 的 usage 儀表板實測。詳見 `tasks/todo.md` 弱點路線圖第 7 項。
 （`@import` 是否於新 session 生效已於 2026-07-05 用 `claude -p` 實測確認。）

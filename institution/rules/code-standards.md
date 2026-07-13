@@ -1,29 +1,9 @@
 # Code Standards（常載）
 
-## File Docstring（每個產出的原始碼檔案必備；markdown 設定檔與 SKILL.md 除外）
+## File Docstring
 
-```
-File: <filename>
-Author: Curtis Chou
-Email: <your-email>
-Created Date: <YYYY-MM-DD>
-Version: <x.x.x>
-Copyright (c) <created_year>[-<current_year>] Curtis Chou
-(omit the trailing year when both years are the same)
-
-Description:
-  <functional description and design decisions>
-
-Features:
-  - <feature 1>
-  - <feature 2>
-
-Dependencies:
-  - <package>==<version>
-
-Version History:
-  x.x.x (YYYY-MM-DD): <change description>
-```
+每個產出的原始碼檔案必備標準檔頭（markdown 設定檔與 SKILL.md 除外）。
+**建立新原始碼檔前，讀 `~/.claude/rules/code-header.md` 取完整模板**——不憑記憶寫。
 
 ## In-file Structure
 

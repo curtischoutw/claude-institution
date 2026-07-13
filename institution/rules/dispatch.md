@@ -7,16 +7,10 @@
 主對話（指揮官）只做四件事：理解需求、拆解任務、做「換便宜模型就掉品質」的判斷、整合結論。
 大量讀取、掃 repo、查網頁、批次改檔、驗證——一律派 subagent，主對話只進結論。
 
-## 可用型號與參數（2026-07-05 查證值；來源見各行註記）
+## 可用型號與參數
 
-| 用途 | 值 | 來源 |
-|---|---|---|
-| Agent 工具 `model` 參數 | `haiku` / `sonnet` / `opus` / `fable` | 本 harness Agent 工具 schema |
-| agent 定義 frontmatter | `model:`（同上，另可 `inherit` 或完整 model ID）、`effort: low\|medium\|high\|xhigh\|max` | code.claude.com/docs/en/subagents.md |
-| settings.json `effortLevel` | `low` / `medium` / `high` / `xhigh` | code.claude.com/docs/en/settings.md |
-| 完整 model ID | `claude-haiku-4-5-20251001`、`claude-sonnet-5`、`claude-opus-4-8`、`claude-fable-5` | harness 環境宣告 |
-
-註：型號會過時。引用本表前若距上方日期超過約 3 個月，先派 claude-code-guide 重新查證再改本表（改法見 maintenance.md）。
+以**當前 harness 的 Agent 工具 schema 與環境宣告**為準，不憑本檔或記憶填寫（hard-rules #8）。
+拿不準參數格式時派 claude-code-guide 查官方文件，不猜。
 
 ## 調度表（任務 → model）
 
@@ -68,3 +62,8 @@
 | 高風險判斷 | 第二意見：同題派 2 個 agent 各自作答比對分歧；或多答案評審擇優 |
 
 驗證 agent 的回報也遵守回報合約：結論 + 檔案:行號 + 修正建議，不整篇重抄。
+
+## Changelog
+
+- 2026-07-13：刪靜態型號參數表，改為「以當前 harness schema 與環境宣告為準」——
+  會過期的事實表本身違反 hard-rules #8（不憑記憶填）（Fable 5 審查，使用者核准）。
