@@ -16,7 +16,7 @@
 多步驟程序與範例 → 按需檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
 讀者是較弱的模型，所以每條規則都力求「具體、可執行、有 if-then 判準與正反例」。
 
-## 檔案清單（快照內容，共 26 檔）
+## 檔案清單（快照內容，共 22 檔）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式、路由表、制度分層表，`@import` 兩個常載檔。
@@ -66,9 +66,6 @@
 ### institution/memory/（2 檔）
 - `institution-map.md` — 制度結構指標，供 recall
 - `MEMORY.md` — memory 索引
-
-### institution/backups/（2026-07-05 當日的 4 個 .bak）
-CLAUDE.md 的三個演進版本（Fable5 原版 → v2 路由化 → v3 加 uplift）與 letter-to-future 前一版。
 
 ## 執行需求（Python 與 git）
 

@@ -7,7 +7,7 @@
 | 級別 | 檔案 | 規則 |
 |---|---|---|
 | 自由改 | 各專案 `tasks/lessons.md`、`tasks/todo.md`、memory/ | 照 /lesson 與 memory 格式直接寫 |
-| 可自行小改 | `rules/prompt-templates.md`、`rules/diagnosis.md`、`rules/dispatch.md` 的「可用型號」表 | 先備份；只增修不重寫；檔尾 Changelog 加一行（日期＋改了什麼＋為什麼） |
+| 可自行小改 | `rules/prompt-templates.md`、`rules/diagnosis.md` | 先備份；只增修不重寫；檔尾 Changelog 加一行（日期＋改了什麼＋為什麼） |
 | 動前先問使用者 | `CLAUDE.md` 本體、`rules/hard-rules.md`、`rules/code-standards.md`、`rules/judgment.md`、`rules/maintenance.md`（本檔）、既有 skill 的鐵則段 | 弱模型只准「提議 diff＋理由」給使用者核准，不准直接改 |
 | 不改 | backups/ | 歷史備份，只讀 |
 
@@ -23,9 +23,7 @@
 
 ## 踩雷教訓寫回哪裡
 
-- 一律先進當前專案的 `tasks/lessons.md`（格式照 /lesson skill，含 if-then 判準）。
-- 跨專案通用的教訓：在 lessons.md 記錄後，另外「提議」升級進 hard-rules.md 或對應 skill
-  （動前先問級 → 給使用者 diff）。機器可判定的 → 提議做成 hook（/update-config）。
+照 /lesson skill 執行（A 節記錄、B 節升級）；跨專案升級屬「動前先問」級 → 給使用者 diff。
 
 ## 精簡門檻（超過就行動）
 
@@ -39,10 +37,10 @@
 
 ## 過期檢查
 
-- `dispatch.md` 的型號表帶有查證日期：距今超過約 3 個月又要引用時，先派 claude-code-guide
-  重新查證，再照「可自行小改」流程更新。
 - 發現任何規則與 harness 實際行為不符：不要默默繞過——記入 lessons.md 並回報使用者。
 
 ## Changelog
 
 - 2026-07-05：初版（Fable 5 session）。
+- 2026-07-13：制度精簡（Fable 5 審查，使用者核准）——權限表移除已刪檔條目；
+  踩雷節去重改引用 /lesson；型號表過期檢查隨 dispatch.md 靜態表一併移除。

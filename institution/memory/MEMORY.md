@@ -1,3 +1,3 @@
 # Memory Index
 
-- [Institution Map](institution-map.md) — 2026-07-05 Fable 5 session 建立的制度分層與 skill 清單；新規則放哪裡看這篇
+- [Institution Map](institution-map.md) — 制度結構指標；架構描述唯一正本在 claude-institution repo 的 README
