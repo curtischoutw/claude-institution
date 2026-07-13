@@ -18,6 +18,7 @@
 | 寫交辦 prompt（搜尋/實作/重構/研究/審查） | 抄 `~/.claude/rules/prompt-templates.md` |
 | 拿不定主意：升級模型？算完成？該問人？該換路？品質夠嗎？ | 讀 `~/.claude/rules/judgment.md` |
 | 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules/uplift.md` 照強度分級執行 |
+| 建立新的原始碼檔案（需標準檔頭） | 讀 `~/.claude/rules/code-header.md` |
 | 準備宣稱「完成」或 commit | 用 skill `/done-check` |
 | 除錯卡住、同一問題修 2 次沒好 | 用 skill `/debug-protocol` |
 | 被使用者糾正 | 用 skill `/lesson` |

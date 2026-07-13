@@ -16,16 +16,17 @@
 多步驟程序與範例 → 按需檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
 讀者是較弱的模型，所以每條規則都力求「具體、可執行、有 if-then 判準與正反例」。
 
-## 檔案清單（快照內容，共 22 檔）
+## 檔案清單（快照內容，共 23 檔）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式、路由表、制度分層表，`@import` 兩個常載檔。
 
-### institution/rules/（8 檔）
+### institution/rules/（9 檔）
 | 檔案 | 載入方式 | 內容 |
 |---|---|---|
 | `hard-rules.md` | 常載（@import） | 14 條硬規則：元規則、行為、調度、計畫、Git |
-| `code-standards.md` | 常載（@import） | File Docstring 規範、Core Principles |
+| `code-standards.md` | 常載（@import） | In-file Structure、Core Principles、檔頭要求（模板見 code-header.md） |
+| `code-header.md` | 按需 | File Docstring 完整模板；建立新原始碼檔時讀 |
 | `dispatch.md` | 按需 | 模型調度守則、升降級路徑、驗證不自驗 |
 | `judgment.md` | 按需 | 五個 rubric：升級／完成／問人／換路／品質底線，各附正反例 |
 | `uplift.md` | 按需 | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程 |
