@@ -10,8 +10,8 @@ Copyright (c) 2026 Curtis Chou
 Description:
   PreToolUse hook（層 0，機器可判定規則）。攔 Bash：指令若是 git commit，
   先掃 staged diff（帶 -a/--all 時加掃工作區 diff）的新增行，命中除錯碼
-  pattern 就 block。機器強制 hard-rules.md「Git 紀律：不 commit 除錯碼」——
-  letter-to-future.md 第 2 點點名的理想第一條 hook（2026-07-06 紅隊審查 M4）。
+  pattern 就 block。機器強制 hard-rules.md「Git 紀律：不 commit 除錯碼」
+  （2026-07-06 紅隊審查 M4 補入的層 0 規則）。
 
 Features:
   - 只掃「新增行」（diff 的 + 行），刪除除錯碼的 commit 不會被誤擋。

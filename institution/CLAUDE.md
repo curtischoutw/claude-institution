@@ -23,7 +23,6 @@
 | 被使用者糾正 | 用 skill `/lesson` |
 | 想修改 ~/.claude/ 下任何制度檔 | 先讀 `~/.claude/rules/maintenance.md` |
 | 想了解本 harness 的 token/失焦/出錯風險 | 讀 `~/.claude/rules/diagnosis.md` |
-| 接手前人未完成的制度工作 | 讀 `~/.claude/rules/letter-to-future.md` |
 
 ## 制度分層（任何新規則先決定放哪層，能上不下）
 

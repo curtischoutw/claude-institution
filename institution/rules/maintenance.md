@@ -9,7 +9,7 @@
 | 自由改 | 各專案 `tasks/lessons.md`、`tasks/todo.md`、memory/ | 照 /lesson 與 memory 格式直接寫 |
 | 可自行小改 | `rules/prompt-templates.md`、`rules/diagnosis.md`、`rules/dispatch.md` 的「可用型號」表 | 先備份；只增修不重寫；檔尾 Changelog 加一行（日期＋改了什麼＋為什麼） |
 | 動前先問使用者 | `CLAUDE.md` 本體、`rules/hard-rules.md`、`rules/code-standards.md`、`rules/judgment.md`、`rules/maintenance.md`（本檔）、既有 skill 的鐵則段 | 弱模型只准「提議 diff＋理由」給使用者核准，不准直接改 |
-| 不改 | `rules/letter-to-future.md`、backups/ | 歷史文件，只讀 |
+| 不改 | backups/ | 歷史備份，只讀 |
 
 未在上表明列的檔案或章節，一律預設為「動前先問使用者」。
 

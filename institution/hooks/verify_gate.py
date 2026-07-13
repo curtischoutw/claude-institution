@@ -18,7 +18,7 @@ Description:
   FABLE-PROTOCOL 命名或協定文字，避免與既有制度重複/衝突
   （見 ~/.claude/rules/diagnosis.md 第 2 名：常載膨脹與規則衝突）。
 
-  這是 letter-to-future.md 第 2 點點名的「第一條機器可判定規則」：
+  本制度的「第一條機器可判定規則」（層 0）：
   hard-rules.md #5「宣稱完成之前必走 /done-check；回報必附實際指令與輸出」
   原本純靠模型自覺遵守，現在有 hook 機器強制。
 
