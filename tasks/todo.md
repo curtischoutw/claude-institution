@@ -6,6 +6,8 @@
 （2→5 檔）、rules（9→10 檔，補 `final-assessment-fable5.md`）、memory（2→3 檔）
 小節與「共 24 檔」總數（→29）皆已校正並與 `find institution -type f | wc -l`
 的實算結果一致。
+（註：以上檔數為 2026-07-12 當時狀態；2026-07-13 制度精簡後現為 rules 9 檔、
+共 23 檔，以 README 現行清單為準。）
 
 ## ~~README.md「institution/backups/（今日 4 個 .bak）」措辭過期~~（2026-07-12 已解決）
 
