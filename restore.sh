@@ -4,7 +4,7 @@
 # Author: Curtis Chou
 # Email: your-email@example.com
 # Created Date: 2026-07-05
-# Version: 1.0.0
+# Version: 1.2.0
 # Copyright (c) 2026 Curtis Chou
 #
 # Description:
@@ -14,7 +14,7 @@
 #
 # Features:
 #   - 還原 CLAUDE.md、rules/、三個 skills/ 到 ~/.claude/
-#   - 還原 agents/（對抗審查 subagent）、hooks/（層 0 hook 腳本，還原後補可執行位元）
+#   - 還原 agents/（對抗審查 subagent）；hooks/ 預設略過（--with-hooks 才還原並補 +x）
 #   - 覆寫前自動時間戳備份，可回溯
 #   - --dry-run 只印動作不實際複製
 #
@@ -22,9 +22,12 @@
 #   - bash >= 3.2, coreutils (cp, mkdir, chmod)
 #
 # Version History:
-#   1.0.0 (2026-07-05): 初版
+#   1.2.0 (2026-07-15): hooks 預設不還原，需 --with-hooks 才覆蓋——快照 hooks 是
+#                        去識別化版本（email/username 為 placeholder），整包還原會
+#                        劣化 ~/.claude/ 正本（Fable 5 session，蒸餾計畫 P0 附帶）。
 #   1.1.0 (2026-07-05): 新增 agents/ 與 hooks/ 還原（借鑑 fable-harness 補層 0 hooks
 #                        與對抗 subagent 後同步）；hooks/* 還原後補 +x。
+#   1.0.0 (2026-07-05): 初版
 
 set -euo pipefail
 
@@ -38,7 +41,14 @@ TS="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$DEST/backups/restore-$TS"
 
 DRY_RUN=0
-[ "${1:-}" = "--dry-run" ] && DRY_RUN=1
+WITH_HOOKS=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run)    DRY_RUN=1 ;;
+    --with-hooks) WITH_HOOKS=1 ;;
+    *) echo "未知參數：${arg}（可用：--dry-run、--with-hooks）" >&2; exit 1 ;;
+  esac
+done
 
 if [ ! -d "$SRC" ]; then
   echo "錯誤：找不到快照來源 $SRC" >&2
@@ -89,11 +99,16 @@ for f in "$SRC"/agents/*.md; do
   restore_file "agents/$(basename "$f")"
 done
 
-for f in "$SRC"/hooks/*; do
-  restore_file "hooks/$(basename "$f")"
-done
-if [ "$DRY_RUN" = 0 ]; then
-  chmod +x "$DEST"/hooks/* 2>/dev/null || true
+if [ "$WITH_HOOKS" = 1 ]; then
+  for f in "$SRC"/hooks/*; do
+    restore_file "hooks/$(basename "$f")"
+  done
+  if [ "$DRY_RUN" = 0 ]; then
+    chmod +x "$DEST"/hooks/* 2>/dev/null || true
+  fi
+else
+  echo "略過 hooks/：快照是去識別化版本（placeholder email/username），覆蓋會劣化正本。"
+  echo "  確定要還原 hooks 請加 --with-hooks，並記得事後回填個人化欄位。"
 fi
 
 # ==============================
