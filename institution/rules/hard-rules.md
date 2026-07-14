@@ -30,6 +30,7 @@
 12. 驗證不自驗：修改者不得擔任自己產出的唯一驗證者。重要交付派 fresh-context agent
     做 read-back 或實跑（細節見 dispatch.md「驗證」節）。
 13. subagent 回報合約：只回結論與「檔案:行號」；長產物存檔後傳路徑；禁止把整檔內容貼回主對話。
+14. 對使用者的回報：結論先行——第一句話回答「結果是什麼」。細節與格式見 `~/.claude/rules/reporting.md`。
 
 ## 計畫
 
@@ -53,3 +54,7 @@
 - 原子 commit：一個 commit 只做一件事；訊息格式 `type(scope): description`。
 - 不 commit 除錯碼（console.log / print / 註解掉的程式碼）。
 - 使用者沒有要求就不 commit、不 push。
+
+## Changelog
+
+- 2026-07-14：新增 #14 回報結論先行，細節住 reporting.md（Fable 5 session 補蒸餾，使用者核准）。
