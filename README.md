@@ -16,12 +16,12 @@
 多步驟程序與範例 → 按需檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
 讀者是較弱的模型，所以每條規則都力求「具體、可執行、有 if-then 判準與正反例」。
 
-## 檔案清單（快照內容，共 23 檔）
+## 檔案清單（快照內容，共 26 檔）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式、路由表、制度分層表，`@import` 兩個常載檔。
 
-### institution/rules/（9 檔）
+### institution/rules/（12 檔）
 | 檔案 | 載入方式 | 內容 |
 |---|---|---|
 | `hard-rules.md` | 常載（@import） | 14 條硬規則：元規則、行為、調度、計畫、Git |
@@ -33,11 +33,14 @@
 | `prompt-templates.md` | 按需 | 五種交辦範本：搜尋／實作／重構／研究／審查 |
 | `diagnosis.md` | 按需 | 本 harness 三大耗損源與弱模型可照做的修法 |
 | `maintenance.md` | 按需 | 制度檔維護：權限分級、精簡門檻、過期檢查 |
+| `intake.md` | 按需 | 需求端判斷：XY problem 反建議、scope 校準（動手前兩檢查） |
+| `design-heuristics.md` | 按需 | 動手前的正向設計指引：rule of three、先寫呼叫端、錯誤處理三選一等 |
+| `reporting.md` | 按需 | 指揮官對使用者的回報規則：結論先行、選擇性省略、決策選項化 |
 
 ### institution/skills/（3 個 SKILL.md）
 - `done-check` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出
 - `lesson` — 被糾正後把教訓寫成 if-then 規則，含第 2 次觸發的升級程序
-- `debug-protocol` — 系統化除錯 + 3-strike 停損規則
+- `debug-protocol` — 系統化除錯 + 假設生成優先序 + 3-strike 停損規則
 
 ### institution/hooks/（5 檔，層 0 機器可判定規則）
 借鑑自 Miguok/fable-harness 的同款機制，判斷邏輯保留、訊息改寫成指向本專案自己的規則；

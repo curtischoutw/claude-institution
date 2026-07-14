@@ -1,6 +1,8 @@
 # AI Assistant Workflow Configuration（索引）
 
-<!-- v3.0 (2026-07-05)：本檔只當索引路由，≤150 行；直接 @import 的常載檔合計 ≤500 行。
+<!-- v3.1 (2026-07-14)：路由表新增 intake / design-heuristics / reporting 三行
+     （Fable 5 session 補蒸餾，使用者核准）。
+     v3.0 (2026-07-05)：本檔只當索引路由，≤150 行；直接 @import 的常載檔合計 ≤500 行。
      新增內容一律寫新檔再在此加一行路由，不塞長內容進本檔。
      歷史版本在 ~/.claude/backups/。維護規約見 ~/.claude/rules/maintenance.md。 -->
 
@@ -14,6 +16,9 @@
 
 | 情境 | 去處 |
 |---|---|
+| 接到非平凡任務、動手前（查 XY problem 與 scope 落差） | 讀 `~/.claude/rules/intake.md` |
+| 要設計新模組、公開 API、資料結構 | 讀 `~/.claude/rules/design-heuristics.md` |
+| 準備向使用者回報（完成/卡住/提問） | 讀 `~/.claude/rules/reporting.md` |
 | 要派 subagent（讀多檔、搜尋、掃 repo、查網頁、批次改檔、驗證） | 讀 `~/.claude/rules/dispatch.md` |
 | 寫交辦 prompt（搜尋/實作/重構/研究/審查） | 抄 `~/.claude/rules/prompt-templates.md` |
 | 拿不定主意：升級模型？算完成？該問人？該換路？品質夠嗎？ | 讀 `~/.claude/rules/judgment.md` |
