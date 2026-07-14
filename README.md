@@ -24,7 +24,7 @@
 ### institution/rules/（12 檔）
 | 檔案 | 載入方式 | 內容 |
 |---|---|---|
-| `hard-rules.md` | 常載（@import） | 14 條硬規則：元規則、行為、調度、計畫、Git |
+| `hard-rules.md` | 常載（@import） | 硬規則 #0–15：元規則、行為、調度、回報、寫入查證、計畫、Git |
 | `code-standards.md` | 常載（@import） | In-file Structure、Core Principles、檔頭要求（模板見 code-header.md） |
 | `code-header.md` | 按需 | File Docstring 完整模板；建立新原始碼檔時讀 |
 | `dispatch.md` | 按需 | 模型調度守則、升降級路徑、驗證不自驗 |
@@ -71,6 +71,14 @@
 - `institution-map.md` — 制度結構指標，供 recall
 - `MEMORY.md` — memory 索引
 
+### repo 其他內容（非快照，不隨 restore.sh 還原）
+
+- `docs/capability-transfer-assessment.md` — 能力轉移評估基線（Opus＋制度 ≈ Fable 的
+  多少 %；⚠️ 推測值，待 eval 量測校正）。
+- `eval/` — 制度蒸餾最小評測集（6 題＋fixtures＋答案卷）；只在制度改版時跑，
+  用法見 `eval/README.md`。
+- `tasks/` — 本 repo 自己的 lessons.md 與 todo.md。
+
 ## 執行需求（Python 與 git）
 
 `institution/hooks/` 下的每個 `.py` hook 都以 `#!/usr/bin/env python3` 執行，需要：
@@ -98,9 +106,11 @@
 bash restore.sh
 ```
 
-腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、三個 `skills/`、`agents/`、`hooks/`
-複製回 `~/.claude/`，**覆寫前先把現有檔備份到 `~/.claude/backups/restore-<timestamp>/`**；
-`hooks/` 還原後會自動補上可執行位元。
+腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、三個 `skills/`、`agents/`
+複製回 `~/.claude/`，**覆寫前先把現有檔備份到 `~/.claude/backups/restore-<timestamp>/`**。
+`hooks/` **預設略過**：快照 hooks 是去識別化版本（email/username 為 placeholder），
+整包還原會劣化正本；確定要還原加 `--with-hooks`（還原後自動補可執行位元，
+記得回填個人化欄位）。
 memory 因路徑含專案名、屬 project-scope，腳本只印提示、不自動覆寫。
 
 ## 唯一未確認事項
