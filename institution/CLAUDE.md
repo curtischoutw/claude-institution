@@ -1,6 +1,7 @@
 # AI Assistant Workflow Configuration（索引）
 
-<!-- v3.1 (2026-07-14)：路由表新增 intake / design-heuristics / reporting 三行
+<!-- v3.2 (2026-07-15)：分層表下新增條文衝突優先序一行（蒸餾計畫 P2，使用者核准）。
+     v3.1 (2026-07-14)：路由表新增 intake / design-heuristics / reporting 三行
      （Fable 5 session 補蒸餾，使用者核准）。
      v3.0 (2026-07-05)：本檔只當索引路由，≤150 行；直接 @import 的常載檔合計 ≤500 行。
      新增內容一律寫新檔再在此加一行路由，不塞長內容進本檔。
@@ -39,6 +40,9 @@
 | 2 | `~/.claude/skills/` 與 `~/.claude/rules/` 按需檔 | 多步驟程序、checklist、範例 |
 | 3 | 專案 `tasks/lessons.md` | 糾正的第一落點；第 2 次觸發升級到層 0–2 |
 | 4 | memory/ 目錄 | 只放事實與偏好，不放規則 |
+
+條文衝突時的優先序：誠實條款（judgment.md）> hard-rules > 按需檔/skills > lessons.md
+（hooks 是機器強制，不參與此排序）。
 
 ## 常載規則（@import）
 
