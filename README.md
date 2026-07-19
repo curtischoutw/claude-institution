@@ -16,6 +16,47 @@
 多步驟程序與範例 → 按需檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
 讀者是較弱的模型，所以每條規則都力求「具體、可執行、有 if-then 判準與正反例」。
 
+## 制度如何運作
+
+### 任務生命週期（一次任務走的路）
+
+1. **起手＋接單**：讀專案 `tasks/lessons.md`，一句話複述任務範圍＋完成判準（CLAUDE.md
+   起手式）；動手前查 XY problem 與 scope 校準，各 ≤2 分鐘（`intake.md`）。
+2. **路由**：查 CLAUDE.md 路由表 → 按需讀 `rules/` 或用 skill；常載僅 hard-rules＋code-standards。
+3. **執行**：指揮官不下場，粗活派 subagent（#11、`dispatch.md`）；派工顯式指定模型並在描述標明「agent 類型＋模型」。
+4. **驗證**：修改者不自驗，派 fresh-context agent read-back 或實跑（#12）；寫入後印磁碟實態（#15）。
+5. **收尾**：宣稱完成前走 `/done-check`（每個 ✅ 附指令與輸出）→ 回報結論先行（`reporting.md`）。
+
+### 自我改進迴圈（制度怎麼長大）
+
+- 被糾正 → `/lesson` 記入 `tasks/lessons.md`（層 3）；同一教訓**第 2 次觸發** → 依分層升級：
+  機器可判定→hook（層 0）；1–2 行硬規則→常載（層 1）；多步驟程序→skill／按需檔（層 2）。
+- 升級受 `maintenance.md` 權限分級管制（核心檔動前先問使用者）；閉環實例：hard-rules #15＝假同步教訓二次觸發的升級產物。
+
+### 層 0 攔截時序（hooks，機器強制，全部 fail-open）
+
+UserPromptSubmit（`prompt_nudge` 提醒）→ PreToolUse（`backup_gate` 攔無備份改制度檔／
+`commit_guard` 攔除錯碼 commit／`rm_guard` 攔災難級刪除）→ Stop（`verify_gate` 攔改了碼未驗證就收工）。細節見下方檔案清單。
+
+條文衝突優先序：誠實條款（judgment.md）> hard-rules > 按需檔/skills > lessons.md（hooks 機器強制，不參與排序）。
+
+分層互動圖：
+
+```mermaid
+flowchart TD
+    U["使用者任務"] --> C["層1 常載：CLAUDE.md 路由表<br/>hard-rules ＋ code-standards"]
+    C -->|"情境觸發"| R["層2 按需：rules/ ＋ skills/"]
+    C --> D["執行：派 subagent（dispatch）"]
+    D --> V["驗證：fresh-context ＋ /done-check"] --> REP["回報：結論先行"]
+    H["層0 hooks（機器強制）"] -.攔截.-> D & V
+    U -->|"被糾正"| L["層3 lessons.md"]
+    L -->|"第2次觸發升級"| UP{"放哪層？"}
+    UP -->|"機器可判定"| H
+    UP -->|"短硬規則"| C
+    UP -->|"多步驟程序"| R
+    M["層4 memory（只放事實）"] -.recall.-> C
+```
+
 ## 檔案清單（快照內容，共 26 檔）
 
 ### institution/CLAUDE.md
