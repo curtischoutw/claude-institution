@@ -8,6 +8,8 @@
 **判準**：if 任務需要「跨多個檔案的因果推理、權衡取捨、或產出會被長期沿用的規則」
 且便宜模型已錯過一次 → then 升級（路徑見 dispatch.md）。
 if 只是量大（讀很多檔、改很多處相同模式）→ then 不升級，拆小批次派便宜模型。
+本節談的是「往上升」；若指揮官主對話本身就跑在 Fable 上，此路徑倒轉、只降不升——
+見 dispatch.md 升降級路徑「Fable 起手」。
 
 - **正例**：sonnet 兩次修 race condition 都只加 sleep 貼補 → 帶兩次失敗軌跡升 opus 找根因。
 - **反例**：要改 40 個檔案的 import 路徑，覺得「量大很難」就升 opus → 錯。這是機械活，
@@ -64,6 +66,9 @@ if 只是量大（讀很多檔、改很多處相同模式）→ then 不升級�
 
 ## Changelog
 
+- 2026-07-20：「1. 何時升級模型」補一句交叉引用，指向 dispatch.md「Fable 起手」——
+  補「指揮官本身跑 Fable 時路徑倒轉、只降不升」的單向缺口
+  （branch refactor/rules-revision，使用者核准）。
 - 2026-07-19：「3. 何時停下來問使用者」不可逆動作條款加「AUTH: 使用者說「<原話>」」
   必填欄位——借鑑 fable-method 的 AUTH 機制，找不到原話即視為未獲授權
   （claude-institution branch feat/mandatory-artifacts，使用者核准）。
