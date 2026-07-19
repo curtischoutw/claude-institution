@@ -1,5 +1,13 @@
 # Todo（範圍外發現，待使用者決定）
 
+## done-check／debug-protocol skill 範本未納入新增必填欄位（2026-07-19 發現，未修）
+
+`feat/mandatory-artifacts` branch 給 hard-rules #3/#4 與 judgment.md 加了「已驗證:」
+「範圍外發現:」「AUTH:」三個決策點必填欄位。fresh-context read-back（haiku）指出：
+`skills/done-check/SKILL.md` 的完成報告範本、`skills/debug-protocol/SKILL.md` 的
+假設日誌範本，都還沒把這三行納入，執行這兩個 skill 時可能遺漏。屬範圍外問題
+（超出使用者核准的「3 條規則、2 檔」範圍），記錄於此，是否要一併補上待使用者決定。
+
 ## ~~README.md「檔案清單」與 institution/hooks/ 實際內容不符~~（2026-07-12 已解決）
 
 已於本次任務一併修正：`rm_guard.py` 補進 `institution/hooks/`，README 的 hooks
