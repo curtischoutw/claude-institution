@@ -1,14 +1,41 @@
-# claude-institution — 制度快照
+# claude-institution — 讓 Claude Code 有制度地工作
 
-這是 2026-07-05 一次性 Fable 5 session 建立的「Claude Code 跨專案制度」的**快照存檔**。
+一套 Claude Code 跨專案制度：分層規則（hook→常載→按需→lessons）＋機器強制驗證＋
+自我改進迴圈。目標：**弱模型也能穩定交出有證據的高品質產出**，而不是把品質賭在
+單次 prompt 與模型自律上。
 
-## 這是什麼、不是什麼
+## 它解決什麼問題
+
+Claude Code 日常四大痛點：
+
+1. **假完成**——回報「✅ 測試通過」卻根本沒跑過任何指令。
+2. **規則不被遵守**——CLAUDE.md 寫了一大篇，模型看過就忘、挑著遵守。
+3. **額度燒在粗活**——貴模型的 context 被讀檔、搜尋、貼長輸出塞爆，重複計費又失焦。
+4. **糾正不累積**——同一個錯誤，每個新 session 再犯一次。
+
+## 它給你什麼（好處 → 機制 → 在哪）
+
+| 好處 | 靠什麼機制 | 在哪 |
+|---|---|---|
+| 「完成」必附實跑指令與輸出，假完成被攔下 | `/done-check` checklist ＋ `verify_gate` Stop hook 攔「改了碼未驗證就收工」 | `skills/done-check/`、`hooks/` |
+| 規則真的被遵守——強制力來自放對層，不是寫得多 | 制度分層：機器可判定→hook（模型跳不過）；每次必守→常載；程序→按需載入 | `CLAUDE.md` 分層表 |
+| 額度花在刀口——粗活派便宜模型，貴模型只做判斷 | 指揮官不下場＋調度表＋升降級路徑＋派工標明模型 | `rules/dispatch.md` |
+| 同一個錯不犯第二次——糾正複利成制度 | lesson 迴圈：記錄→第 2 次觸發→升級固化到 hook／常載／skill | `skills/lesson/` |
+| 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查三鏡頭（skeptic／red-team／simplifier） | `rules/uplift.md`、`agents/` |
+| 災難級誤操作被機器擋下，不靠模型自律 | 層 0 hooks：`rm_guard`／`backup_gate`／`commit_guard`（fail-open） | `hooks/` |
+| 整套制度可攜、可版本控管、可一鍵還原 | 本 repo 快照＋`restore.sh`（覆寫前自動備份） | `restore.sh` |
+
+**誠實邊界**：制度補的是流程性判斷（防偏誤、防漏做、防過度自信），補不了模型本體的
+品味與長鏈推理；量化的能力轉移比例目前是推測值，見 `docs/capability-transfer-assessment.md`。
+
+## 快照與正本
 
 - **正本**在 `~/.claude/`（`CLAUDE.md`、`rules/`、`skills/`）與
   `~/.claude/projects/-Users-<username>-GitHub-claude-institution/memory/`。
   制度靠正本運作：每個新 session 由 `~/.claude/CLAUDE.md` 經 `@import` 載入常載規則。
-- **本專案 `institution/` 是複製快照**，不是運作中的檔案。它的用途是：可攜、可版本控管
-  （git）、可災難還原（`restore.sh`）。改快照不會影響任何 session；要改制度請改正本。
+- **本專案 `institution/` 是複製快照**（2026-07-05 由一次性 Fable 5 session 建立），
+  不是運作中的檔案。用途：可攜、可版本控管（git）、可災難還原（`restore.sh`）。
+  改快照不會影響任何 session；要改制度請改正本。
 
 ## 設計理念（一句話）
 
