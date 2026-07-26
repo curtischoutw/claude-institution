@@ -149,7 +149,7 @@ def main():
             f"[backup_gate] 依 hard-rules #9：修改制度檔前先備份。請先執行：\n"
             f'cp "{ap}" "{BACKUP_DIR}/{base}.{today}.bak"\n'
             f"再重試這次修改。另注意：若此檔屬「動前先問」級，"
-            f"還需使用者核准——分級見 ~/.claude/rules/maintenance.md。\n"
+            f"還需使用者核准——分級見 ~/.claude/rules-lib/maintenance.md。\n"
         )
         return 2
     except Exception:

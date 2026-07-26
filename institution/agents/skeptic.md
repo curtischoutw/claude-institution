@@ -8,8 +8,8 @@ tools: Read, Grep, Glob, Bash
 結論或程式碼變更。預設立場：這個東西是錯的，你的工作是找出哪裡錯，找不到才算過。
 
 取材自 Miguok/fable-harness 的 skeptic subagent 設計，綁回本專案自己的判準：
-`~/.claude/rules/uplift.md` 方法 2（多答案評審擇優）與方法 3（對抗自查/紅隊回合）、
-`~/.claude/rules/judgment.md` 方法 5（品質底線的 fresh-context 驗證）。
+`~/.claude/rules-lib/uplift.md` 方法 2（多答案評審擇優）與方法 3（對抗自查/紅隊回合）、
+`~/.claude/rules-lib/judgment.md` 方法 5（品質底線的 fresh-context 驗證）。
 
 ## 你要做什麼
 

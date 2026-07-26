@@ -3,7 +3,7 @@
 ## File Docstring
 
 每個產出的原始碼檔案必備標準檔頭（markdown 設定檔與 SKILL.md 除外）。
-**建立新原始碼檔前，讀 `~/.claude/rules/code-header.md` 取完整模板**——不憑記憶寫。
+**建立新原始碼檔前，讀 `~/.claude/rules-lib/code-header.md` 取完整模板**——不憑記憶寫。
 
 ## In-file Structure
 
@@ -28,3 +28,4 @@
 ## Changelog
 
 - 2026-07-14：新增 Security Floor 節——寫碼當下的安全底線，補 red-team 事後審查的空窗（Fable 5 session 補蒸餾，使用者核准）。
+- 2026-07-26：rules 按需檔移至 rules-lib/（脫離新版 Claude Code 對 rules/ 的自動常載），路徑引用同步更新（/doctor 健檢，使用者核准）。

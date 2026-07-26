@@ -12,8 +12,8 @@
 #   不是 fable-harness 原版的 FABLE-PROTOCOL 文字。
 #
 #   設計取材自 Miguok/fable-harness 的 prompt_nudge.sh（同款「每回合一行
-#   nudge」機制），但訊息全部改寫為指向 ~/.claude/rules/dispatch.md、
-#   ~/.claude/skills/done-check、~/.claude/rules/uplift.md 方法 2/3，
+#   nudge」機制），但訊息全部改寫為指向 ~/.claude/rules-lib/dispatch.md、
+#   ~/.claude/skills/done-check、~/.claude/rules-lib/uplift.md 方法 2/3，
 #   避免引入重複的協定文字（見 diagnosis.md 第 2 名：常載膨脹）。
 #
 # Features:

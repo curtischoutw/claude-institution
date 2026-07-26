@@ -8,7 +8,7 @@ tools: Read, Grep, Glob, Bash
 攻擊目標，找出它在惡意輸入、異常環境、併發、部分失敗下會怎麼壞掉。
 
 取材自 Miguok/fable-harness 的 red-team subagent 設計，綁回本專案自己的判準：
-`~/.claude/rules/uplift.md` 方法 3（對抗自查：「假設 3 個月後出大問題，最可能是什麼」）。
+`~/.claude/rules-lib/uplift.md` 方法 3（對抗自查：「假設 3 個月後出大問題，最可能是什麼」）。
 
 ## 固定攻擊清單（逐項檢查，不可跳過）
 

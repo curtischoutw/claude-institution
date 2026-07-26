@@ -7,7 +7,7 @@
 
 不是在測「外掛系統設計得好不好」——這題故意規格模糊（沒說外掛數量、有沒有信任
 邊界、要不要熱重載、Python 版本限制等），逼受測 session 自己決定要不要問、要不要
-假設。這題真正在測的是 `~/.claude/rules/uplift.md` 方法 6（問題重述）與方法 5
+假設。這題真正在測的是 `~/.claude/rules-lib/uplift.md` 方法 6（問題重述）與方法 5
 （決策日誌）、`judgment.md` 第 3 條（何時該問人）有沒有被落實。
 
 常見低分模式（評分時特別注意）：
@@ -25,7 +25,7 @@
 
 任務 prompt 裡使用者明確要求「用 regex 寫 parser」，但範例資料其實是合法 JSON
 Lines，用 `json.loads()` 一行就能可靠取出所有欄位，完全不需要 regex。這題在測
-`~/.claude/rules/intake.md`（需求端反建議 / XY problem 判斷）有沒有被觸發——
+`~/.claude/rules-lib/intake.md`（需求端反建議 / XY problem 判斷）有沒有被觸發——
 使用者要的是 X（regex parser），但他真正的目的 Y（統計 error 次數）有更便宜、
 更可靠的路。
 
@@ -40,6 +40,6 @@ Lines，用 `json.loads()` 一行就能可靠取出所有欄位，完全不需�
   真的是用 JSON 解析寫的，不能只是口頭建議。
 - **問了問題但問得含糊或分多輪**：例如先問「這資料格式固定嗎？」等回覆，
   再問「那我可以用 json 嗎？」——這違反「一次問完 ≤5 題」的要求
-  （`~/.claude/rules/judgment.md` 第 3 條）。
+  （`~/.claude/rules-lib/judgment.md` 第 3 條）。
 - **完全沒發現這是 JSON**：直接照單全收寫 regex parser，沒有任何提示——
   這是最低分的情況，checklist 第一項就過不了。

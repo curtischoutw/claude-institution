@@ -21,7 +21,7 @@
 8. 不確定就寫「我不確定」並說明怎麼驗證；禁止用肯定語氣包裝猜測。
    型號、參數、API 之類的事實：查得到寫實際值，查不到寫「待確認」，絕不憑記憶填。
 9. 改任何既有檔案之前：制度檔（~/.claude/ 下）先 cp 到 ~/.claude/backups/ 帶日期，
-   且部分制度檔「動前先問使用者」——分級與核准門檻見 ~/.claude/rules/maintenance.md；
+   且部分制度檔「動前先問使用者」——分級與核准門檻見 ~/.claude/rules-lib/maintenance.md；
    專案檔靠 git（沒 git 的專案先備份再改）。新內容寫新檔，不塞進既有長檔。
 10. 隨做隨寫：每完成一個交付項立刻存檔再做下一項。session 隨時可能中斷，存了的才算數。
 
@@ -29,11 +29,11 @@
 
 11. 主對話只做：理解需求、拆解、高階判斷、整合結論。以下一律派 subagent，不自己動手：
     讀超過 3 個檔、位置不明的搜尋、掃 repo、查網頁、批次改檔、驗證。
-    派法與模型選擇 → 讀 `~/.claude/rules/dispatch.md`。
+    派法與模型選擇 → 讀 `~/.claude/rules-lib/dispatch.md`。
 12. 驗證不自驗：修改者不得擔任自己產出的唯一驗證者。重要交付派 fresh-context agent
     做 read-back 或實跑（細節見 dispatch.md「驗證」節）。
 13. subagent 回報合約：只回結論與「檔案:行號」；長產物存檔後傳路徑；禁止把整檔內容貼回主對話。
-14. 對使用者的回報：結論先行——第一句話回答「結果是什麼」。細節與格式見 `~/.claude/rules/reporting.md`。
+14. 對使用者的回報：結論先行——第一句話回答「結果是什麼」。細節與格式見 `~/.claude/rules-lib/reporting.md`。
 15. 寫入/刪除/覆蓋動作後，同一或緊接指令必用 `test -e`/`diff`/`cmp` 印出磁碟實際狀態
     才可宣稱完成；工具輸出摻任何與指令無關的雜訊 → 一律判為不可信，改用自控格式的獨立指令重驗。
 
@@ -42,7 +42,7 @@
 - 3 步以上、或動到架構 → 先進 plan mode；計畫寫入 `tasks/todo.md`，含可勾選項目。
 - 計畫每一項必附：**假設**（禁止沉默假設）、**風險**、**完成判準**。
   - 判準壞例：「完成登入功能」。好例：「`pytest tests/test_auth.py` 全綠，且 `curl /login` 回 200 + token」。
-- 執行中發現計畫錯了 → 立刻停下重排，不要邊做邊救。方向錯的訊號 → 讀 `~/.claude/rules/judgment.md`。
+- 執行中發現計畫錯了 → 立刻停下重排，不要邊做邊救。方向錯的訊號 → 讀 `~/.claude/rules-lib/judgment.md`。
 
 ## 自我改進
 
@@ -62,6 +62,7 @@
 
 ## Changelog
 
+- 2026-07-26：rules 按需檔移至 rules-lib/（脫離新版 Claude Code 對 rules/ 的自動常載），路徑引用同步更新（/doctor 健檢，使用者核准）。
 - 2026-07-19：#3、#4 加「決策點必填欄位」（已驗證/範圍外發現）——借鑑 fable-method
   的 INTENT/TWINS 機制：散文叮嚀弱模型可能默默跳過，逼一行逐字產物讓漏做一眼可見
   （claude-institution branch feat/mandatory-artifacts，使用者核准）。

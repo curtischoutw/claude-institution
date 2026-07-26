@@ -19,9 +19,9 @@ Claude Code 日常四大痛點：
 |---|---|---|
 | 「完成」必附實跑指令與輸出，假完成被攔下 | `/done-check` checklist ＋ `verify_gate` Stop hook 攔「改了碼未驗證就收工」 | `skills/done-check/`、`hooks/` |
 | 規則真的被遵守——強制力來自放對層，不是寫得多 | 制度分層：機器可判定→hook（模型跳不過）；每次必守→常載；程序→按需載入 | `CLAUDE.md` 分層表 |
-| 額度花在刀口——粗活派便宜模型，貴模型只做判斷 | 指揮官不下場＋調度表＋升降級路徑＋派工標明模型 | `rules/dispatch.md` |
+| 額度花在刀口——粗活派便宜模型，貴模型只做判斷 | 指揮官不下場＋調度表＋升降級路徑＋派工標明模型 | `rules-lib/dispatch.md` |
 | 同一個錯不犯第二次——糾正複利成制度 | lesson 迴圈：記錄→第 2 次觸發→升級固化到 hook／常載／skill | `skills/lesson/` |
-| 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查三鏡頭（skeptic／red-team／simplifier） | `rules/uplift.md`、`agents/` |
+| 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查三鏡頭（skeptic／red-team／simplifier） | `rules-lib/uplift.md`、`agents/` |
 | 災難級誤操作被機器擋下，不靠模型自律 | 層 0 hooks：`rm_guard`／`backup_gate`／`commit_guard`（fail-open） | `hooks/` |
 | 整套制度可攜、可版本控管、可一鍵還原 | 本 repo 快照＋`restore.sh`（覆寫前自動備份） | `restore.sh` |
 
@@ -126,7 +126,7 @@ flowchart TD
   fail-open（單一片段解析失敗且含 rm 時改保守 regex 擋，不直接放行）。
 
 ### institution/agents/（3 個對抗審查 subagent）
-同樣借鑑自 fable-harness，指示改為引用 `rules/uplift.md` 方法 2（多答案評審）／
+同樣借鑑自 fable-harness，指示改為引用 `rules-lib/uplift.md` 方法 2（多答案評審）／
 方法 3（對抗自查）。**正本放在 `~/.claude/agents/`，但該目錄已是第三方
 `wshobson/agents` 的 git clone**——三個檔名已加進該 clone 的
 `.git/info/exclude`，避免污染其 git status 或被 `git clean` 誤刪；

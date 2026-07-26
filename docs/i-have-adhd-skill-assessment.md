@@ -11,7 +11,7 @@
 
 ## 1. 結論先行
 
-**不建議原樣安裝**這個 marketplace plugin，理由是本專案 `institution/rules/reporting.md` 已獨立蒸餾出它約
+**不建議原樣安裝**這個 marketplace plugin，理由是本專案 `institution/rules-lib/reporting.md` 已獨立蒸餾出它約
 **八成**的規則，且它的 opt-in slash-command 形態與本專案「輸出風格應常載、規則要放對層」的哲學相衝。
 
 **建議**：只把它真正比本專案多出來的 **3 條規則**（每回合重述進度、結尾給一個 <2 分鐘可做的下一步、

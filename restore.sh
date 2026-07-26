@@ -4,7 +4,7 @@
 # Author: Curtis Chou
 # Email: your-email@example.com
 # Created Date: 2026-07-05
-# Version: 1.2.0
+# Version: 1.3.0
 # Copyright (c) 2026 Curtis Chou
 #
 # Description:
@@ -13,7 +13,7 @@
 #   memory 因路徑含專案名、屬 project-scope，僅印出提示不自動覆寫。
 #
 # Features:
-#   - 還原 CLAUDE.md、rules/、三個 skills/ 到 ~/.claude/
+#   - 還原 CLAUDE.md、rules/、rules-lib/、三個 skills/ 到 ~/.claude/
 #   - 還原 agents/（對抗審查 subagent）；hooks/ 預設略過（--with-hooks 才還原並補 +x）
 #   - 覆寫前自動時間戳備份，可回溯
 #   - --dry-run 只印動作不實際複製
@@ -22,6 +22,9 @@
 #   - bash >= 3.2, coreutils (cp, mkdir, chmod)
 #
 # Version History:
+#   1.3.0 (2026-07-26): 新增 rules-lib/ 還原迴圈——rules 按需檔搬離 rules/ 至
+#                        rules-lib/（脫離新版 Claude Code 對 rules/ 的自動常載）後，
+#                        restore.sh 需同步涵蓋（/doctor 健檢，使用者核准）。
 #   1.2.0 (2026-07-15): hooks 預設不還原，需 --with-hooks 才覆蓋——快照 hooks 是
 #                        去識別化版本（email/username 為 placeholder），整包還原會
 #                        劣化 ~/.claude/ 正本（Fable 5 session，蒸餾計畫 P0 附帶）。
@@ -89,6 +92,10 @@ restore_file "CLAUDE.md"
 
 for f in "$SRC"/rules/*.md; do
   restore_file "rules/$(basename "$f")"
+done
+
+for f in "$SRC"/rules-lib/*.md; do
+  restore_file "rules-lib/$(basename "$f")"
 done
 
 for skill in done-check lesson debug-protocol; do

@@ -35,7 +35,7 @@
 2. **驗收條件**：可驗證的完成判準（能寫成指令最好）。
 3. **回報格式**：指定長度上限與結構。
 
-範本直接抄 `~/.claude/rules/prompt-templates.md`，不要即興寫。
+範本直接抄 `~/.claude/rules-lib/prompt-templates.md`，不要即興寫。
 
 ## 回報合約（寫進每個交辦 prompt）
 
@@ -80,6 +80,7 @@
 
 ## Changelog
 
+- 2026-07-26：rules 按需檔移至 rules-lib/（脫離新版 Claude Code 對 rules/ 的自動常載），路徑引用同步更新（/doctor 健檢，使用者核准）。
 - 2026-07-20：升降級路徑加「Fable 起手」——補指揮官本身跑 Fable 時的倒轉機制
   （只降不升、opus 失敗指揮官親接、禁繼承、回報消耗）；原窄閥只覆蓋「便宜指揮官爬到 fable」，
   漏了「一開始就 fable」（branch refactor/rules-revision，使用者核准）。
