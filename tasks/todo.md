@@ -1,5 +1,16 @@
 # Todo（範圍外發現，待使用者決定）
 
+## restore.sh 加 `--prune`（2026-08-06 精簡計畫附帶發現，未修）
+`restore.sh` 只 cp 不 rm——快照刪掉的檔不會從 `~/.claude/` 正本消失，會變成
+「路由表沒指向但仍存在」的孤兒檔。目前靠 Phase 6 手動 `rm` 處理，長期應該讓
+`restore.sh --prune` 自動比對快照與正本、列出正本獨有的檔案供確認刪除。
+
+## 驗證 TaskCreate/TaskList 跨 session 持久性（2026-08-06 精簡計畫附帶發現，未修）
+hard-rules #4「範圍外發現記到 tasks/todo.md」是否該改用內建 TaskCreate 尚未確定——
+內建 task 系統的跨 session 持久性未查證。驗證法：建一個 task 後結束 session，
+新 session 跑 `TaskList` 看是否仍在。若持久，#4 可能該搬到內建機制；若不持久，
+維持現況（`tasks/todo.md` 檔案持久性是確定的）。
+
 ## done-check／debug-protocol skill 範本未納入新增必填欄位（2026-07-19 發現，未修）
 
 `feat/mandatory-artifacts` branch 給 hard-rules #3/#4 與 judgment.md 加了「已驗證:」

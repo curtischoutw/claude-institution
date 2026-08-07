@@ -10,7 +10,10 @@ Claude Code 日常四大痛點：
 
 1. **假完成**——回報「✅ 測試通過」卻根本沒跑過任何指令。
 2. **規則不被遵守**——CLAUDE.md 寫了一大篇，模型看過就忘、挑著遵守。
-3. **額度燒在粗活**——貴模型的 context 被讀檔、搜尋、貼長輸出塞爆，重複計費又失焦。
+3. **主 context 燒在粗活**——讀檔、搜尋、貼長輸出永久佔據主對話 context，稀釋注意力
+   （2026-08-06 eval 實測後修正：原本的理由是「重複計費」，但這個理由已被 harness
+   內建的 Agent tool 說明反轉——subagent 本身被明文標註是較貴的路徑；仍然成立的
+   理由是避免主 context 失焦，見 `docs/harness-overlap-2026-08.md`）。
 4. **糾正不累積**——同一個錯誤，每個新 session 再犯一次。
 
 ## 它給你什麼（好處 → 機制 → 在哪）
@@ -19,14 +22,16 @@ Claude Code 日常四大痛點：
 |---|---|---|
 | 「完成」必附實跑指令與輸出，假完成被攔下 | `/done-check` checklist ＋ `verify_gate` Stop hook 攔「改了碼未驗證就收工」 | `skills/done-check/`、`hooks/` |
 | 規則真的被遵守——強制力來自放對層，不是寫得多 | 制度分層：機器可判定→hook（模型跳不過）；每次必守→常載；程序→按需載入 | `CLAUDE.md` 分層表 |
-| 額度花在刀口——粗活派便宜模型，貴模型只做判斷 | 指揮官不下場＋調度表＋升降級路徑＋派工標明模型 | `rules-lib/dispatch.md` |
+| 主對話保持乾淨——粗活的中間輸出不進主 context | 指揮官不下場＋升降級路徑＋派工標明模型 | `rules-lib/dispatch.md` |
 | 同一個錯不犯第二次——糾正複利成制度 | lesson 迴圈：記錄→第 2 次觸發→升級固化到 hook／常載／skill | `skills/lesson/` |
 | 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查三鏡頭（skeptic／red-team／simplifier） | `rules-lib/uplift.md`、`agents/` |
 | 災難級誤操作被機器擋下，不靠模型自律 | 層 0 hooks：`rm_guard`／`backup_gate`／`commit_guard`（fail-open） | `hooks/` |
 | 整套制度可攜、可版本控管、可一鍵還原 | 本 repo 快照＋`restore.sh`（覆寫前自動備份） | `restore.sh` |
 
 **誠實邊界**：制度補的是流程性判斷（防偏誤、防漏做、防過度自信），補不了模型本體的
-品味與長鏈推理；量化的能力轉移比例目前是推測值，見 `docs/capability-transfer-assessment.md`。
+品味與長鏈推理；2026-08-06 已用 `eval/` 六題中的 t3–t6 對 Opus 5 做過一輪實測
+（現行制度 vs `--safe-mode` 零制度），結果是**逐題分裂**而非整體增益，
+見 `docs/capability-transfer-assessment.md` 與 `docs/harness-overlap-2026-08.md`。
 
 ## 快照與正本
 
@@ -47,8 +52,9 @@ Claude Code 日常四大痛點：
 
 ### 任務生命週期（一次任務走的路）
 
-1. **起手＋接單**：讀專案 `tasks/lessons.md`，一句話複述任務範圍＋完成判準（CLAUDE.md
-   起手式）；動手前查 XY problem 與 scope 校準，各 ≤2 分鐘（`intake.md`）。
+1. **起手＋接單**：一句話複述任務範圍＋完成判準，動手前 XY problem 快速檢查
+   （CLAUDE.md 起手式常載，2026-08-06 由 `intake.md` 按需檔升級——實測按需觸發
+   不可靠）；scope 校準與正反例需要細節時查 `intake.md`。
 2. **路由**：查 CLAUDE.md 路由表 → 按需讀 `rules/` 或用 skill；常載僅 hard-rules＋code-standards。
 3. **執行**：指揮官不下場，粗活派 subagent（#11、`dispatch.md`）；派工顯式指定模型並在描述標明「agent 類型＋模型」。
 4. **驗證**：修改者不自驗，派 fresh-context agent read-back 或實跑（#12）；寫入後印磁碟實態（#15）。
@@ -84,26 +90,29 @@ flowchart TD
     M["層4 memory（只放事實）"] -.recall.-> C
 ```
 
-## 檔案清單（快照內容，共 26 檔）
+## 檔案清單（快照內容，共 25 檔，2026-08-06 更新）
 
 ### institution/CLAUDE.md
-索引式主檔（≤150 行）：起手式、路由表、制度分層表，`@import` 兩個常載檔。
+索引式主檔（≤150 行）：起手式（含 XY problem 快速檢查）、路由表、制度分層表。
 
-### institution/rules/（12 檔）
-| 檔案 | 載入方式 | 內容 |
-|---|---|---|
-| `hard-rules.md` | 常載（@import） | 硬規則 #0–15：元規則、行為、調度、回報、寫入查證、計畫、Git |
-| `code-standards.md` | 常載（@import） | In-file Structure、Core Principles、檔頭要求（模板見 code-header.md） |
-| `code-header.md` | 按需 | File Docstring 完整模板；建立新原始碼檔時讀 |
-| `dispatch.md` | 按需 | 模型調度守則、升降級路徑、驗證不自驗 |
-| `judgment.md` | 按需 | 五個 rubric：升級／完成／問人／換路／品質底線，各附正反例 |
-| `uplift.md` | 按需 | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程 |
-| `prompt-templates.md` | 按需 | 五種交辦範本：搜尋／實作／重構／研究／審查 |
-| `diagnosis.md` | 按需 | 本 harness 三大耗損源與弱模型可照做的修法 |
-| `maintenance.md` | 按需 | 制度檔維護：權限分級、精簡門檻、過期檢查 |
-| `intake.md` | 按需 | 需求端判斷：XY problem 反建議、scope 校準（動手前兩檢查） |
-| `design-heuristics.md` | 按需 | 動手前的正向設計指引：rule of three、先寫呼叫端、錯誤處理三選一等 |
-| `reporting.md` | 按需 | 指揮官對使用者的回報規則：結論先行、選擇性省略、決策選項化 |
+### institution/rules/（2 檔，無 `paths:` frontmatter，Claude Code 自動常載）
+| 檔案 | 內容 |
+|---|---|
+| `hard-rules.md` | 硬規則 #0–13、15（無 #14）：元規則、行為、調度、寫入查證、計畫、Git |
+| `code-standards.md` | In-file Structure、Core Principles、檔頭要求（模板見 code-header.md） |
+
+### institution/rules-lib/（9 檔，按需）
+| 檔案 | 內容 |
+|---|---|
+| `code-header.md` | File Docstring 完整模板；建立新原始碼檔時讀 |
+| `dispatch.md` | 模型調度守則、升降級路徑、驗證不自驗 |
+| `judgment.md` | 四個 rubric：完成／問人／換路／品質底線，各附正反例 |
+| `uplift.md` | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程 |
+| `prompt-templates.md` | 四種交辦範本：搜尋／實作重構／研究／審查 |
+| `maintenance.md` | 制度檔維護：權限分級、加常載規則前兩題測試、精簡門檻、過期檢查 |
+| `intake.md` | 需求端判斷完整版：XY problem 正反例、scope 校準（快速版已在 CLAUDE.md 起手式） |
+| `design-heuristics.md` | 動手前的正向設計指引：rule of three、先寫呼叫端、錯誤處理三選一等 |
+| `reporting.md` | 指揮官對使用者的回報規則：結論先行、選擇性省略、決策選項化 |
 
 ### institution/skills/（3 個 SKILL.md）
 - `done-check` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出
@@ -141,8 +150,11 @@ flowchart TD
 
 ### repo 其他內容（非快照，不隨 restore.sh 還原）
 
-- `docs/capability-transfer-assessment.md` — 能力轉移評估基線（Opus＋制度 ≈ Fable 的
-  多少 %；⚠️ 推測值，待 eval 量測校正）。
+- `docs/capability-transfer-assessment.md` — 能力轉移評估基線；2026-08-06 已用
+  `eval/` t3–t6 對 Opus 5 實測一輪（現行制度 vs 零制度），結果與原推測值不同，
+  詳見檔內 Changelog。
+- `docs/harness-overlap-2026-08.md` — 2026-08-06 精簡計畫的逐條比對表：每條制度
+  規則對照 harness 內建原文出處與判定，供下次大版本更新後重跑覆核。
 - `eval/` — 制度蒸餾最小評測集（6 題＋fixtures＋答案卷）；只在制度改版時跑，
   用法見 `eval/README.md`。
 - `tasks/` — 本 repo 自己的 lessons.md 與 todo.md。
@@ -174,7 +186,7 @@ flowchart TD
 bash restore.sh
 ```
 
-腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、三個 `skills/`、`agents/`
+腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、`rules-lib/`、三個 `skills/`、`agents/`
 複製回 `~/.claude/`，**覆寫前先把現有檔備份到 `~/.claude/backups/restore-<timestamp>/`**。
 `hooks/` **預設略過**：快照 hooks 是去識別化版本（email/username 為 placeholder），
 整包還原會劣化正本；確定要還原加 `--with-hooks`（還原後自動補可執行位元，

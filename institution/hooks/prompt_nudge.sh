@@ -14,7 +14,8 @@
 #   設計取材自 Miguok/fable-harness 的 prompt_nudge.sh（同款「每回合一行
 #   nudge」機制），但訊息全部改寫為指向 ~/.claude/rules-lib/dispatch.md、
 #   ~/.claude/skills/done-check、~/.claude/rules-lib/uplift.md 方法 2/3，
-#   避免引入重複的協定文字（見 diagnosis.md 第 2 名：常載膨脹）。
+#   避免引入重複的協定文字（原引用 diagnosis.md 第 2 名：常載膨脹，該檔
+#   2026-08-06 已刪並併入 ~/.claude/rules-lib/maintenance.md）。
 #
 # Features:
 #   - 單行輸出，不做任何判斷邏輯，成本極低。

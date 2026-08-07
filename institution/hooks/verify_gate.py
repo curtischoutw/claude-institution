@@ -16,7 +16,8 @@ Description:
   機制），但判斷邏輯保留、訊息全部改寫成指向本專案自己的規則
   （~/.claude/rules/hard-rules.md #5、/done-check skill），不引入 fable 的
   FABLE-PROTOCOL 命名或協定文字，避免與既有制度重複/衝突
-  （見 ~/.claude/rules-lib/diagnosis.md 第 2 名：常載膨脹與規則衝突）。
+  （原引用 ~/.claude/rules-lib/diagnosis.md 第 2 名：常載膨脹與規則衝突，
+  該檔 2026-08-06 已刪並併入 ~/.claude/rules-lib/maintenance.md）。
 
   本制度的「第一條機器可判定規則」（層 0）：
   hard-rules.md #5「宣稱完成之前必走 /done-check；回報必附實際指令與輸出」
