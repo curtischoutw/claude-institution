@@ -4,7 +4,7 @@ File: verify_gate.py
 Author: Curtis Chou
 Email: <your-email>
 Created Date: 2026-07-05
-Version: 1.1.0
+Version: 1.2.0
 Copyright (c) 2026 Curtis Chou
 
 Description:
@@ -32,6 +32,9 @@ Features:
   - stop_hook_active（第二次 stop）一律放行，避免純討論 session 被卡死。
   - fail-open：任何內部錯誤 → 放行，但寫入 hooks.log 留痕；block 事件與二次
     Stop 放行也記 log，供人工稽核「被擋後是否敷衍了事」。
+  - 沒有測試套件覆蓋的檔案（例如本檔自己）：`python3 -c ast.parse`／`py_compile`／
+    `sh -n`／`bash -n`／`node -c` 這類語法檢查指令也視為驗證證據
+    （2026-08-07 補；原本只認測試框架指令）。
 
 已知極限（機制上修不掉；2026-07-06 紅隊審查明文記載，勿誤信層 0 全能）:
   - 只驗「測試指令／驗證 agent 是否出現」，驗不了測試是否通過、驗證是否認真。
@@ -45,6 +48,10 @@ Dependencies:
   - Python 3.8+（僅標準函式庫：datetime, json, os, re, sys, traceback）
 
 Version History:
+  1.2.0 (2026-08-07): 補語法檢查類指令為驗證證據（新增 SYNTAX_CHECK_RE）——
+    本 session 編輯 hooks/*.py 本身時，用 `python3 -c ast.parse` 驗證卻被誤判
+    為「沒有測試證據」，因為原偵測只認測試框架指令，沒有測試套件覆蓋的檔案
+    （hook 腳本本身）沒有這類指令可跑（使用者核准）。
   1.1.0 (2026-07-06): Fable 5 收尾審查修補——認可 subagent 驗證（修層 0/層 1
     激勵相反）、測試指令比對綁指令位置（堵 cat pytest.ini 夾帶）、補
     .ipynb/.tf/.pl/.pm/.groovy 副檔名、fail-open 與 block 寫 log 留痕、
@@ -89,6 +96,20 @@ TEST_CMD_RE = re.compile(
     r"rspec|bundle\s+exec\s+rspec|"
     r"dotnet\s+test|swift\s+test|phpunit|ctest|mix\s+test"
     r")\b",
+    re.IGNORECASE,
+)
+
+# 語法檢查類指令：不是測試框架，但足以驗證程式碼至少能被解析/載入
+# （2026-08-07 發現的偵測盲區：沒有測試套件覆蓋的檔案——例如本檔自己——
+#   慣用的驗證方式是語法檢查，原本會被誤判為「沒驗證」）。
+SYNTAX_CHECK_RE = re.compile(
+    r"(?:^|[\n;&|(]\s*)"
+    r"("
+    r"python3?\s+-c\s+.*ast\.parse|"
+    r"python3?\s+-m\s+py_compile|"
+    r"(?:sh|bash)\s+-n|"
+    r"node\s+(?:-c|--check)"
+    r")",
     re.IGNORECASE,
 )
 
@@ -224,7 +245,7 @@ def analyze(entries):
 
             if name == "Bash":
                 command = tool_input.get("command") or ""
-                if TEST_CMD_RE.search(command):
+                if TEST_CMD_RE.search(command) or SYNTAX_CHECK_RE.search(command):
                     test_seen = True
 
             if name in AGENT_TOOLS:
