@@ -1,13 +1,5 @@
-# File: refactor_target.py
-# Author: Curtis Chou
-# Email: <your-email>
-# Created Date: 2026-07-15
-# Version: 1.0.0
-# Copyright (c) 2026 Curtis Chou
-#
-# Description:
-#   eval fixture — 用平行陣列（parallel arrays）管理一份簡易庫存清單的工具函式集合。
-#   刻意保留常見壞味道供重構練習使用，行為本身正確（測試已全綠）。
+# eval fixture（t2 重構任務）— 用平行陣列（parallel arrays）管理一份簡易庫存清單的
+# 工具函式集合。刻意保留常見壞味道供重構練習使用，行為本身正確（測試已全綠）。
 #
 # Features:
 #   - 新增／移除／查詢／折扣／統計庫存項目
@@ -15,9 +7,6 @@
 #
 # Dependencies:
 #   - (none, stdlib only)
-#
-# Version History:
-#   1.0.0 (2026-07-15): 初版建立，供 eval t2 重構任務使用。
 
 
 def add_item(names, prices, quantities, name, price, quantity):

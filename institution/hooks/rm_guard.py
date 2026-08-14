@@ -1,33 +1,29 @@
 #!/usr/bin/env python3
 """
-File: rm_guard.py
-Author: Curtis Chou
-Email: <your-email>
-Created Date: 2026-07-11
-Version: 1.0.0
-Copyright (c) 2026 Curtis Chou
+PreToolUse hook（層 0，機器可判定規則）。攔 Bash：偵測 rm / rmdir /
+find -delete 對「災難級路徑」的刪除並 block，防止一次失誤清空家目錄
+或系統目錄。與 settings.json 的 permissions.deny 精確字串規則互為表裡：
+deny 規則擋字面完全相同的指令，本 hook 負責語意變形（旗標順序、~ 與
+$HOME 展開、相對路徑、glob、危險的變數寫法）。
 
-Description:
-  PreToolUse hook（層 0，機器可判定規則）。攔 Bash：偵測 rm / rmdir /
-  find -delete 對「災難級路徑」的刪除並 block，防止一次失誤清空家目錄
-  或系統目錄。與 settings.json 的 permissions.deny 精確字串規則互為表裡：
-  deny 規則擋字面完全相同的指令，本 hook 負責語意變形（旗標順序、~ 與
-  $HOME 展開、相對路徑、glob、危險的變數寫法）。
-
-  「災難級路徑」定義（正規化後）：
-    - `/` 本身
-    - 任何深度 1 的絕對路徑（/Users、/tmp、/etc、/Library、/System…）
-    - /Users/<任何人>（深度 2，含家目錄本身）、~、$HOME
-    - 解析到上述位置的相對路徑與 `.`（依 hook 收到的 cwd 計算）
-    - glob 尾綴指向上述位置（如 `rm -rf ~/*`、`rm -rf /*`）
-    - 遞迴刪除中「未加防呆的變數開頭路徑」（如 `rm -rf $DIR/build`：
-      變數意外為空即變成刪 /build）。安全寫法 `${DIR:?}/build` 或
-      `${DIR:-預設}/build` 放行。
+「災難級路徑」定義（正規化後）：
+  - `/` 本身
+  - 任何深度 1 的絕對路徑（/Users、/tmp、/etc、/Library、/System…）
+  - /Users/<任何人>（深度 2，含家目錄本身）、~、$HOME
+  - 解析到上述位置的相對路徑與 `.`（依 hook 收到的 cwd 計算）
+  - glob 尾綴指向上述位置（如 `rm -rf ~/*`、`rm -rf /*`）
+  - 遞迴刪除中「未加防呆的變數開頭路徑」（如 `rm -rf $DIR/build`：
+    變數意外為空即變成刪 /build）。安全寫法 `${DIR:?}/build` 或
+    `${DIR:-預設}/build` 放行。
 
 Features:
   - 展開 ~ 與 $HOME/${HOME}；相對路徑與 `.` 依 cwd 正規化後再判定；
     路徑比對 casefold（macOS APFS 大小寫不敏感，/USERS/<username> 也擋）。
-  - 剝除 sudo/env/command/nohup/nice/time 包裝與前置變數賦值再認指令。
+  - 剝除 sudo/env/command/nohup/nice/time 包裝與前置變數賦值再認指令；
+    一併剝除 shell 群組與流程控制的前導 token（{ } ! do then else），
+    `{ rm -rf ~ ; }` 與 for/if 包裹的刪除不會逃檢。
+  - 片段切割用 shlex punctuation 模式（引號感知，引號內的分號不誤切）；
+    子 shell 括號內的指令（`(rm …)`）同樣納入檢查。
   - 內聯 shell 遞迴檢查：bash -c / sh -lc / eval 內的指令同樣受檢
     （深度上限 MAX_DEPTH，防套娃）。
   - find <路徑> … -delete 檢查起始路徑（-L/-H/-P/-O/-D 前置選項不影響
@@ -40,7 +36,7 @@ Features:
   - fail-open：stdin 解析失敗、內部錯誤 → 放行＋log（與其他 hook 一致）；
     但單一片段 shlex 解析失敗且含 rm 時，改用保守 regex 掃描不直接放行。
 
-  已知極限（誠實列出，勿當作全面保證）：
+已知極限（誠實列出，勿當作全面保證）:
   - 擋不住「危險指令藏在被執行的腳本檔內」（bash foo.sh）。
   - 擋不住 xargs rm（目標來自 stdin，靜態分析看不到）。
   - 變數值在 hook 執行時未知，只能擋「危險寫法」不能擋「危險值」。
@@ -51,20 +47,6 @@ Features:
 
 Dependencies:
   - Python 3.8+（僅標準函式庫：datetime, json, os, re, shlex, sys, traceback）
-
-Version History:
-  1.2.1 (2026-07-11): 第三輪對抗審查修補：剝除 shell 群組/流程控制
-    前導 token（{ } ! do then else），{ rm -rf ~ ; } 與 for/if 包裹
-    的刪除不再逃檢。
-  1.2.0 (2026-07-11): 第二輪對抗審查修補：glob 判定由枚舉改規則式
-    （含 .??* 與 {.,}* brace expansion）、逐段追蹤 cd/pushd、
-    find 前置選項（-L 等）不再讓起始路徑逃檢；片段切割改用 shlex
-    punctuation 模式（引號感知，引號內分號不誤切；子 shell 括號
-    (rm …) 也納入檢查）。
-  1.1.0 (2026-07-11): fresh-context 對抗審查修補:bash -c/eval 內聯 shell
-    遞迴檢查、find -exec 子指令檢查、路徑 casefold、glob 補
-    dotfile 清空手法；記載 rm -rf "~" 誤擋為已知極限。
-  1.0.0 (2026-07-11): 初版（使用者要求防止誤刪家目錄/根目錄）。
 """
 
 import datetime

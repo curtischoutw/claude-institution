@@ -1,36 +1,19 @@
 #!/usr/bin/env bash
 #
-# File: restore.sh
-# Author: Curtis Chou
-# Email: your-email@example.com
-# Created Date: 2026-07-05
-# Version: 1.3.0
-# Copyright (c) 2026 Curtis Chou
-#
-# Description:
-#   把本專案 institution/ 快照中的制度檔還原回 ~/.claude/。
-#   遵守制度硬規則 #9：覆寫任何既有檔前，先備份到 ~/.claude/backups/restore-<timestamp>/。
-#   memory 因路徑含專案名、屬 project-scope，僅印出提示不自動覆寫。
+# 把本專案 institution/ 快照中的制度檔還原回 ~/.claude/。
+# 遵守制度硬規則 #9：覆寫任何既有檔前，先備份到 ~/.claude/backups/restore-<timestamp>/。
+# memory 因路徑含專案名、屬 project-scope，僅印出提示不自動覆寫。
 #
 # Features:
 #   - 還原 CLAUDE.md、rules/、rules-lib/、三個 skills/ 到 ~/.claude/
-#   - 還原 agents/（對抗審查 subagent）；hooks/ 預設略過（--with-hooks 才還原並補 +x）
+#   - 還原 agents/（對抗審查 subagent）
+#   - hooks/ 預設略過，需 --with-hooks 才還原（還原後補 +x）：快照裡的 hooks 是
+#     去識別化版本，註解中的路徑範例已改為 <username> 佔位，整包還原會劣化正本
 #   - 覆寫前自動時間戳備份，可回溯
 #   - --dry-run 只印動作不實際複製
 #
 # Dependencies:
 #   - bash >= 3.2, coreutils (cp, mkdir, chmod)
-#
-# Version History:
-#   1.3.0 (2026-07-26): 新增 rules-lib/ 還原迴圈——rules 按需檔搬離 rules/ 至
-#                        rules-lib/（脫離新版 Claude Code 對 rules/ 的自動常載）後，
-#                        restore.sh 需同步涵蓋（/doctor 健檢，使用者核准）。
-#   1.2.0 (2026-07-15): hooks 預設不還原，需 --with-hooks 才覆蓋——快照 hooks 是
-#                        去識別化版本（email/username 為 placeholder），整包還原會
-#                        劣化 ~/.claude/ 正本（Fable 5 session，蒸餾計畫 P0 附帶）。
-#   1.1.0 (2026-07-05): 新增 agents/ 與 hooks/ 還原（借鑑 fable-harness 補層 0 hooks
-#                        與對抗 subagent 後同步）；hooks/* 還原後補 +x。
-#   1.0.0 (2026-07-05): 初版
 
 set -euo pipefail
 

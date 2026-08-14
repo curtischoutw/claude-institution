@@ -1,20 +1,12 @@
 #!/usr/bin/env python3
 """
-File: backup_gate.py
-Author: Curtis Chou
-Email: <your-email>
-Created Date: 2026-07-06
-Version: 1.0.0
-Copyright (c) 2026 Curtis Chou
+PreToolUse hook（層 0，機器可判定規則）。攔 Edit/Write/NotebookEdit：
+目標若是 ~/.claude/ 下的制度檔（CLAUDE.md、settings.json、rules/、skills/、
+hooks/、agents/ 頂層 .md），檢查 ~/.claude/backups/ 是否已有「同檔名＋今日
+日期」的備份；沒有就 block 並附上可直接複製的 cp 指令。
 
-Description:
-  PreToolUse hook（層 0，機器可判定規則）。攔 Edit/Write/NotebookEdit：
-  目標若是 ~/.claude/ 下的制度檔（CLAUDE.md、settings.json、rules/、skills/、
-  hooks/、agents/ 頂層 .md），檢查 ~/.claude/backups/ 是否已有「同檔名＋今日
-  日期」的備份；沒有就 block 並附上可直接複製的 cp 指令。
-
-  機器強制 hard-rules.md #9 的備份要求（2026-07-06 紅隊審查 M3：備份流程
-  原本純靠模型自覺，弱模型最可能靜默跳過的一步）。
+機器強制 hard-rules.md #9 的備份要求（2026-07-06 紅隊審查 M3：備份流程
+原本純靠模型自覺，弱模型最可能靜默跳過的一步）。
 
 Features:
   - 只攔「既有檔案」的修改；建立新檔不需備份，直接放行。
@@ -27,9 +19,6 @@ Features:
 
 Dependencies:
   - Python 3.8+（僅標準函式庫：datetime, json, os, sys, traceback）
-
-Version History:
-  1.0.0 (2026-07-06): 初版（Fable 5 收尾審查修補 M3）。
 """
 
 import datetime

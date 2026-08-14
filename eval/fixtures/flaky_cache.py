@@ -1,13 +1,5 @@
-# File: flaky_cache.py
-# Author: Curtis Chou
-# Email: <your-email>
-# Created Date: 2026-07-15
-# Version: 1.0.0
-# Copyright (c) 2026 Curtis Chou
-#
-# Description:
-#   eval fixture — 簡易快取模組，供除錯評測任務使用。已知在某些使用場景下
-#   行為不符預期（詳見 eval/answers/，僅評分者可讀）。
+# eval fixture（t4 間歇性除錯任務）— 簡易快取模組。已知在某些使用場景下
+# 行為不符預期（詳見 eval/answers/，僅評分者可讀）。
 #
 # Features:
 #   - get_or_compute(key, compute_fn)：命中回傳快取值，未命中則呼叫 compute_fn
@@ -15,9 +7,6 @@
 #
 # Dependencies:
 #   - (none, stdlib only)
-#
-# Version History:
-#   1.0.0 (2026-07-15): 初版建立，供 eval t4 間歇性除錯任務使用。
 
 import random
 import time

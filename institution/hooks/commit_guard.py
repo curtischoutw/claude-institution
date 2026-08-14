@@ -1,16 +1,8 @@
 #!/usr/bin/env python3
 """
-File: commit_guard.py
-Author: Curtis Chou
-Email: <your-email>
-Created Date: 2026-07-06
-Version: 1.0.0
-Copyright (c) 2026 Curtis Chou
-
-Description:
-  PreToolUse hook（層 0，機器可判定規則）。攔 Bash：指令若是 git commit，
-  先掃 staged diff（帶 -a/--all 時加掃工作區 diff）的新增行，命中除錯碼
-  pattern 就 block。機器強制 hard-rules.md「Git 紀律：不 commit 除錯碼」
+PreToolUse hook（層 0，機器可判定規則）。攔 Bash：指令若是 git commit，
+先掃 staged diff（帶 -a/--all 時加掃工作區 diff）的新增行，命中除錯碼
+pattern 就 block。機器強制 hard-rules.md「Git 紀律：不 commit 除錯碼」
   （2026-07-06 紅隊審查 M4 補入的層 0 規則）。
 
 Features:
@@ -25,9 +17,6 @@ Features:
 Dependencies:
   - Python 3.8+（僅標準函式庫：datetime, json, os, re, subprocess, sys, traceback）
   - git（不存在時 fail-open）
-
-Version History:
-  1.0.0 (2026-07-06): 初版（Fable 5 收尾審查修補 M4）。
 """
 
 import datetime
