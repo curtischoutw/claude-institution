@@ -3,10 +3,8 @@
 ## File Docstring
 
 每個產出的原始碼檔案開頭必備模組層級敘述（markdown 設定檔與 SKILL.md 除外）：
-這個檔是什麼、為什麼存在、關鍵設計決策、已知極限。
-
-**只寫 git 答不出來的資訊**——作者、Email、建檔日期、版本號、變更歷史一律不寫進檔頭
-（手抄一份必與 git 分歧，分歧時讀者無法判斷哪份在說謊；過期的檔頭比沒有檔頭更糟）。
+這個檔是什麼、為什麼存在、關鍵設計決策、已知極限。**只寫 git 答不出來的資訊**——
+作者、Email、建檔日期、版本號、變更歷史一律不寫進檔頭（過期的檔頭比沒有檔頭更糟）。
 **建立新原始碼檔前，讀 `~/.claude/rules-lib/code-header.md` 取完整模板**——不憑記憶寫。
 
 ## In-file Structure
@@ -33,4 +31,4 @@
 
 - 2026-07-14：新增 Security Floor 節——寫碼當下的安全底線，補 red-team 事後審查的空窗（Fable 5 session 補蒸餾，使用者核准）。
 - 2026-07-26：rules 按需檔移至 rules-lib/（脫離新版 Claude Code 對 rules/ 的自動常載），路徑引用同步更新（/doctor 健檢，使用者核准）。
-- 2026-08-14：檔頭改為「只留敘述、砍掉元資料」——刪 File/Author/Email/Created Date/Version/Copyright/Version History 七欄，改由 git 與 `CHANGELOG.md` 承擔。理由：本 repo 11 個原始碼檔實測，`rm_guard.py` 的 `Version` 與自身 `Version History` 首行矛盾、`backup_gate.py` 與 `prompt_nudge.sh` 修改後漏更新、11 檔 `Email` 全是未填佔位符；且「什麼算實質修改該不該 bump」不可機器判定，無論放哪層都會腐爛（使用者核准）。
+- 2026-08-14：檔頭改為「只留敘述、砍掉元資料」——七個元資料欄位改由 git 與 `CHANGELOG.md` 承擔；實測證據與完整理由見該檔（使用者核准）。
