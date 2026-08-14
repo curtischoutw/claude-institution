@@ -1,27 +1,19 @@
 #!/usr/bin/env python3
 """
-File: verify_gate.py
-Author: Curtis Chou
-Email: <your-email>
-Created Date: 2026-07-05
-Version: 1.2.0
-Copyright (c) 2026 Curtis Chou
+Stop hook（層 0，機器可判定規則）。在每次 session 要結束(Stop 事件)時檢查：
+本回合是否用 Edit/Write/NotebookEdit 動了程式碼副檔名的檔案，卻沒有出現任何
+測試/驗證指令。若是，擋下這次 Stop 並要求走 /done-check。
 
-Description:
-  Stop hook（層 0，機器可判定規則）。在每次 session 要結束(Stop 事件)時檢查：
-  本回合是否用 Edit/Write/NotebookEdit 動了程式碼副檔名的檔案，卻沒有出現任何
-  測試/驗證指令。若是，擋下這次 Stop 並要求走 /done-check。
+設計取材自 Miguok/fable-harness 的 verify_gate.py（同款 Stop-hook + fail-open
+機制），但判斷邏輯保留、訊息全部改寫成指向本專案自己的規則
+（~/.claude/rules/hard-rules.md #5、/done-check skill），不引入 fable 的
+FABLE-PROTOCOL 命名或協定文字，避免與既有制度重複/衝突
+（原引用 ~/.claude/rules-lib/diagnosis.md 第 2 名：常載膨脹與規則衝突，
+該檔 2026-08-06 已刪並併入 ~/.claude/rules-lib/maintenance.md）。
 
-  設計取材自 Miguok/fable-harness 的 verify_gate.py（同款 Stop-hook + fail-open
-  機制），但判斷邏輯保留、訊息全部改寫成指向本專案自己的規則
-  （~/.claude/rules/hard-rules.md #5、/done-check skill），不引入 fable 的
-  FABLE-PROTOCOL 命名或協定文字，避免與既有制度重複/衝突
-  （原引用 ~/.claude/rules-lib/diagnosis.md 第 2 名：常載膨脹與規則衝突，
-  該檔 2026-08-06 已刪並併入 ~/.claude/rules-lib/maintenance.md）。
-
-  本制度的「第一條機器可判定規則」（層 0）：
-  hard-rules.md #5「宣稱完成之前必走 /done-check；回報必附實際指令與輸出」
-  原本純靠模型自覺遵守，現在有 hook 機器強制。
+本制度的「第一條機器可判定規則」（層 0）：
+hard-rules.md #5「宣稱完成之前必走 /done-check；回報必附實際指令與輸出」
+原本純靠模型自覺遵守，現在有 hook 機器強制。
 
 Features:
   - 只在偵測到「動了程式碼卻無測試證據」時才擋下；純文件/設定改動不觸發。
@@ -33,8 +25,7 @@ Features:
   - fail-open：任何內部錯誤 → 放行，但寫入 hooks.log 留痕；block 事件與二次
     Stop 放行也記 log，供人工稽核「被擋後是否敷衍了事」。
   - 沒有測試套件覆蓋的檔案（例如本檔自己）：`python3 -c ast.parse`／`py_compile`／
-    `sh -n`／`bash -n`／`node -c` 這類語法檢查指令也視為驗證證據
-    （2026-08-07 補；原本只認測試框架指令）。
+    `sh -n`／`bash -n`／`node -c` 這類語法檢查指令也視為驗證證據。
 
 已知極限（機制上修不掉；2026-07-06 紅隊審查明文記載，勿誤信層 0 全能）:
   - 只驗「測試指令／驗證 agent 是否出現」，驗不了測試是否通過、驗證是否認真。
@@ -46,17 +37,6 @@ Features:
 
 Dependencies:
   - Python 3.8+（僅標準函式庫：datetime, json, os, re, sys, traceback）
-
-Version History:
-  1.2.0 (2026-08-07): 補語法檢查類指令為驗證證據（新增 SYNTAX_CHECK_RE）——
-    本 session 編輯 hooks/*.py 本身時，用 `python3 -c ast.parse` 驗證卻被誤判
-    為「沒有測試證據」，因為原偵測只認測試框架指令，沒有測試套件覆蓋的檔案
-    （hook 腳本本身）沒有這類指令可跑（使用者核准）。
-  1.1.0 (2026-07-06): Fable 5 收尾審查修補——認可 subagent 驗證（修層 0/層 1
-    激勵相反）、測試指令比對綁指令位置（堵 cat pytest.ini 夾帶）、補
-    .ipynb/.tf/.pl/.pm/.groovy 副檔名、fail-open 與 block 寫 log 留痕、
-    明文記載已知極限。
-  1.0.0 (2026-07-05): 初版，改寫自 fable-harness verify_gate.py。
 """
 
 import datetime

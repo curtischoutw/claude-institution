@@ -1,22 +1,11 @@
-# File: test_refactor_target.py
-# Author: Curtis Chou
-# Email: <your-email>
-# Created Date: 2026-07-15
-# Version: 1.0.0
-# Copyright (c) 2026 Curtis Chou
-#
-# Description:
-#   eval fixture — refactor_target.py 的行為基線測試。t2 重構任務要求這份測試
-#   在重構前後皆全綠，且測試檔本身不得被修改。
+# eval fixture（t2 重構任務）— refactor_target.py 的行為基線測試。t2 要求這份測試
+# 在重構前後皆全綠，且測試檔本身不得被修改。
 #
 # Features:
 #   - 涵蓋 add/find/remove/total/discount/most_expensive/report 全部公開函式
 #
 # Dependencies:
 #   - pytest
-#
-# Version History:
-#   1.0.0 (2026-07-15): 初版建立，供 eval t2 重構任務使用。
 
 from refactor_target import (
     add_item,

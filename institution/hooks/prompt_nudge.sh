@@ -1,13 +1,5 @@
 #!/bin/sh
-# File: prompt_nudge.sh
-# Author: Curtis Chou
-# Email: <your-email>
-# Created Date: 2026-07-05
-# Version: 1.0.0
-# Copyright (c) 2026 Curtis Chou
-#
-# Description:
-#   UserPromptSubmit hook（層 0）。每個 user turn 開始時，往 stdout 印一行
+# UserPromptSubmit hook（層 0）。每個 user turn 開始時，往 stdout 印一行
 #   提醒，內容綁定本專案自己的制度（指揮官不下場 / /done-check / 對抗審查），
 #   不是 fable-harness 原版的 FABLE-PROTOCOL 文字。
 #
@@ -23,8 +15,5 @@
 #
 # Dependencies:
 #   - POSIX sh
-#
-# Version History:
-#   1.0.0 (2026-07-05): 初版，改寫自 fable-harness prompt_nudge.sh。
 
 echo "🧭 指揮官不下場（讀>3檔/搜尋/掃repo/批次改/驗證都派 subagent）；宣稱完成前走 /done-check 並附實際指令與輸出；重大結論可派 skeptic/red-team/simplifier 做對抗審查。"

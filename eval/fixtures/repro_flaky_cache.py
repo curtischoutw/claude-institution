@@ -1,15 +1,6 @@
-# File: repro_flaky_cache.py
-# Author: Curtis Chou
-# Email: <your-email>
-# Created Date: 2026-07-15
-# Version: 1.0.0
-# Copyright (c) 2026 Curtis Chou
-#
-# Description:
-#   eval fixture — flaky_cache.py 的重現腳本。開 10 條 thread 同時對同一個
-#   key 呼叫 FlakyCache.get_or_compute，正確行為應只計算一次
-#   （compute_count == 1）。跑 10 輪，把每輪結果與是否失敗印出來，
-#   最後印出總失敗次數。
+# eval fixture（t4 間歇性除錯任務）— flaky_cache.py 的重現腳本。開 10 條 thread
+# 同時對同一個 key 呼叫 FlakyCache.get_or_compute，正確行為應只計算一次
+# （compute_count == 1）。跑 10 輪，把每輪結果與是否失敗印出來，最後印出總失敗次數。
 #
 # Features:
 #   - 單輪重現：10 threads race 同一個 key
@@ -17,9 +8,6 @@
 #
 # Dependencies:
 #   - (none, stdlib only)
-#
-# Version History:
-#   1.0.0 (2026-07-15): 初版建立，供 eval t4 間歇性除錯任務使用。
 
 import threading
 

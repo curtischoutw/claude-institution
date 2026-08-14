@@ -99,12 +99,12 @@ flowchart TD
 | 檔案 | 內容 |
 |---|---|
 | `hard-rules.md` | 硬規則 #0–13、15（無 #14）：元規則、行為、調度、寫入查證、計畫、Git |
-| `code-standards.md` | In-file Structure、Core Principles、檔頭要求（模板見 code-header.md） |
+| `code-standards.md` | In-file Structure、Core Principles、模組敘述檔頭要求（模板見 code-header.md） |
 
 ### institution/rules-lib/（9 檔，按需）
 | 檔案 | 內容 |
 |---|---|
-| `code-header.md` | File Docstring 完整模板；建立新原始碼檔時讀 |
+| `code-header.md` | File Docstring 完整模板（只寫 git 答不出來的資訊）；建立新原始碼檔時讀 |
 | `dispatch.md` | 模型調度守則、升降級路徑、驗證不自驗 |
 | `judgment.md` | 四個 rubric：完成／問人／換路／品質底線，各附正反例 |
 | `uplift.md` | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程 |
@@ -158,6 +158,8 @@ flowchart TD
 - `eval/` — 制度蒸餾最小評測集（6 題＋fixtures＋答案卷）；只在制度改版時跑，
   用法見 `eval/README.md`。
 - `tasks/` — 本 repo 自己的 lessons.md 與 todo.md。
+- `CHANGELOG.md` — repo 層級的顯著變更（Keep a Changelog 格式）。逐檔修改紀錄一律
+  用 `git log -- <file>`，不再放進各檔檔頭（2026-08-14 檔頭改版）。
 
 ## 執行需求（Python 與 git）
 

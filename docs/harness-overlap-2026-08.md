@@ -46,7 +46,7 @@ TaskCreate、auto memory、Delivering work 章節、Agent tool 的使用指引�
 | `prompt-templates.md` 各範本重複的「禁止編造/回報上限」 | 檔頭「通用鐵則」節已聲明同一件事 | 刪（內部重複） | 移除各範本內重複字句，保留數字 |
 | `maintenance.md` 精簡門檻「常載合計 500 行」 | 官方文件：「target under 200 lines per CLAUDE.md file」 | 降層（門檻本身無依據） | 500→200 |
 | **`intake.md`「動手前查 XY problem」** | 無內建等價；問題不在內建，在本檔自己的**觸發機制** | **機制修正**（見下方「t6 實測」節） | 核心判準搬進 CLAUDE.md 常載起手式；`intake.md` 保留完整版（scope 校準＋正反例） |
-| `code-standards.md` 標準檔頭要求 | 本 session system prompt：「Write code that reads like the surrounding code: match its comment density, naming, and idiom」 | **留（張力不解決，使用者決定保留現況）** | 不動；張力仍在，在既有外部 repo 工作時可能不一致 |
+| `code-standards.md` 標準檔頭要求 | 本 session system prompt：「Write code that reads like the surrounding code: match its comment density, naming, and idiom」 | **留（2026-08-06 決定不解決）→ 2026-08-14 改版後張力減輕** | 見下方「2026-08-14 檔頭改版」節 |
 | hard-rules #2/#5/#6/#7/#15、`uplift.md`、`code-header.md`、`design-heuristics.md`、5 個 hooks、3 個 skills | 內建無等價（逐一核對本 session system prompt，無對應機制） | 留 | 不動 |
 
 ## t6 實測：`intake.md` 按需觸發機制失效（2026-08-06）
@@ -71,6 +71,25 @@ JSON」。
 | t4 間歇性 bug | 6/6 | 6/6 | 無差異 |
 | t5 架構取捨 | ~4/6 | ~1/6 | 制度有實質幫助 |
 | t6 XY problem | 0/6、0/6 | 0/6 | 制度未發揮作用（機制問題） |
+
+## 2026-08-14 檔頭改版（上表「標準檔頭要求」一列的後續）
+
+2026-08-06 這格記為「張力不解決，使用者決定保留現況」。2026-08-14 使用者重新檢視後
+改版：檔頭砍掉 `File`／`Author`／`Email`／`Created Date`／`Version`／`Copyright`／
+`Version History` 七個元資料欄位，只留敘述、`Features`、`已知極限`、`Dependencies`
+（詳見 `CHANGELOG.md` 與 `institution/rules-lib/code-header.md`）。
+
+**與內建的張力因此減輕**：剩下的內容就是各語言正常的 module docstring 用法，
+和「reads like the surrounding code」不再直接對撞——原本最違和的是那七行
+署名／版號／變更歷史，在別人的 repo 裡明顯突兀，砍掉後檔頭本身不再是異物。
+
+**但張力沒有完全消失，也沒有新增例外條文**（使用者 2026-08-14 明確決定不加
+「外部 repo 入境隨俗」規則）：在一個慣例是「完全不寫 module docstring」的外部 repo，
+本制度仍會要求寫。這一格維持**留**，覆核時重新評估。
+
+**改版的主要理由不是這個張力，而是分歧**：元資料欄位與 git 是兩份紀錄，本 repo
+11 個原始碼檔已實測出 3 個版本欄位失真、11 個 `Email` 未填。理由與證據見
+`institution/rules/code-standards.md` 的 Changelog 與 `CHANGELOG.md`。
 
 ## 下次覆核時怎麼用這份文件
 

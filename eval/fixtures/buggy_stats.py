@@ -1,13 +1,5 @@
-# File: buggy_stats.py
-# Author: Curtis Chou
-# Email: <your-email>
-# Created Date: 2026-07-15
-# Version: 1.0.0
-# Copyright (c) 2026 Curtis Chou
-#
-# Description:
-#   eval fixture — 對一份日誌等級序列（如 ["OK", "ERROR", ...]）計算簡單統計量。
-#   供除錯任務使用，行為在某個邊界情況下不正確。
+# eval fixture（t3 除錯任務）— 對一份日誌等級序列（如 ["OK", "ERROR", ...]）
+# 計算簡單統計量。供除錯任務使用，行為在某個邊界情況下刻意不正確。
 #
 # Features:
 #   - error_rate：計算 ERROR 佔比
@@ -15,9 +7,6 @@
 #
 # Dependencies:
 #   - (none, stdlib only)
-#
-# Version History:
-#   1.0.0 (2026-07-15): 初版建立，供 eval t3 除錯任務使用。
 
 
 def error_rate(levels):
