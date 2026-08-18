@@ -1,0 +1,74 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/)",
+      "Bash(rm -rf $HOME)",
+      "Bash(rm -fr /)",
+      "Bash(rm -fr ~)",
+      "Bash(rm -r /)",
+      "Bash(rm -r ~)",
+      "Bash(rmdir /)",
+      "Bash(sudo rm -rf /)",
+      "Bash(sudo rm -rf ~)"
+    ],
+    "defaultMode": "auto"
+  },
+  "model": "opusplan",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/<username>/.claude/hooks/backup_gate.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/<username>/.claude/hooks/rm_guard.py"
+          },
+          {
+            "type": "command",
+            "command": "/Users/<username>/.claude/hooks/commit_guard.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/<username>/.claude/hooks/verify_gate.py 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/<username>/.claude/hooks/prompt_nudge.sh 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {},
+  "language": "繁體中文台灣用語",
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "tui": "fullscreen"
+}

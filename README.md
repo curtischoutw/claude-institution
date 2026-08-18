@@ -90,7 +90,7 @@ flowchart TD
     M["層4 memory（只放事實）"] -.recall.-> C
 ```
 
-## 檔案清單（快照內容，共 25 檔，2026-08-06 更新）
+## 檔案清單（快照內容，共 27 檔，2026-08-18 更新）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式（含 XY problem 快速檢查）、路由表、制度分層表。
@@ -148,6 +148,16 @@ flowchart TD
 - `institution-map.md` — 制度結構指標，供 recall
 - `MEMORY.md` — memory 索引
 
+### institution/settings.json ＋ institution/statusline.sh（2 檔，2026-08-18 新增）
+補上先前的災難還原缺口：舊快照只涵蓋 hooks 檔本身，沒有涵蓋「把 hook 掛上去」
+的接線設定，災難還原後 hooks 會全部躺著不生效。
+- `settings.json` — `permissions.deny`（rm -rf / 等 11 條）＋ 5 個 hook 的
+  PreToolUse/Stop/UserPromptSubmit 綁定＋ model/statusLine/language 等。
+  hook 綁定路徑去識別化為 `/Users/<username>/.claude/hooks/...`；**預設略過**，
+  還原需 `--with-settings`（自動用 `whoami` 替換回實際路徑）。
+- `statusline.sh` — 被 `settings.json` 的 `statusLine` 引用；內容全用 `$HOME`/
+  `$cwd`，無個人化資訊，隨預設流程還原（還原後自動補可執行位元）。
+
 ### repo 其他內容（非快照，不隨 restore.sh 還原）
 
 - `docs/capability-transfer-assessment.md` — 能力轉移評估基線；2026-08-06 已用
@@ -188,11 +198,13 @@ flowchart TD
 bash restore.sh
 ```
 
-腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、`rules-lib/`、三個 `skills/`、`agents/`
-複製回 `~/.claude/`，**覆寫前先把現有檔備份到 `~/.claude/backups/restore-<timestamp>/`**。
-`hooks/` **預設略過**：快照 hooks 是去識別化版本（email/username 為 placeholder），
-整包還原會劣化正本；確定要還原加 `--with-hooks`（還原後自動補可執行位元，
-記得回填個人化欄位）。
+腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、`rules-lib/`、三個 `skills/`、`agents/`、
+`statusline.sh` 複製回 `~/.claude/`，**覆寫前先把現有檔備份到
+`~/.claude/backups/restore-<timestamp>/`**。
+`hooks/` 與 `settings.json` **預設略過**：快照是去識別化版本（email/username 為
+placeholder），整包還原會劣化正本；確定要還原分別加 `--with-hooks`（還原後自動補
+可執行位元，記得回填個人化欄位）與 `--with-settings`（還原時自動用 `whoami`
+替換回實際路徑，不需手動回填）。
 memory 因路徑含專案名、屬 project-scope，腳本只印提示、不自動覆寫。
 
 ## 唯一未確認事項

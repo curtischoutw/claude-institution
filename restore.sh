@@ -5,15 +5,17 @@
 # memory 因路徑含專案名、屬 project-scope，僅印出提示不自動覆寫。
 #
 # Features:
-#   - 還原 CLAUDE.md、rules/、rules-lib/、三個 skills/ 到 ~/.claude/
+#   - 還原 CLAUDE.md、rules/、rules-lib/、三個 skills/、statusline.sh 到 ~/.claude/
 #   - 還原 agents/（對抗審查 subagent）
 #   - hooks/ 預設略過，需 --with-hooks 才還原（還原後補 +x）：快照裡的 hooks 是
 #     去識別化版本，註解中的路徑範例已改為 <username> 佔位，整包還原會劣化正本
+#   - settings.json 預設略過，需 --with-settings 才還原：快照裡 hook 綁定的絕對
+#     路徑同樣是 <username> 佔位，還原時用 whoami 替換回實際路徑（sed，非直接 cp）
 #   - 覆寫前自動時間戳備份，可回溯
 #   - --dry-run 只印動作不實際複製
 #
 # Dependencies:
-#   - bash >= 3.2, coreutils (cp, mkdir, chmod)
+#   - bash >= 3.2, coreutils (cp, mkdir, chmod), sed
 
 set -euo pipefail
 
@@ -28,11 +30,13 @@ BACKUP_DIR="$DEST/backups/restore-$TS"
 
 DRY_RUN=0
 WITH_HOOKS=0
+WITH_SETTINGS=0
 for arg in "$@"; do
   case "$arg" in
-    --dry-run)    DRY_RUN=1 ;;
-    --with-hooks) WITH_HOOKS=1 ;;
-    *) echo "未知參數：${arg}（可用：--dry-run、--with-hooks）" >&2; exit 1 ;;
+    --dry-run)       DRY_RUN=1 ;;
+    --with-hooks)    WITH_HOOKS=1 ;;
+    --with-settings) WITH_SETTINGS=1 ;;
+    *) echo "未知參數：${arg}（可用：--dry-run、--with-hooks、--with-settings）" >&2; exit 1 ;;
   esac
 done
 
@@ -69,9 +73,34 @@ restore_file() {
 }
 
 # ==============================
+# 備份既有檔後複製並替換 <username> 佔位（settings.json 專用）
+# ==============================
+restore_settings() {
+  local rel="settings.json"
+  local src="$SRC/$rel"
+  local dst="$DEST/$rel"
+  [ -f "$src" ] || { echo "略過（快照缺）：$rel"; return; }
+  if [ -f "$dst" ]; then
+    echo "備份既有：$rel -> backups/restore-$TS/$rel"
+    if [ "$DRY_RUN" = 0 ]; then
+      mkdir -p "$BACKUP_DIR"
+      cp "$dst" "$BACKUP_DIR/$rel"
+    fi
+  fi
+  echo "還原：${rel}（<username> -> $(whoami)）"
+  if [ "$DRY_RUN" = 0 ]; then
+    sed "s|<username>|$(whoami)|g" "$src" > "$dst"
+  fi
+}
+
+# ==============================
 # 執行還原
 # ==============================
 restore_file "CLAUDE.md"
+restore_file "statusline.sh"
+if [ "$DRY_RUN" = 0 ] && [ -f "$DEST/statusline.sh" ]; then
+  chmod +x "$DEST/statusline.sh"
+fi
 
 for f in "$SRC"/rules/*.md; do
   restore_file "rules/$(basename "$f")"
@@ -99,6 +128,13 @@ if [ "$WITH_HOOKS" = 1 ]; then
 else
   echo "略過 hooks/：快照是去識別化版本（placeholder email/username），覆蓋會劣化正本。"
   echo "  確定要還原 hooks 請加 --with-hooks，並記得事後回填個人化欄位。"
+fi
+
+if [ "$WITH_SETTINGS" = 1 ]; then
+  restore_settings
+else
+  echo "略過 settings.json：快照是去識別化版本（hook 路徑 <username> 佔位）。"
+  echo "  確定要還原請加 --with-settings（還原時自動替換為 $(whoami)）。"
 fi
 
 # ==============================

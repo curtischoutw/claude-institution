@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+### Added
+
+- **快照補上 `settings.json` 與 `statusline.sh`，堵住災難還原缺口**（2026-08-18）。
+  三邊對齊調查（repo／`~/.claude/`／遠端 GitHub）發現：`institution/` 快照有 5 個
+  hooks 檔本身，卻沒有「把 hook 掛上去」的 `settings.json`（`permissions.deny` ＋
+  PreToolUse/Stop/UserPromptSubmit 綁定）——災難還原後 hooks 會全部躺著不生效。
+  新增 `institution/settings.json`（hook 路徑去識別化為 `<username>`）與
+  `institution/statusline.sh`（無個人化資訊），`restore.sh` 新增 `--with-settings`
+  （還原時用 `whoami` 自動替換路徑，不需手動回填）；`statusline.sh` 隨預設流程
+  還原。過程中順手修掉 `restore.sh` 一個既有 bug：macOS 內建 bash 3.2 在
+  `set -u` 底下對 `$變數` 緊接全形標點（無空格分隔）會誤判為 unbound variable，
+  改用 `${變數}` 大括號寫法繞過。
+
 ### Changed
 
 - **檔頭規則改版：砍元資料，留敘述**（2026-08-14）。
