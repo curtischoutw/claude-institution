@@ -1,9 +1,28 @@
 # Todo（範圍外發現，待使用者決定）
 
+## README.md「institution/agents/ 是 wshobson/agents git clone」段落疑似過期（2026-08-18 三邊對齊發現，未修）
+
+README.md ~139 行稱 `~/.claude/agents/` 是第三方 `wshobson/agents` 的 git clone，
+三個制度 agent 檔名靠 `.git/info/exclude` 藏起來避免污染 git status。三邊對齊
+session 實測該目錄**沒有 `.git/`**，只有 3 個自製 md。需複查這段描述是否仍成立，
+不成立則改寫或刪除。
+
+## statusline.sh 補入快照後尚無檔頭（2026-08-18 三邊對齊發現，未修）
+
+`institution/statusline.sh`／`~/.claude/statusline.sh` 依現行 `code-header.md`
+規範該有模組敘述檔頭（這個檔是什麼、為什麼存在、關鍵設計決策、已知極限），
+目前完全沒有。屬修改正本內容，超出三邊對齊 session 的範圍，記於此待後續補上。
+
 ## restore.sh 加 `--prune`（2026-08-06 精簡計畫附帶發現，未修）
 `restore.sh` 只 cp 不 rm——快照刪掉的檔不會從 `~/.claude/` 正本消失，會變成
 「路由表沒指向但仍存在」的孤兒檔。目前靠 Phase 6 手動 `rm` 處理，長期應該讓
 `restore.sh --prune` 自動比對快照與正本、列出正本獨有的檔案供確認刪除。
+
+## restore.sh skills 迴圈硬編碼三個名字（2026-08-18 三邊對齊發現，未修）
+`restore.sh` 還原 skills 的迴圈是 `for skill in done-check lesson debug-protocol`
+寫死三個名字，`institution/skills/` 新增 skill 不會被自動涵蓋，需同步改腳本。
+應改成掃 `$SRC/skills/*/SKILL.md` 動態列舉，與 rules/、rules-lib/、agents/ 的
+迴圈寫法一致。
 
 ## 驗證 TaskCreate/TaskList 跨 session 持久性（2026-08-06 精簡計畫附帶發現，未修）
 hard-rules #4「範圍外發現記到 tasks/todo.md」是否該改用內建 TaskCreate 尚未確定——
