@@ -1,4 +1,31 @@
 #!/bin/sh
+#
+# Claude Code statusLine 腳本：由 ~/.claude/settings.json 的 statusLine.command 呼叫，
+# 每次畫面更新時從 stdin 收一份 session JSON，往 stdout 印一行狀態列。
+# 存在的理由：額度與 context 餘量是「用完才發現」的資源，把它們常駐在眼前，
+# 才能在爆掉之前決定要不要 /compact 或換模型。
+#
+# 關鍵設計決策：
+#   - 全用 $HOME / $cwd 推導路徑，不寫死任何個人化資訊，因此可隨預設流程還原
+#     （不像 hooks/ 與 settings.json 需要 --with-hooks / --with-settings）。
+#   - 用 POSIX sh 而非 bash：statusLine 每次更新都會啟動一次，啟動成本要最低。
+#   - 讀不到的欄位一律留空並略過該區塊，不印 0% 或 unknown——寧可少一段，
+#     不可印出會被誤讀為真實數值的預設值。
+#
+# Features:
+#   - 目錄（$HOME 縮寫為 ~）＋ git branch（不在 repo 內則省略）
+#   - model 顯示名稱、context 餘量、5 小時與 7 天額度用量，各附 10 格文字進度條
+#   - 進度條配色門檻：≤50% 綠、≤80% 黃、>80% 紅
+#
+# 已知極限:
+#   - 依賴 jq；PATH 上沒有 jq 時所有欄位取值為空，只會印出目錄與 branch，
+#     不會報錯也不會提示缺套件（statusLine 的錯誤訊息無處可顯示）。
+#   - 額度與 context 欄位由 Claude Code 提供，欄位名稱隨版本可能變動；
+#     變動時的表現是該區塊靜默消失，不是報錯。
+#
+# Dependencies:
+#   - POSIX sh、jq、git（不在 repo 內時 git 失敗會被吞掉，不影響輸出）
+#
 input=$(cat)
 
 cwd=$(echo "$input" | jq -r '.cwd // empty')

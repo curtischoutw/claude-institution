@@ -5,7 +5,7 @@
 每個產出的原始碼檔案開頭必備模組層級敘述（markdown 設定檔與 SKILL.md 除外）：
 這個檔是什麼、為什麼存在、關鍵設計決策、已知極限。**只寫 git 答不出來的資訊**——
 作者、Email、建檔日期、版本號、變更歷史一律不寫進檔頭（過期的檔頭比沒有檔頭更糟）。
-**建立新原始碼檔前，讀 `~/.claude/rules-lib/code-header.md` 取完整模板**——不憑記憶寫。
+**建立新原始碼檔前，讀 `~/.claude/rules-lib/code-craft.md` 取完整模板**——不憑記憶寫。
 
 ## In-file Structure
 
@@ -24,11 +24,9 @@
 
 - **Simplicity First**：每個改動盡可能簡單，影響最少的程式碼。
 - **No Laziness**：找根因，不做臨時貼補。
-- **Surface Assumptions**：所有假設寫出來，永不沉默猜測。
-- **Proactive Warnings**：主動指出風險、邊界情況與副作用，即使沒被問。
 
-## Changelog
-
-- 2026-07-14：新增 Security Floor 節——寫碼當下的安全底線，補 red-team 事後審查的空窗（Fable 5 session 補蒸餾，使用者核准）。
-- 2026-07-26：rules 按需檔移至 rules-lib/（脫離新版 Claude Code 對 rules/ 的自動常載），路徑引用同步更新（/doctor 健檢，使用者核准）。
-- 2026-08-14：檔頭改為「只留敘述、砍掉元資料」——七個元資料欄位改由 git 與 `CHANGELOG.md` 承擔；實測證據與完整理由見該檔（使用者核准）。
+<!-- 原 Core Principles 另兩條 Surface Assumptions／Proactive Warnings 於 2026-08-24 刪除：
+     內建 system prompt「Delivering work」節已要求 state your assumption 與
+     flagging important factors for the user。
+     變更歷史一律在 git 與 repo 的 CHANGELOG.md，不放本檔。
+     查本檔逐次修改：git log -p -- institution/rules/code-standards.md -->

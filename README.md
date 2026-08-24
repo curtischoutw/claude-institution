@@ -10,10 +10,11 @@ Claude Code 日常四大痛點：
 
 1. **假完成**——回報「✅ 測試通過」卻根本沒跑過任何指令。
 2. **規則不被遵守**——CLAUDE.md 寫了一大篇，模型看過就忘、挑著遵守。
-3. **主 context 燒在粗活**——讀檔、搜尋、貼長輸出永久佔據主對話 context，稀釋注意力
-   （2026-08-06 eval 實測後修正：原本的理由是「重複計費」，但這個理由已被 harness
-   內建的 Agent tool 說明反轉——subagent 本身被明文標註是較貴的路徑；仍然成立的
-   理由是避免主 context 失焦，見 `docs/harness-overlap-2026-08.md`）。
+3. **主 context 燒在粗活**——掃 repo、大範圍搜尋、貼長輸出永久佔據主對話 context，
+   稀釋注意力。（本條的處理方式在 2026-08-24 大幅收斂：內建 Agent tool 說明現行原文
+   已是「Do not spawn agents unless the user asks…handle it inline」，故 hard-rules #11
+   由「一律派 subagent」改為條件式，只在中間輸出真的會淹沒主 context 時才派。
+   見 `docs/harness-overlap-2026-08.md`「2026-08-24 覆核」節。）
 4. **糾正不累積**——同一個錯誤，每個新 session 再犯一次。
 
 ## 它給你什麼（好處 → 機制 → 在哪）
@@ -22,7 +23,7 @@ Claude Code 日常四大痛點：
 |---|---|---|
 | 「完成」必附實跑指令與輸出，假完成被攔下 | `/done-check` checklist ＋ `verify_gate` Stop hook 攔「改了碼未驗證就收工」 | `skills/done-check/`、`hooks/` |
 | 規則真的被遵守——強制力來自放對層，不是寫得多 | 制度分層：機器可判定→hook（模型跳不過）；每次必守→常載；程序→按需載入 | `CLAUDE.md` 分層表 |
-| 主對話保持乾淨——粗活的中間輸出不進主 context | 指揮官不下場＋升降級路徑＋派工標明模型 | `rules-lib/dispatch.md` |
+| 主對話保持乾淨——粗活的中間輸出不進主 context | 派工是例外（條件式觸發）＋升降級路徑＋派工標明模型 | `rules-lib/dispatch.md` |
 | 同一個錯不犯第二次——糾正複利成制度 | lesson 迴圈：記錄→第 2 次觸發→升級固化到 hook／常載／skill | `skills/lesson/` |
 | 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查三鏡頭（skeptic／red-team／simplifier） | `rules-lib/uplift.md`、`agents/` |
 | 災難級誤操作被機器擋下，不靠模型自律 | 層 0 hooks：`rm_guard`／`backup_gate`／`commit_guard`（fail-open） | `hooks/` |
@@ -54,9 +55,10 @@ Claude Code 日常四大痛點：
 
 1. **起手＋接單**：一句話複述任務範圍＋完成判準，動手前 XY problem 快速檢查
    （CLAUDE.md 起手式常載，2026-08-06 由 `intake.md` 按需檔升級——實測按需觸發
-   不可靠）；scope 校準與正反例需要細節時查 `intake.md`。
-2. **路由**：查 CLAUDE.md 路由表 → 按需讀 `rules/` 或用 skill；常載僅 hard-rules＋code-standards。
-3. **執行**：指揮官不下場，粗活派 subagent（#11、`dispatch.md`）；派工顯式指定模型並在描述標明「agent 類型＋模型」。
+   不可靠）；scope 校準已於 2026-08-24 併入 hard-rules #7，`intake.md` 刪檔。
+2. **路由**：查 CLAUDE.md 路由表 → 按需讀 `rules-lib/` 或用 skill；常載僅 hard-rules＋code-standards。
+3. **執行**：預設主對話自己做完；只在中間輸出會淹沒主 context、需 fresh-context 第二意見、
+   或使用者明講時才派 subagent（#11、`dispatch.md`）；派工顯式指定模型並在描述標明「agent 類型＋模型」。
 4. **驗證**：修改者不自驗，派 fresh-context agent read-back 或實跑（#12）；寫入後印磁碟實態（#15）。
 5. **收尾**：宣稱完成前走 `/done-check`（每個 ✅ 附指令與輸出）→ 回報結論先行（`reporting.md`）。
 
@@ -90,7 +92,7 @@ flowchart TD
     M["層4 memory（只放事實）"] -.recall.-> C
 ```
 
-## 檔案清單（快照內容，共 27 檔，2026-08-18 更新）
+## 檔案清單（快照內容，共 24 檔，2026-08-24 更新）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式（含 XY problem 快速檢查）、路由表、制度分層表。
@@ -99,20 +101,20 @@ flowchart TD
 | 檔案 | 內容 |
 |---|---|
 | `hard-rules.md` | 硬規則 #0–13、15（無 #14）：元規則、行為、調度、寫入查證、計畫、Git |
-| `code-standards.md` | In-file Structure、Core Principles、模組敘述檔頭要求（模板見 code-header.md） |
+| `code-standards.md` | In-file Structure、Security Floor、Core Principles、模組敘述檔頭要求（模板見 `rules-lib/code-craft.md`） |
 
-### institution/rules-lib/（9 檔，按需）
+### institution/rules-lib/（6 檔，按需；2026-08-24 由 9 檔精簡）
 | 檔案 | 內容 |
 |---|---|
-| `code-header.md` | File Docstring 完整模板（只寫 git 答不出來的資訊）；建立新原始碼檔時讀 |
-| `dispatch.md` | 模型調度守則、升降級路徑、驗證不自驗 |
-| `judgment.md` | 四個 rubric：完成／問人／換路／品質底線，各附正反例 |
-| `uplift.md` | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程 |
-| `prompt-templates.md` | 四種交辦範本：搜尋／實作重構／研究／審查 |
+| `code-craft.md` | 動手寫碼前：5 條設計 heuristics ＋ File Docstring 完整模板（原 `design-heuristics.md`＋`code-header.md`） |
+| `dispatch.md` | 派工守則（條件式觸發）、通用派工包範本、升降級路徑、驗證不自驗（原 `prompt-templates.md` 已併入） |
+| `judgment.md` | 三個 rubric（完成／換路／品質底線）＋ AUTH 授權留痕 ＋ 誠實條款 |
+| `uplift.md` | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程（eval 唯一測出實質增益的一份） |
+| `reporting.md` | 對使用者的回報規則：結論先行、選擇性省略、決策選項化、ADHD 友善補充 |
 | `maintenance.md` | 制度檔維護：權限分級、加常載規則前兩題測試、精簡門檻、過期檢查 |
-| `intake.md` | 需求端判斷完整版：XY problem 正反例、scope 校準（快速版已在 CLAUDE.md 起手式） |
-| `design-heuristics.md` | 動手前的正向設計指引：rule of three、先寫呼叫端、錯誤處理三選一等 |
-| `reporting.md` | 指揮官對使用者的回報規則：結論先行、選擇性省略、決策選項化 |
+
+已刪除：`intake.md`（其按需觸發機制 2026-08-06 實測三次全失敗，核心判準已在常載起手式，
+scope 校準併入 hard-rules #7）。
 
 ### institution/skills/（3 個 SKILL.md）
 - `done-check` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出
@@ -136,10 +138,15 @@ flowchart TD
 
 ### institution/agents/（3 個對抗審查 subagent）
 同樣借鑑自 fable-harness，指示改為引用 `rules-lib/uplift.md` 方法 2（多答案評審）／
-方法 3（對抗自查）。**正本放在 `~/.claude/agents/`，但該目錄已是第三方
-`wshobson/agents` 的 git clone**——三個檔名已加進該 clone 的
-`.git/info/exclude`，避免污染其 git status 或被 `git clean` 誤刪；
-真正的還原保障是這份快照 + `restore.sh`。
+方法 3（對抗自查）。正本放在 `~/.claude/agents/`；還原保障是這份快照 + `restore.sh`。
+
+**使用順序（2026-08-24）**：重大結論先用內建 `/code-review`、`/simplify`、
+`/security-review`；只有需要**三個獨立 verdict 各自表態**時才派這三個 agent
+（它們的固定 YAML verdict 信封與「不得為判 REFUTED 而編造牽強反例」是內建沒有的）。
+
+<!-- 舊版此處稱 `~/.claude/agents/` 是第三方 wshobson/agents 的 git clone、三個檔名
+     已加進該 clone 的 .git/info/exclude。2026-08-18 三邊對齊 session 已存疑，
+     2026-08-24 實測確認該描述過期：該目錄無 .git/，只有 3 個自製 .md，故刪除該段。 -->
 - `skeptic.md` — 正確性鏡頭，預設「推翻它」，找邏輯漏洞與反例
 - `red-team.md` — 安全／失效模式鏡頭，固定 5 項攻擊清單
 - `simplifier.md` — 過度工程鏡頭，須提出實際簡化程式碼

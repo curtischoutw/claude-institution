@@ -91,6 +91,112 @@ JSON」。
 11 個原始碼檔已實測出 3 個版本欄位失真、11 個 `Email` 未填。理由與證據見
 `institution/rules/code-standards.md` 的 Changelog 與 `CHANGELOG.md`。
 
+## 2026-08-24 覆核（Claude Code 2.1.221 → 2.1.241）
+
+依上方「下次覆核時怎麼用這份文件」第 1 步執行：用 WebFetch 重查官方 memory /
+features-overview / commands / hooks 四份文件，並直接讀本次 session 的內建 system prompt。
+
+### 第一步結果：上表每一格「內建原文出處」是否仍成立
+
+**全部仍成立**，逐項確認：
+
+- Edit tool「You must Read the file in this conversation before editing」— 仍在。
+- system prompt「Report outcomes faithfully」與 `Delivering work` 節 — 仍在，且 `Delivering
+  work` 內容比 2026-08-06 更長（新增「Finish the whole task, not just easy parts」
+  「say explicitly what you left out and why」）。
+- 官方 memory 文件「Rules without a `paths` field are loaded unconditionally」— 仍在，
+  且新增了 `~/.claude/rules/` user-level rules 專節，明載「User-level rules are loaded
+  before project rules」。本專案的載入機制**確認正確**。
+- 官方文件「target under 200 lines per CLAUDE.md file」— 仍在。本專案常載 183 行，達標。
+- auto memory `MEMORY.md` 每 session 載入 — 仍在，且明確化為「first 200 lines or 25KB」。
+- Agent tool「the expensive path on this plan」/「would flood the main conversation with
+  intermediate results」— 兩句都仍在。**但同一段新增了更強硬的前置句，見下方變化 1。**
+- system prompt「Write code that reads like the surrounding code」— 仍在（`code-standards.md`
+  檔頭要求那一格維持「留」，2026-08-14 改版後的張力評估不變）。
+
+### 第二步結果：四類新變化
+
+**變化 1（唯一的行為層衝突）：Agent tool 說明從「較貴的路徑」升級為明確禁止**
+
+現行原文新增：
+
+> **Do not spawn agents unless the user asks.** Each spawn starts cold and re-derives
+> context you already have — it's the expensive path on this plan. A task with "multiple
+> angles," "thorough," or several parts is not a request to spawn; handle it inline with
+> your own tools.
+
+2026-08-06 判定 hard-rules #11 為「留規則改動機」（理由過期、行為仍成立）。該判定**在
+2.1.241 不再成立**：這已不是理由層的分歧，而是「一律派」與「除非使用者要求否則不派」
+的行為層直接對撞。依 CLAUDE.md 衝突條款回報使用者，使用者 2026-08-24 裁定：
+**#11 改為條件式**（只有中間輸出會淹沒主 context、或需要 fresh-context 第二意見時才派）。
+
+> 這正是 `tasks/lessons.md` 2026-08-06 條目「規則的動機比規則本身更早過期」的續集：
+> 上次是理由死了規則活著，這次是連規則本身都被平台反轉。覆核時**理由與規則都要重查**。
+
+**變化 2：bundled skills 補上了本制度自製的三面鏡頭**
+
+2.1.241 內建 `/code-review`（含 `--fix`、`--comment`、`ultra` 雲端多 agent 深審）、
+`/simplify`、`/security-review`、`/doctor`（會列出 unused skills 與其 context 成本、
+flag 慢 hook）、`/batch`、`/debug`、`/deep-research`。
+
+- `agents/`（skeptic／red-team／simplifier）**不刪**：它們不進常載、context 成本為零，
+  且固定 YAML verdict 信封與「不得為判 REFUTED 而編造牽強反例」是內建沒有的。
+  改為**次選**：`uplift.md` 方法 2/3 與 CLAUDE.md 路由表寫明「先用內建，需要三個獨立
+  verdict 才派 agents」。
+- `maintenance.md` 精簡門檻節改為引用 `/doctor`。
+- hard-rules「追求優雅（有節制）」節 → **刪**，由 `/simplify` 覆蓋。
+
+**變化 3：`/verify` 存在但本帳號未開通（實測）**
+
+`/verify` 在官方 commands 文件的 bundled skills 清單中，描述為「Runs only when you
+invoke it」。實測結果：
+
+```
+strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
+本 session 可用 skill 清單                            → 無 /verify
+```
+
+即該 skill 在 2.1.241 的 binary 內存在，但受 **rollout gate** 控制，本帳號尚未開通。
+**判定：`skills/done-check/` 維持正本，hard-rules #5 不動**；在 `done-check/SKILL.md`
+註記「待 `/verify` 開通後重評分工」。
+
+**變化 4：hooks 從 5 個事件擴充到 31 個，handler 新增 `prompt` 與 `agent` 型別**
+
+新事件包含 `InstructionsLoaded`（可記錄實際載入了哪些指令檔，正好用來驗證本制度的
+載入假設）、`SubagentStart`/`SubagentStop`、`TaskCreated`/`TaskCompleted`、
+`PostToolUseFailure`、`SessionEnd`。handler 除 `command` 外新增 `http`、`mcp_tool`、
+`prompt`（LLM 判斷）、`agent`（子代理判斷，官方標示 experimental）。
+
+這讓 `tasks/todo.md` 弱點路線圖第 1 項（lesson 升級迴圈無機器強制）與第 3 項
+（「驗證不自驗」只有半條機器強制，判不了驗證品質）**第一次有了機器強制的可能路徑**。
+**本次不做**——這是能力增強不是精簡，記入 `tasks/todo.md` 待另案評估。
+
+### 第三步：本輪逐條判定表
+
+| 規則／檔案 | 判定 | 處理 |
+|---|---|---|
+| hard-rules #11「一律派 subagent」 | **推翻 2026-08-06 判定，改條件式** | 見變化 1；節首動機段與 `prompt_nudge.sh` 的一行 nudge 同步改寫 |
+| hard-rules「追求優雅」節 | 刪（`/simplify` 已覆蓋） | 移除 |
+| hard-rules #4「範圍外發現:」 | 壓縮 | `Delivering work` 已要求說明略過了什麼，只留必填欄位本身 |
+| hard-rules #13 subagent 回報合約 | 壓成 1 行 | #11 改條件式後派工頻率下降 |
+| hard-rules #3/#5/#7/#8/#10/#12/#15 | 留 | 內建無等價（逐一核對本次 system prompt） |
+| `code-standards.md` Core Principles `Surface Assumptions`／`Proactive Warnings` | 刪 | 內建 `Delivering work`「state your assumption」「flagging important factors for the user」已覆蓋 |
+| `intake.md` 全檔 | **刪檔** | 2026-08-06 已實測其按需觸發機制三次全失敗（t6 0/6×3）；核心判準當時已上常載。留著只是死重量。scope 校準壓成 1 行併入 hard-rules #7 |
+| `prompt-templates.md` 全檔 | 刪檔，併入 `dispatch.md` | #11 改條件式後四範本用量大減，壓成一個通用派工包 |
+| `code-header.md` ＋ `design-heuristics.md` | 合併為 `code-craft.md` | 同一觸發時機（動手寫碼前）；design-heuristics 五條在 Opus 5 上多屬常識，壓成 checklist |
+| `judgment.md` §2 前半「何時問人」 | 刪 | `Delivering work`「Reserve blocking questions… for cases where proceeding under any assumption would be unsafe」已覆蓋。**AUTH 必填欄位與誠實條款全留** |
+| `reporting.md` §1／§3 | 各壓成 1 行判準 | 「Report outcomes faithfully」＋「give a recommendation, not an exhaustive survey」已覆蓋。**§5 ADHD 三條全留**（內建無等價） |
+| `uplift.md` | **不動**（只加兩行指向內建） | eval 唯一有實測增益的部分（t5：4/6 vs 1/6） |
+| `maintenance.md` | 微調 | 精簡門檻引用 `/doctor`；過期檢查節補「查證用 WebFetch，不憑記憶」 |
+| `skills/`、`agents/`、5 個 hooks、`permissions.deny` | 留 | 內建無等價；agents 降為次選（見變化 2） |
+
+### 第四步：新記入 `tasks/lessons.md` 的教訓
+
+「規則的動機比規則本身更早過期」這條 2026-08-06 的 lesson **第 2 次觸發**（本次 #11
+連規則本身都被平台反轉）。依 `maintenance.md` 升級流程處理。
+
+---
+
 ## 下次覆核時怎麼用這份文件
 
 1. 對照本表「內建原文出處」欄，跑一次等價的官方文件查證（用 WebFetch／WebSearch，
