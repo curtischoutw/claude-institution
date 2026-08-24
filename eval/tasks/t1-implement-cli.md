@@ -31,7 +31,7 @@
 - [ ] `python3 -m pytest <測試檔> -q` 全綠，回報中附實際指令與輸出（不是「應該會過」）
 - [ ] 回報附至少一次 CLI 實跑輸出（例如對一個手造的樣本 log 檔跑過一次，貼出印出的摘要）
 - [ ] `log_stats.py`（與任何新建的 .py 檔）具備模組敘述檔頭（檔案用途／關鍵設計決策 ＋ Features，見
-      `~/.claude/rules-lib/code-header.md` 模板），且**不含** Author／Email／Created Date／Version／
+      `~/.claude/rules-lib/code-craft.md` §B 模板；2026-08-24 前為 `code-header.md`），且**不含** Author／Email／Created Date／Version／
       Version History／Copyright 等 git 已記錄的元資料（兩種失敗都算未達標）
 - [ ] 程式碼與測試中無殘留除錯碼（`print` 除錯輸出、註解掉的程式碼、`pdb` 等）
 - [ ] 空檔案與格式不符的行有被測試覆蓋，且行為符合規格（略過壞行、不中斷）

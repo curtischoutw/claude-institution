@@ -7,6 +7,61 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **對齊 Claude Code 2.1.241 的第二輪制度精簡**（2026-08-24）。
+  沿用 `docs/harness-overlap-2026-08.md` 自訂的重跑程序（用 WebFetch 重查官方
+  memory／features-overview／commands／hooks 四份文件，不憑記憶），逐條判定見該檔
+  新增的「2026-08-24 覆核」節。摘要：
+
+  - **hard-rules #11 由「一律派 subagent」改為條件式**（只在中間輸出會淹沒主
+    context、需 fresh-context 第二意見、或使用者明講時才派）。2026-08-06 的判定是
+    「留規則改動機」——理由過期但行為仍成立；2.1.241 的內建 Agent tool 說明已寫成
+    「Do not spawn agents unless the user asks… handle it inline with your own tools」，
+    連行為都被反轉，依 CLAUDE.md 衝突條款回報使用者裁定後改寫。
+    `prompt_nudge.sh` 每回合注入的那一行同步重寫（否則每輪都在注入一句與內建牴觸的話）。
+  - **rules-lib 9 檔 → 6 檔**（607 → 418 行；扣掉 HTML 註解後 276 行）：
+    刪 `intake.md`（其按需觸發機制 2026-08-06 已實測三次全失敗，核心判準當時已上常載，
+    scope 校準併入 hard-rules #7）；`prompt-templates.md` 併入 `dispatch.md`（四範本壓成
+    一個通用派工包）；`code-header.md` ＋ `design-heuristics.md` 併為 `code-craft.md`
+    （同一觸發時機）。`uplift.md` 內容不動——它是 eval 唯一測出實質增益的一份
+    （t5：有制度 ~4/6 vs 零制度 ~1/6），只加兩行「先試內建 `/code-review`／`/simplify`／
+    `/security-review`」。
+  - **制度檔的 Changelog 節一律交還 git 與本檔**。這是 2026-08-14 檔頭改版原則
+    （「元資料交還 git」）的延伸適用：`hard-rules.md` 的 Changelog 節佔 27 行，
+    每個 session 都跟著常載進 context。常載三檔因此由 183 行降到 162 行
+    （扣掉 HTML 註解後 107 行）。`maintenance.md` 的改檔標準流程同步改為
+    「理由寫進 commit message，不在檔尾加 Changelog」。
+  - **三個對抗 agent 降為次選**：內建 `/code-review`、`/simplify`、`/security-review`
+    已覆蓋大部分鏡頭，只有需要三個獨立 verdict 各自表態時才派。agent 檔本身不刪
+    （不進常載、context 成本為零，且 verdict 信封與反編造條款是內建沒有的）。
+  - **`/verify` 實測未開通**：2.1.241 binary 內有 `verifySkillRolloutGateLatch`，
+    且本 session 的可用 skill 清單無 `/verify`，故 `skills/done-check/` 維持正本，
+    只在檔內註記待開通後重評。
+  - 順手清掉 `tasks/todo.md` 積欠的四項：README 的「`~/.claude/agents/` 是
+    wshobson/agents git clone」段落（實測該目錄無 `.git/`，描述已過期）、
+    `restore.sh` 硬編碼三個 skill 名字的迴圈（改掃 `skills/*/SKILL.md`）、
+    `statusline.sh` 缺模組檔頭、`done-check`／`debug-protocol` 範本未納入
+    「已驗證／範圍外發現／AUTH」三個逐字必填欄位。
+
+### Added
+
+- **`eval/results/2026-08-24-opus5-精簡後.md`**（2026-08-24）——本次精簡的回歸測試。
+  t3 6/6、t4 6/6、t5 5/6，門檻（t5 ≥4/6、t3/t4 維持 6/6）全數通過，精簡沒有砍掉
+  有效的規則。t3／t4 的關鍵判準由評分者用獨立指令重跑與 diff 查證，不採信受測
+  session 自述。留下一項觀察：t5 唯一失分項是 `uplift.md` 方法 1「先寫判準再作答」
+  未被觸發——與 2026-08-06 `intake.md` 同類的「按需檔自我觸發失敗」，但嚴重度低，
+  決定記為觀察不升層。
+
+- **`docs/compare-fable-harness-2026-08.md`**（2026-08-24）。
+  `claude-institution` 與 `Miguok/fable-harness` v1.0.2 的逐項比較報告：定位與血緣
+  （本專案的 `verify_gate.py`／`prompt_nudge.sh` 與三個對抗 agent 取材自該專案）、
+  同機制兩實作對照、fable 獨有值得判斷是否吸收的 12 項、本專案獨有的 10 項、
+  六個直接衝突、fable 的六項 dangling reference，以及用同一把尺量 fable 對 2.1.241
+  內建的重疊。**只做比較不做整合**，整合與否由使用者另行判斷。
+  最突出的單項缺口：fable 有 12 案例 363 行的 hook e2e 測試，本專案的 5 個 hooks
+  （含 443 行的 `rm_guard.py`）零測試。
+
 ### Added
 
 - **快照補上 `settings.json` 與 `statusline.sh`，堵住災難還原缺口**（2026-08-18）。
