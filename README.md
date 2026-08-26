@@ -1,6 +1,6 @@
 # claude-institution — 讓 Claude Code 有制度地工作
 
-一套 Claude Code 跨專案制度：分層規則（hook→常載→按需→lessons）＋機器強制驗證＋
+一套 Claude Code 跨專案制度：分層規則（hook→常載→情境載入→lessons）＋機器強制驗證＋
 自我改進迴圈。目標：**弱模型也能穩定交出有證據的高品質產出**，而不是把品質賭在
 單次 prompt 與模型自律上。
 
@@ -20,7 +20,7 @@ Claude Code 日常四大痛點：
 | 好處 | 靠什麼機制 | 在哪 |
 |---|---|---|
 | 「完成」必附實跑指令與輸出，假完成被攔下 | `/done-check` checklist ＋ `verify_gate` Stop hook 攔「改了碼未驗證就收工」 | `skills/done-check/`、`hooks/` |
-| 規則真的被遵守——強制力來自放對層，不是寫得多 | 制度分層：機器可判定→hook（模型跳不過）；每次必守→常載；程序→按需載入 | `CLAUDE.md` 分層表 |
+| 規則真的被遵守——強制力來自放對層，不是寫得多 | 制度分層：機器可判定→hook（模型跳不過）；每次必守→常載；程序→情境載入 | `CLAUDE.md` 分層表 |
 | 主對話保持乾淨——粗活的中間輸出不進主 context | 派工是例外（條件式觸發）＋升降級路徑＋派工標明模型 | `rules-lib/dispatch.md` |
 | 同一個錯不犯第二次——糾正複利成制度 | lesson 迴圈：記錄→第 2 次觸發→升級固化到 hook／常載／skill | `skills/lesson/` |
 | 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查三鏡頭（skeptic／red-team／simplifier） | `rules-lib/uplift.md`、`agents/` |
@@ -43,7 +43,7 @@ Claude Code 日常四大痛點：
 ## 設計理念（一句話）
 
 規則的強制力來自「放對層」，不是寫得多。機器可判定 → hook；每次必守的短規則 → 常載；
-多步驟程序與範例 → 按需檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
+多步驟程序與範例 → 情境載入檔／skill；被糾正 → lessons.md，第 2 次觸發就升級固化。
 讀者是較弱的模型，所以每條規則都力求「具體、可執行、有 if-then 判準與正反例」。
 
 ## 制度如何運作
@@ -52,9 +52,9 @@ Claude Code 日常四大痛點：
 
 1. **起手＋接單**：一句話複述任務範圍＋完成判準，動手前 XY problem 快速檢查
    （CLAUDE.md 起手式常載）；規模與描述差一個量級以上先講再做（hard-rules #7）。
-2. **路由**：查 CLAUDE.md 路由表 → 按需讀 `rules-lib/` 或用 skill；常載僅 hard-rules＋code-standards。
+2. **路由**：查 CLAUDE.md 路由表 → 需要時才讀 `rules-lib/` 或用 skill；常載僅 hard-rules＋code-standards。
 3. **執行**：預設主對話自己做完；只在中間輸出會淹沒主 context、需 fresh-context 第二意見、
-   或使用者明講時才派 subagent（#11、`dispatch.md`）；派工顯式指定模型並在描述標明「agent 類型＋模型」。
+   或使用者明講時才派 subagent（#11、`dispatch.md`）；派工明確指定模型並在描述標明「agent 類型＋模型」。
 4. **驗證**：修改者不自驗，派 fresh-context agent read-back 或實跑（#12）；寫入後印磁碟實態（#15）。
 5. **收尾**：宣稱完成前走 `/done-check`（每個 ✅ 附指令與輸出）→ 回報結論先行（`reporting.md`）。
 
@@ -95,8 +95,8 @@ flowchart TD
 ### 自我改進迴圈（制度怎麼長大）
 
 - 被糾正 → `/lesson` 記入 `tasks/lessons.md`（層 3）；同一教訓**第 2 次觸發** → 依分層升級：
-  機器可判定→hook（層 0）；1–2 行硬規則→常載（層 1）；多步驟程序→skill／按需檔（層 2）。
-- 升級受 `maintenance.md` 權限分級管制（核心檔動前先問使用者）；閉環實例：hard-rules #15＝假同步教訓二次觸發的升級產物。
+  機器可判定→hook（層 0）；1–2 行硬規則→常載（層 1）；多步驟程序→skill／情境載入檔（層 2）。
+- 升級受 `maintenance.md` 權限分級管制（核心檔動前先問使用者）；完整迴圈的實例：hard-rules #15 就是假同步教訓二次觸發後升級成的硬規則。
 
 ```mermaid
 flowchart TD
@@ -124,7 +124,7 @@ flowchart TD
 PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯碼 commit／
 `rm_guard` 攔災難級刪除）→ Stop（`verify_gate` 攔改了碼未驗證就收工）。細節見下方檔案清單。
 
-條文衝突優先序：誠實條款（judgment.md）> hard-rules > 按需檔/skills > lessons.md（hooks 機器強制，不參與排序）。
+條文衝突優先序：誠實條款（judgment.md）> hard-rules > 情境載入檔/skills > lessons.md（hooks 機器強制，不參與排序）。
 
 ## 檔案清單（快照內容，共 24 檔）
 
@@ -137,7 +137,7 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 | `hard-rules.md` | 硬規則 #0–13、15（無 #14）：元規則、行為、調度、寫入查證、計畫、Git |
 | `code-standards.md` | In-file Structure、Security Floor、Core Principles、模組敘述檔頭要求（模板見 `rules-lib/code-craft.md`） |
 
-### institution/rules-lib/（6 檔，按需）
+### institution/rules-lib/（6 檔，情境載入）
 | 檔案 | 內容 |
 |---|---|
 | `code-craft.md` | 動手寫碼前：5 條設計 heuristics ＋ File Docstring 完整模板（原 `design-heuristics.md`＋`code-header.md`） |

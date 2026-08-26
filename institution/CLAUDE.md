@@ -33,11 +33,11 @@
 |---|---|---|
 | 0 | hooks / permissions（settings.json，用 /update-config） | 機器可判定的規則，最可靠 |
 | 1 | 本檔 ＋ `~/.claude/rules/` 下無 `paths:` frontmatter 的檔（自動常載） | 每次必守、1–2 行寫得完的硬規則 |
-| 2 | `~/.claude/skills/` 與 `~/.claude/rules-lib/` 按需檔 | 多步驟程序、checklist、範例——**觸發條件容易被任務表面「看起來單純」蓋過的檢查不能只放這層**（見起手式第 2 條） |
+| 2 | `~/.claude/skills/` 與 `~/.claude/rules-lib/` 情境載入檔 | 多步驟程序、checklist、範例——**觸發條件容易被任務表面「看起來單純」蓋過的檢查不能只放這層**（見起手式第 2 條） |
 | 3 | 專案 `tasks/lessons.md` | 只放待升級規則；事實與偏好走 auto memory（層 4），不佔這層 |
 | 4 | Claude Code auto memory（`~/.claude/projects/*/memory/`） | 只放事實與偏好，不放規則 |
 
-條文衝突時的優先序：誠實條款（judgment.md）> hard-rules > 按需檔/skills > lessons.md
+條文衝突時的優先序：誠實條款（judgment.md）> hard-rules > 情境載入檔/skills > lessons.md
 （hooks 是機器強制，不參與此排序）。
 
 本制度與 harness 內建指引衝突時**不自行選邊**：回報使用者判斷。選擇覆寫內建的條文

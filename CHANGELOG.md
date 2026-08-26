@@ -9,7 +9,7 @@
 
 ### Changed
 
-- **對齊 Claude Code 2.1.241 的第二輪制度精簡**（2026-08-24）。
+- **跟上 Claude Code 2.1.241 的第二輪制度精簡**（2026-08-24）。
   沿用 `docs/harness-overlap-2026-08.md` 自訂的重跑程序（用 WebFetch 重查官方
   memory／features-overview／commands／hooks 四份文件，不憑記憶），逐條判定見該檔
   新增的「2026-08-24 覆核」節。摘要：
@@ -21,7 +21,7 @@
     連行為都被反轉，依 CLAUDE.md 衝突條款回報使用者裁定後改寫。
     `prompt_nudge.sh` 每回合注入的那一行同步重寫（否則每輪都在注入一句與內建牴觸的話）。
   - **rules-lib 9 檔 → 6 檔**（607 → 418 行；扣掉 HTML 註解後 276 行）：
-    刪 `intake.md`（其按需觸發機制 2026-08-06 已實測三次全失敗，核心判準當時已上常載，
+    刪 `intake.md`（其情境觸發機制 2026-08-06 已實測三次全失敗，核心判準當時已上常載，
     scope 校準併入 hard-rules #7）；`prompt-templates.md` 併入 `dispatch.md`（四範本壓成
     一個通用派工包）；`code-header.md` ＋ `design-heuristics.md` 併為 `code-craft.md`
     （同一觸發時機）。`uplift.md` 內容不動——它是 eval 唯一測出實質增益的一份
@@ -50,7 +50,7 @@
   t3 6/6、t4 6/6、t5 5/6，門檻（t5 ≥4/6、t3/t4 維持 6/6）全數通過，精簡沒有砍掉
   有效的規則。t3／t4 的關鍵判準由評分者用獨立指令重跑與 diff 查證，不採信受測
   session 自述。留下一項觀察：t5 唯一失分項是 `uplift.md` 方法 1「先寫判準再作答」
-  未被觸發——與 2026-08-06 `intake.md` 同類的「按需檔自我觸發失敗」，但嚴重度低，
+  未被觸發——與 2026-08-06 `intake.md` 同類的「情境載入檔自我觸發失敗」，但嚴重度低，
   決定記為觀察不升層。
 
 - **`docs/compare-fable-harness-2026-08.md`**（2026-08-24）。
@@ -65,7 +65,7 @@
 ### Added
 
 - **快照補上 `settings.json` 與 `statusline.sh`，堵住災難還原缺口**（2026-08-18）。
-  三邊對齊調查（repo／`~/.claude/`／遠端 GitHub）發現：`institution/` 快照有 5 個
+  三邊比對調查（repo／`~/.claude/`／遠端 GitHub）發現：`institution/` 快照有 5 個
   hooks 檔本身，卻沒有「把 hook 掛上去」的 `settings.json`（`permissions.deny` ＋
   PreToolUse/Stop/UserPromptSubmit 綁定）——災難還原後 hooks 會全部躺著不生效。
   新增 `institution/settings.json`（hook 路徑去識別化為 `<username>`）與
@@ -108,7 +108,7 @@
 
 ### 2026-07-26
 
-- `restore.sh`：新增 `rules-lib/` 還原迴圈——rules 按需檔搬離 `rules/` 至
+- `restore.sh`：新增 `rules-lib/` 還原迴圈——rules 情境載入檔搬離 `rules/` 至
   `rules-lib/`（脫離新版 Claude Code 對 `rules/` 的自動常載）後需同步涵蓋。
 
 ### 2026-07-15

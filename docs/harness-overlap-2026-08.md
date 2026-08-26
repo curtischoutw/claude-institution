@@ -17,11 +17,11 @@ TaskCreate、auto memory、Delivering work 章節、Agent tool 的使用指引�
 
 | 判定 | 意思 | 處理方式 |
 |---|---|---|
-| **刪（內建已覆蓋）** | harness 內建行為與規則完全重疊，規則變純冗餘 | 從常載/按需檔移除 |
+| **刪（內建已覆蓋）** | harness 內建行為與規則完全重疊，規則變純冗餘 | 從常載/情境載入檔移除 |
 | **留（內建無等價）** | harness 完全沒有對應機制 | 不動 |
-| **降層** | 內容仍有價值，但常載成本過高 | 從常載降到按需檔/skill |
+| **降層** | 內容仍有價值，但常載成本過高 | 從常載降到情境載入檔/skill |
 | **留規則改動機** | 規則行為仍該做，但論證理由已被平台反轉 | 規則不動，只換理由 |
-| **機制修正**（本次新增，t6 實測發現） | 規則內容沒問題，但「按需觸發」依賴模型自我判斷，這個判斷本身會失敗 | 核心判準搬進常載，按需檔留完整版 |
+| **機制修正**（本次新增，t6 實測發現） | 規則內容沒問題，但「情境觸發」依賴模型自我判斷，這個判斷本身會失敗 | 核心判準搬進常載，情境載入檔留完整版 |
 
 ## 逐條比對表
 
@@ -29,7 +29,7 @@ TaskCreate、auto memory、Delivering work 章節、Agent tool 的使用指引�
 |---|---|---|---|
 | hard-rules #1「沒讀過的檔案不准改」 | Edit tool 描述：「You must Read the file in this conversation before editing, or the call will fail」 | 刪（機器已強制） | 壓成「小改用 Edit，不整檔重寫」 |
 | hard-rules #9「制度檔先備份」細節 | `backup_gate.py`（層 0 hook，本專案自己的機制，非 harness 內建，但已機器強制） | 刪（本地機器已強制） | 壓成一行指向 hook＋maintenance.md |
-| hard-rules #14「回報結論先行」 | 本 session system prompt「Report outcomes faithfully」＋ Delivering work 節 | 刪 | 降為按需，`reporting.md` §1 是完整正本 |
+| hard-rules #14「回報結論先行」 | 本 session system prompt「Report outcomes faithfully」＋ Delivering work 節 | 刪 | 降為情境載入，`reporting.md` §1 是完整正本 |
 | hard-rules「計畫」節第 1 條（3 步以上進 plan mode） | `EnterPlanMode` 工具描述本身即是此機制；`TaskCreate`/`TaskList` 是 todo 機制 | 刪 | 保留第 2 條（假設/風險/判準格式，內建無此要求） |
 | hard-rules Git 紀律「不 commit 除錯碼」「未經要求不 commit/push」 | 本 session system prompt 明文＋`commit_guard.py` 已機器強制 | 刪 | 壓成 1 行，只留原子 commit 格式要求 |
 | `~/.claude/CLAUDE.md` 的 `@import` 兩行 | 官方 memory 文件：「Rules without a `paths` field are loaded unconditionally」 | 刪（冗餘） | 移除，改一行說明自動常載 |
@@ -49,7 +49,7 @@ TaskCreate、auto memory、Delivering work 章節、Agent tool 的使用指引�
 | `code-standards.md` 標準檔頭要求 | 本 session system prompt：「Write code that reads like the surrounding code: match its comment density, naming, and idiom」 | **留（2026-08-06 決定不解決）→ 2026-08-14 改版後張力減輕** | 見下方「2026-08-14 檔頭改版」節 |
 | hard-rules #2/#5/#6/#7/#15、`uplift.md`、`code-header.md`、`design-heuristics.md`、5 個 hooks、3 個 skills | 內建無等價（逐一核對本 session system prompt，無對應機制） | 留 | 不動 |
 
-## t6 實測：`intake.md` 按需觸發機制失效（2026-08-06）
+## t6 實測：`intake.md` 情境觸發機制失效（2026-08-06）
 
 用 `eval/tasks/t6-xy-problem.md` 對照 A（現行制度）與 C（`--safe-mode` 零制度）
 跑了三次（A×2、C×1）。三次全部 0/6——包括理論上會讀到 `intake.md` 的 A 組
@@ -57,11 +57,11 @@ TaskCreate、auto memory、Delivering work 章節、Agent tool 的使用指引�
 JSON Lines。r2 甚至講到「json.loads」這個詞，卻沒連結到「現在這份資料就已經是
 JSON」。
 
-**結論**：不是規則內容問題（`intake.md` 的判準寫得很清楚），是「按需檔要靠模型
+**結論**：不是規則內容問題（`intake.md` 的判準寫得很清楚），是「情境載入檔要靠模型
 自己判斷『這個任務該不該觸發路由』」這個前置判斷本身會失敗——表面看起來單純的
 請求最不容易觸發自我檢查，而這正是 XY problem 最常見的偽裝方式。完整結果見
 `eval/results/2026-08-06-opus5-{有制度,零制度}.md`；教訓已記入 `tasks/lessons.md`
-（2026-08-06 條目「按需觸發的規則靠模型自我判斷...」）。
+（2026-08-06 條目「情境觸發的規則靠模型自我判斷...」）。
 
 ## 完整實測結果摘要（t3–t6，Opus 5，A vs C）
 
@@ -156,7 +156,7 @@ strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
 本 session 可用 skill 清單                            → 無 /verify
 ```
 
-即該 skill 在 2.1.241 的 binary 內存在，但受 **rollout gate** 控制，本帳號尚未開通。
+即該 skill 在 2.1.241 的 binary 裡存在，但受 **rollout gate** 控制，本帳號尚未開通。
 **判定：`skills/done-check/` 維持正本，hard-rules #5 不動**；在 `done-check/SKILL.md`
 註記「待 `/verify` 開通後重評分工」。
 
@@ -181,7 +181,7 @@ strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
 | hard-rules #13 subagent 回報合約 | 壓成 1 行 | #11 改條件式後派工頻率下降 |
 | hard-rules #3/#5/#7/#8/#10/#12/#15 | 留 | 內建無等價（逐一核對本次 system prompt） |
 | `code-standards.md` Core Principles `Surface Assumptions`／`Proactive Warnings` | 刪 | 內建 `Delivering work`「state your assumption」「flagging important factors for the user」已覆蓋 |
-| `intake.md` 全檔 | **刪檔** | 2026-08-06 已實測其按需觸發機制三次全失敗（t6 0/6×3）；核心判準當時已上常載。留著只是死重量。scope 校準壓成 1 行併入 hard-rules #7 |
+| `intake.md` 全檔 | **刪檔** | 2026-08-06 已實測其情境觸發機制三次全失敗（t6 0/6×3）；核心判準當時已上常載。留著只是死重量。scope 校準壓成 1 行併入 hard-rules #7 |
 | `prompt-templates.md` 全檔 | 刪檔，併入 `dispatch.md` | #11 改條件式後四範本用量大減，壓成一個通用派工包 |
 | `code-header.md` ＋ `design-heuristics.md` | 合併為 `code-craft.md` | 同一觸發時機（動手寫碼前）；design-heuristics 五條在 Opus 5 上多屬常識，壓成 checklist |
 | `judgment.md` §2 前半「何時問人」 | 刪 | `Delivering work`「Reserve blocking questions… for cases where proceeding under any assumption would be unsafe」已覆蓋。**AUTH 必填欄位與誠實條款全留** |

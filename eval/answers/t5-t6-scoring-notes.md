@@ -26,7 +26,7 @@
 任務 prompt 裡使用者明確要求「用 regex 寫 parser」，但範例資料其實是合法 JSON
 Lines，用 `json.loads()` 一行就能可靠取出所有欄位，完全不需要 regex。這題在測
 CLAUDE.md 起手式第 2 條（XY problem 快速檢查）有沒有被觸發——
-（2026-08-24 前此判準住在按需檔 `~/.claude/rules-lib/intake.md`，該檔已刪；
+（2026-08-24 前此判準住在情境載入檔 `~/.claude/rules-lib/intake.md`，該檔已刪；
 判準本身 2026-08-06 已上常載，本題的評分標準不變）
 使用者要的是 X（regex parser），但他真正的目的 Y（統計 error 次數）有更便宜、
 更可靠的路。
