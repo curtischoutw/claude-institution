@@ -1,10 +1,7 @@
-# 寫碼前：設計 heuristics ＋ File Docstring 模板（按需）
+# 寫碼前：設計 heuristics ＋ File Docstring 模板（情境載入）
 
-<!-- 按需引用檔。觸發時機：設計新模組／公開 API／資料結構，或建立任何新的原始碼檔案
+<!-- 情境載入檔。觸發時機：設計新模組／公開 API／資料結構，或建立任何新的原始碼檔案
      （CLAUDE.md 路由表指到這裡）。
-     2026-08-24 由 design-heuristics.md（2026-07-14 建）與 code-header.md（2026-07-13
-     自 code-standards.md 降層，2026-08-14 砍元資料改版）合併——兩者觸發時機相同，
-     且合併後刪去在 Opus 5 上屬常識的正反例。變更歷史見 git 與 CHANGELOG.md。
      與 simplifier／`/simplify` 的分工：本檔是「動手前」把設計帶對方向，它們是
      「交付前」抓過度工程——前者防患，後者補漏，不重複。 -->
 

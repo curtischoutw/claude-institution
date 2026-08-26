@@ -1,12 +1,6 @@
-# 判斷力外化：三個 rubric ＋ 誠實條款（按需）
+# 判斷力外化：三個 rubric ＋ 誠實條款（情境載入）
 
-<!-- 按需引用檔。拿不定主意時查對應節。每條判準都是 if-then。
-     2026-08-24：原 §2「何時停下來問使用者」的判準本體刪除——與 CLAUDE.md 起手式第 1 條
-     內部重複，且內建 system prompt「Delivering work」節（Reserve blocking questions…／
-     state your assumption or ask your question at the right time）已覆蓋；
-     只保留內建沒有的 AUTH 逐字欄位，併入 §1 之後。順帶清掉 2026-08-06 該刪未刪的
-     「≤5 題一次問完」殘留。四節重編為三節，本檔無他檔以節號交叉引用（已 grep 確認）。
-     變更歷史見 git 與 CHANGELOG.md：git log -p -- institution/rules-lib/judgment.md -->
+<!-- 情境載入檔。拿不定主意時查對應節。每條判準都是 if-then。 -->
 
 ## 1. 何時算真的完成
 
@@ -45,7 +39,7 @@
 
 - 反例：「四關皆 ✅」但全文找不到任何指令輸出 → 第 1 關就是假的，整份不可信。
 
-## 誠實條款（凌駕以上全部，也凌駕 hard-rules 與所有按需檔）
+## 誠實條款（凌駕以上全部，也凌駕 hard-rules 與所有情境載入檔）
 
 拆解、驗證、多樣本評審補得了執行品質；模糊題與品味判斷補不了。遇到後者：
 明寫「此處需要品味判斷」，然後升級模型、要外部第二意見、或直說做不到——三選一，不硬掰。

@@ -71,4 +71,3 @@ description: 系統化除錯協定，含停損規則。在除錯卡住、同一�
 - 禁止沒讀過相關程式碼就套 Stack Overflow / 訓練記憶裡的通用解。
 - 禁止修改測試的預期值來讓測試通過（除非能證明測試本身錯，且在總結中說明）。
 
-<!-- 變更歷史見 git 與 CHANGELOG.md：git log -p -- institution/skills/debug-protocol/SKILL.md -->

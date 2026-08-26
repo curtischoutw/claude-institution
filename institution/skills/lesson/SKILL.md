@@ -3,7 +3,7 @@ name: lesson
 description: 被使用者糾正後，先分流（單純事實/偏好交給內建 auto memory，需要變成規則才進本流程），把規則寫成可長期沿用的條目記入 tasks/lessons.md。在使用者說「不對」「不是這樣」「我說過」或任何形式指出錯誤後立即使用；也用於定期把重複的 lesson 升級成 CLAUDE.md 規則、skill 或 hook。
 ---
 
-# lesson：教訓落地與升級
+# lesson：把教訓寫成規則並升級
 
 目的：讓每次糾正只發生一次。
 
@@ -46,4 +46,3 @@ description: 被使用者糾正後，先分流（單純事實/偏好交給內建
 - 糾正發生的**當下**就記，不要等任務結束（會忘）。
 - 一條 lesson 只記一個模式；混多個就拆開。
 
-<!-- 變更歷史見 git 與 CHANGELOG.md：git log -p -- institution/skills/lesson/SKILL.md -->

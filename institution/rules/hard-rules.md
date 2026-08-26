@@ -1,7 +1,7 @@
 # 硬規則（常載；違反任一條 = 錯誤行為，無例外）
 
-<!-- 本檔無 paths frontmatter，Claude Code 自動常載。行數預算：與 code-standards.md
-     合計 ≤200 行（2026-08-06 由 500 行下修，對齊官方 CLAUDE.md 建議上限）。 -->
+<!-- 本檔無 paths frontmatter，Claude Code 自動常載。
+     行數預算：與 code-standards.md 合計 ≤200 行（比照官方 CLAUDE.md 建議上限）。 -->
 
 ## 行為硬規則
 
@@ -42,8 +42,7 @@ asks… handle it inline」）。唯一站得住的理由是**中間輸出會淹
 13. subagent 回報合約：只回結論與「檔案:行號」，長產物存檔後傳路徑，禁止整檔貼回主對話。
 15. 寫入/刪除/覆蓋動作後，同一或緊接指令必用 `test -e`/`diff`/`cmp` 印出磁碟實際狀態
     才可宣稱完成；工具輸出摻任何與指令無關的雜訊 → 一律判為不可信，改用自控格式的獨立指令重驗。
-    （編號沿用；原 #14「回報結論先行」已於 2026-08-06 移除並降為按需，見 reporting.md
-    §1，故此處由 #13 跳到 #15，不重編以保留 lessons.md 與 CHANGELOG.md 的歷史引用。）
+    （無 #14；編號一律不重排，以免打斷 lessons.md 與 CHANGELOG.md 的既有引用。）
 
 ## 計畫
 
@@ -62,6 +61,3 @@ asks… handle it inline」）。唯一站得住的理由是**中間輸出會淹
   git 行為——不 commit 除錯碼、未經要求不 commit/push——內建 harness 指引與
   `commit_guard.py` 已覆蓋，不重述）。
 
-<!-- 變更歷史一律在 git 與 repo 的 CHANGELOG.md，不放本檔（2026-08-14 檔頭改版原則，
-     2026-08-24 延伸適用到常載規則檔——每 session 載入 27 行歷史不划算）。
-     查本檔逐次修改：git log -p -- institution/rules/hard-rules.md -->
