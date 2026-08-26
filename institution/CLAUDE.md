@@ -23,10 +23,10 @@
 |---|---|
 | 設計新模組/公開 API/資料結構，或建立新的原始碼檔（需檔頭） | 讀 `~/.claude/rules-lib/code-craft.md` |
 | 準備向使用者回報（完成/卡住/提問） | 讀 `~/.claude/rules-lib/reporting.md` |
-| 中間輸出會淹沒主對話、需 fresh-context 第二意見，或要寫交辦 prompt | 讀 `~/.claude/rules-lib/dispatch.md` |
+| 要派 subagent、要寫交辦 prompt，或要決定主對話用哪隻模型 | 讀 `~/.claude/rules-lib/dispatch.md` |
 | 拿不定主意：算完成？該問人？該換路？品質夠嗎？ | 讀 `~/.claude/rules-lib/judgment.md` |
 | 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md` 照強度分級執行 |
-| 重大結論要對抗審查 | 先用內建 `/code-review`、`/simplify`、`/security-review`；需要三個獨立 verdict 才派 skeptic/red-team/simplifier |
+| 重大結論要對抗審查 | 讀 `~/.claude/rules-lib/dispatch.md` §3 |
 | 準備宣稱「完成」或 commit | 用 skill `/done-check` |
 | 除錯卡住、同一問題修 2 次沒好 | 用 skill `/debug-protocol` |
 | 被使用者糾正 | 用 skill `/lesson` |
