@@ -9,6 +9,28 @@
 
 ### Changed
 
+- **派工規則明確化、README 流程圖重畫、制度檔清沿革、用詞台灣化**（2026-08-26）。
+  四件事由使用者一次提出，逐項處理：
+
+  - **`rules-lib/dispatch.md` 重排成七節**，補上原本沒有的「情境 → agent 類型 ＋ 模型」
+    單一對照表（含原本漏掉的 `Plan` 與 `claude-code-guide`），以及全新的「主對話模型」
+    一節：`opusplan`／fast mode／`fable` 的語意與切換判準。前兩者的行為查自官方文件
+    （`code.claude.com/docs/en/model-config` 與 `/fast-mode`），不憑記憶；`fable` 的兩個
+    切換情境（制度大改版、需要品味判斷的架構題）由使用者指定。同時修掉該檔「不憑本檔
+    填寫型號」與下方直接寫死型號的自相矛盾。
+  - **README 一張四維度混合圖拆成三張**：任務生命週期（時間軸）、派工決策（分流）、
+    教訓升級路徑。制度分層的靜態清單改用表格。三張圖以 mermaid 11 parser 實跑 parse
+    並用 Chromium 實際渲染確認。
+  - **刪除 `prompt_nudge.sh` 與其 UserPromptSubmit 綁定**。它注入的三句話分別已由
+    `verify_gate.py`（機器強制）、hard-rules #11（常載）、CLAUDE.md 路由表覆蓋，
+    成本卻隨回合數累積。hooks 5 → 4 檔。
+  - **制度檔內不再寫變更沿革**，一律交還 git 與本檔。判準是「規則留，沿革刪」。
+    `maintenance.md` 改檔標準流程第 3 步同步改寫，讓規則本身承接被刪掉的 per-file 樣板。
+    常載三檔 156 → 141 行（去 HTML 註解後 9,687 → 9,189 B）。
+  - **層 2 由「按需」正名為「情境載入」**，全 repo 55 處一次改到底；另清掉「顯式」
+    「閉環」「落地」「對齊（align 語意）」等機翻用語。`docs/` 與 `eval/` 只動敘述用詞，
+    未動任何事實、數字、日期或結論。
+
 - **跟上 Claude Code 2.1.241 的第二輪制度精簡**（2026-08-24）。
   沿用 `docs/harness-overlap-2026-08.md` 自訂的重跑程序（用 WebFetch 重查官方
   memory／features-overview／commands／hooks 四份文件，不憑記憶），逐條判定見該檔

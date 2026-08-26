@@ -184,8 +184,8 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 ### institution/settings.json ＋ institution/statusline.sh（2 檔）
 這兩檔涵蓋「把 hook 掛上去」的接線設定。少了它們，快照就只有 hook 腳本本身，
 災難還原後 hooks 會全部躺著不生效。
-- `settings.json` — `permissions.deny`（rm -rf / 等 11 條）＋ 5 個 hook 的
-  PreToolUse/Stop/UserPromptSubmit 綁定＋ model/statusLine/language 等。
+- `settings.json` — `permissions.deny`（rm -rf / 等 11 條）＋ 4 個 hook 的
+  PreToolUse／Stop 綁定＋ model/statusLine/language 等。
   hook 綁定路徑去識別化為 `/Users/<username>/.claude/hooks/...`；**預設略過**，
   還原需 `--with-settings`（自動用 `whoami` 替換回實際路徑）。
 - `statusline.sh` — 被 `settings.json` 的 `statusLine` 引用；內容全用 `$HOME`/

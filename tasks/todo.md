@@ -1,5 +1,35 @@
 # Todo（範圍外發現，待使用者決定）
 
+## 常載 context 還能怎麼降（2026-08-26 討論結論，待使用者選路徑）
+
+**現況實測**（非估計，去 HTML 註解後）：
+
+| 檔案 | 行數 | 位元組 |
+|---|---|---|
+| `CLAUDE.md` | 51 | 3,281 |
+| `rules/hard-rules.md` | 63 | 4,395 |
+| `rules/code-standards.md` | 27 | 1,513 |
+| 合計 | 141 | 9,189（約 3K token） |
+
+外加 3 個 skill ＋ 3 個 agent 的 description 與 memory 索引。2026-08-26 這輪已做兩件事：
+刪掉 `prompt_nudge.sh`（原本每個 user turn 注入一次並留在對話歷史，成本隨回合數累積）、
+清掉制度檔內的變更沿革（156 → 141 行，9,687 → 9,189 B）。
+
+**核心論點：「讓模型自己判斷該載入什麼」不是沒試過，是試過會漏。**
+`intake.md` 就是情境載入檔，2026-08-06 實測三次自我觸發全部失敗，所以 XY problem
+判準被搬回常載起手式；本檔另記著 uplift 方法 1 在 t5 未被觸發。兩筆負面實測都指向
+同一件事：情境載入的觸發判斷本身會被任務表面「看起來單純」蓋過。
+**因此不建議把常載內容大幅拆成情境載入檔。**
+
+**剩下兩條路徑，依可靠度排序：**
+
+1. **先用 `InstructionsLoaded` hook 事件實測**（建議先做這個）。Claude Code 2.1.241 的
+   hooks 已擴充到 31 個事件，其中 `InstructionsLoaded` 可記錄「這個 session 實際載入了
+   哪些指令檔」。在動任何刀之前先量到真實資料，而不是繼續靠推論。
+2. **給 `rules/code-standards.md` 加 `paths:` frontmatter**（機器判定，不依賴模型自律）。
+   該檔只在動程式碼檔時才有意義，加上 `paths:` 可讓 Claude Code 自己決定載不載，
+   省 1,513 B。等路徑 1 量到資料後再決定要不要做。
+
 ## ~~README.md「institution/agents/ 是 wshobson/agents git clone」段落過期~~（2026-08-24 已解決）
 
 2026-08-24 實測確認 `~/.claude/agents/` 無 `.git/`，只有 3 個自製 `.md`——描述確已過期。
