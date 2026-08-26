@@ -144,7 +144,7 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 | `dispatch.md` | 派工守則（條件式觸發）、通用派工包範本、升降級路徑、驗證不自驗（原 `prompt-templates.md` 已併入） |
 | `judgment.md` | 三個 rubric（完成／換路／品質底線）＋ AUTH 授權留痕 ＋ 誠實條款 |
 | `uplift.md` | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程（eval 唯一測出實質增益的一份） |
-| `reporting.md` | 對使用者的回報規則：結論先行、選擇性省略、決策選項化、ADHD 友善補充 |
+| `reporting.md` | 對使用者的回報規則，依「一則回報從頭到尾」分節：開頭結論先行、主體選擇性省略、結尾分岔（選項表／一個下一步）、通篇長度與格式、送出前檢查 |
 | `maintenance.md` | 制度檔維護：權限分級、加常載規則前兩題測試、精簡門檻、過期檢查 |
 
 ### institution/skills/（3 個 SKILL.md）
