@@ -62,11 +62,66 @@ Claude Code 日常四大痛點：
 4. **驗證**：修改者不自驗，派 fresh-context agent read-back 或實跑（#12）；寫入後印磁碟實態（#15）。
 5. **收尾**：宣稱完成前走 `/done-check`（每個 ✅ 附指令與輸出）→ 回報結論先行（`reporting.md`）。
 
+```mermaid
+flowchart TD
+    A["複述任務範圍與完成判準"] --> B["查 CLAUDE.md 路由表，讀對應規則檔"]
+    B --> C["執行（派不派工見下圖）"]
+    C --> H1["層 0 攔截：backup_gate ／ rm_guard ／ commit_guard"]
+    H1 --> D["驗證：派 fresh-context agent read-back 或實跑"]
+    D --> H2["層 0 攔截：verify_gate"]
+    H2 --> E["走 /done-check，每個 ✅ 附指令與輸出"]
+    E --> F["回報：結論先行"]
+    classDef hook fill:#fde,stroke:#c49,color:#000
+    class H1,H2 hook
+```
+
+### 派工決策（要不要派、派給誰）
+
+派工是例外不是常態：預設主對話自己做完，與內建 Agent tool 說明同向。
+三條件是 (a) 中間輸出會淹沒主 context、(b) 需要 fresh-context 第二意見、(c) 使用者明講要派；
+命中任一條才往下分流，三條都沒中就自己做完。
+
+```mermaid
+flowchart TD
+    Q{"命中派工三條件<br/>任一條嗎？"}
+    Q -->|"都沒中"| SELF["主對話自己做完"]
+    Q -->|"命中"| T{"任務屬於哪一類？"}
+    T --> S["搜尋／掃描"]
+    T --> I["實作／重構"]
+    T --> R["研究／查官方行為"]
+    T --> A2["設計／架構取捨"]
+    T --> V["驗證／對抗審查"]
+```
+
+每一類該用哪個 agent 類型、哪隻模型，以及主對話自己該用 `opusplan`／`opus`／`fable`
+的判準，都在 `rules-lib/dispatch.md` §2 與 §4——**那裡是單一正本，本圖只畫分流**。
+
 ### 自我改進迴圈（制度怎麼長大）
 
 - 被糾正 → `/lesson` 記入 `tasks/lessons.md`（層 3）；同一教訓**第 2 次觸發** → 依分層升級：
   機器可判定→hook（層 0）；1–2 行硬規則→常載（層 1）；多步驟程序→skill／按需檔（層 2）。
 - 升級受 `maintenance.md` 權限分級管制（核心檔動前先問使用者）；閉環實例：hard-rules #15＝假同步教訓二次觸發的升級產物。
+
+```mermaid
+flowchart TD
+    C["使用者糾正"] --> L3["層 3：/lesson 記入 tasks/lessons.md"]
+    L3 --> Q{"同一教訓第 2 次觸發？"}
+    Q -->|"否"| W["留在層 3 觀察，不升級"]
+    Q -->|"是"| U{"這條規則該放哪層？"}
+    U -->|"機器可判定"| L0["層 0：hook ／ permissions"]
+    U -->|"1–2 行短硬規則"| L1["層 1：常載 rules/"]
+    U -->|"多步驟程序"| L2["層 2：skill ／ 情境載入檔"]
+```
+
+制度分層的完整清單（哪層放什麼、誰在什麼時候被載入）：
+
+| 層 | 載體 | 放什麼 | 何時載入 |
+|---|---|---|---|
+| 0 | `hooks/`、`settings.json` 的 `permissions` | 機器可判定的規則 | 工具呼叫時由 harness 執行 |
+| 1 | `CLAUDE.md` ＋ `rules/` 下無 `paths:` 的檔 | 每次必守、1–2 行寫得完的硬規則 | 每個 session 自動常載 |
+| 2 | `skills/`、`rules-lib/` | 多步驟程序、checklist、範例 | 命中路由表的情境時才讀 |
+| 3 | 專案 `tasks/lessons.md` | 只放待升級的規則 | 需要時才讀 |
+| 4 | Claude Code auto memory | 只放事實與偏好，不放規則 | recall 時 |
 
 ### 層 0 攔截時序（hooks，機器強制，全部 fail-open）
 
@@ -74,23 +129,6 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 `rm_guard` 攔災難級刪除）→ Stop（`verify_gate` 攔改了碼未驗證就收工）。細節見下方檔案清單。
 
 條文衝突優先序：誠實條款（judgment.md）> hard-rules > 按需檔/skills > lessons.md（hooks 機器強制，不參與排序）。
-
-分層互動圖：
-
-```mermaid
-flowchart TD
-    U["使用者任務"] --> C["層1 常載：CLAUDE.md 路由表<br/>hard-rules ＋ code-standards"]
-    C -->|"情境觸發"| R["層2 按需：rules/ ＋ skills/"]
-    C --> D["執行：派 subagent（dispatch）"]
-    D --> V["驗證：fresh-context ＋ /done-check"] --> REP["回報：結論先行"]
-    H["層0 hooks（機器強制）"] -.攔截.-> D & V
-    U -->|"被糾正"| L["層3 lessons.md"]
-    L -->|"第2次觸發升級"| UP{"放哪層？"}
-    UP -->|"機器可判定"| H
-    UP -->|"短硬規則"| C
-    UP -->|"多步驟程序"| R
-    M["層4 memory（只放事實）"] -.recall.-> C
-```
 
 ## 檔案清單（快照內容，共 24 檔，2026-08-24 更新）
 
