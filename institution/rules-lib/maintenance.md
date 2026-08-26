@@ -1,14 +1,13 @@
 # 制度檔維護協議（按需）
 
-<!-- 按需引用檔。想改 ~/.claude/ 下任何檔案前先讀本檔。
-     變更歷史見 git 與 CHANGELOG.md：git log -p -- institution/rules-lib/maintenance.md -->
+<!-- 情境載入檔。想改 ~/.claude/ 下任何檔案前先讀本檔。 -->
 
 ## 權限分級
 
 | 級別 | 檔案 | 規則 |
 |---|---|---|
 | 自由改 | 各專案 `tasks/lessons.md`、`tasks/todo.md`、memory/ | 照 /lesson 與 memory 格式直接寫 |
-| 可自行小改 | （目前無成員）——原唯一成員 `rules-lib/prompt-templates.md` 已於 2026-08-24 併入 `dispatch.md` | 先備份；只增修不重寫；改動理由寫進 commit message |
+| 可自行小改 | （目前無成員） | 先備份；只增修不重寫；改動理由寫進 commit message |
 | 動前先問使用者 | `CLAUDE.md` 本體、`rules/hard-rules.md`、`rules/code-standards.md`、`rules-lib/` 下全部檔案、既有 skill 的鐵則段 | 弱模型只准「提議 diff＋理由」給使用者核准，不准直接改 |
 | 不改 | backups/ | 歷史備份，只讀 |
 
@@ -19,9 +18,9 @@
 
 1. `cp <檔> ~/.claude/backups/<檔名>.<YYYYMMDD>.bak`（`backup_gate.py` 會擋無備份的修改）
 2. 用 Edit 做最小修改（不整檔重寫）
-3. 改動理由寫進 commit message（Conventional Commits）；**不在檔尾加 Changelog 節**——
-   常載與按需檔的變更歷史一律交還 git 與 repo 的 `CHANGELOG.md`（2026-08-14 檔頭改版
-   原則，2026-08-24 延伸適用到所有制度檔）
+3. 改動理由寫進 commit message（Conventional Commits）；**制度檔內不寫變更沿革**——
+   「什麼時候由什麼改成什麼」一律交還 git 與 repo 的 `CHANGELOG.md`，檔內只留
+   「這個檔是什麼、何時觸發、與誰分工、預算多少」
 4. 派 haiku fresh-context read-back：「這個改動有沒有跟 CLAUDE.md、rules/ 與 rules-lib/
    下任何檔案或三個 skill 打架？」（給它完整檔案清單）
 
@@ -55,8 +54,9 @@
   **查證一律用 WebFetch／WebSearch 讀官方文件，不憑記憶**（hard-rules #8）。
 - 覆核順序：**先問規則的『理由』是否仍成立，再問規則本身的『行為』是否仍成立**——
   兩者會分開過期，且理由通常先死。
-  - 只有理由過期（規則行為仍對）→ 換理由，不動規則。2026-08-06 的 hard-rules #11 屬此類。
-  - 連行為都被內建反轉 → **不自行選邊，回報使用者重新裁定**。2026-08-24 的 hard-rules #11
-    屬此類：內建 Agent tool 說明已從「較貴的路徑」變成「Do not spawn agents unless the
-    user asks」，同一條規則在兩次覆核裡走了兩種不同的處理。
+  - 只有理由過期（規則行為仍對）→ 換理由，不動規則。
+  - 連行為都被內建反轉 → **不自行選邊，回報使用者重新裁定**。
+    範例：hard-rules #11 曾兩次覆核走出兩種不同處理——第一次只是理由過期（換理由），
+    第二次是內建 Agent tool 說明從「較貴的路徑」變成「Do not spawn agents unless the
+    user asks」，行為被反轉，只能回報使用者裁定。同一條規則會走哪一種，看的是這個分野。
 - 逐條比對表與判定分類見 `docs/harness-overlap-2026-08.md`，該檔文末有重跑步驟。

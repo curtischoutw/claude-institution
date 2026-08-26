@@ -1,11 +1,8 @@
 # AI Assistant Workflow Configuration（索引）
 
 <!-- 本檔只當索引路由：新增內容一律寫新檔再在此加一行路由，不塞長內容進本檔。
-     常載預算：本檔＋rules/ 合計 ≤200 行（對齊官方 CLAUDE.md 建議上限）。
-     維護規約見 ~/.claude/rules-lib/maintenance.md。
-     變更歷史在 git 與 repo 的 CHANGELOG.md：git log -p -- institution/CLAUDE.md
-     最近一次改版（2026-08-24，對齊 Claude Code 2.1.241）的逐條判定與內建原文出處：
-     docs/harness-overlap-2026-08.md「2026-08-24 覆核」節。 -->
+     常載預算：本檔＋rules/ 合計 ≤200 行（比照官方 CLAUDE.md 建議上限）。
+     維護規約見 ~/.claude/rules-lib/maintenance.md。 -->
 
 ## Session 起手式
 
@@ -13,9 +10,7 @@
    否則寫下假設繼續做。
 2. XY problem 快速檢查：使用者要求的手段（X）與其目的（Y）之間，想得出更便宜的
    替代路 → 動手前用 ≤3 行提出；想不出 → 直接做，不硬掰替代案。
-   （2026-08-06 實測：這條靠按需檔自我觸發不可靠——同一失敗模式三次獨立測試全部複現，
-   故把核心判準搬進本常載起手式；原按需檔 `intake.md` 已於 2026-08-24 刪除，
-   其 scope 校準併入 hard-rules #7。）
+   本條刻意放常載而非情境載入檔：實測過，這種檢查靠情境載入自我觸發會漏。
 
 ## 路由表（遇到情境 → 讀對應檔或用 skill，再動手）
 
@@ -38,7 +33,7 @@
 |---|---|---|
 | 0 | hooks / permissions（settings.json，用 /update-config） | 機器可判定的規則，最可靠 |
 | 1 | 本檔 ＋ `~/.claude/rules/` 下無 `paths:` frontmatter 的檔（自動常載） | 每次必守、1–2 行寫得完的硬規則 |
-| 2 | `~/.claude/skills/` 與 `~/.claude/rules-lib/` 按需檔 | 多步驟程序、checklist、範例——**觸發條件容易被任務表面「看起來單純」蓋過的檢查不能只放這層**（2026-08-06 intake.md 實測教訓，見起手式第 2 條） |
+| 2 | `~/.claude/skills/` 與 `~/.claude/rules-lib/` 按需檔 | 多步驟程序、checklist、範例——**觸發條件容易被任務表面「看起來單純」蓋過的檢查不能只放這層**（見起手式第 2 條） |
 | 3 | 專案 `tasks/lessons.md` | 只放待升級規則；事實與偏好走 auto memory（層 4），不佔這層 |
 | 4 | Claude Code auto memory（`~/.claude/projects/*/memory/`） | 只放事實與偏好，不放規則 |
 
@@ -48,8 +43,7 @@
 本制度與 harness 內建指引衝突時**不自行選邊**：回報使用者判斷。選擇覆寫內建的條文
 必須在該條文旁寫明**覆寫的理由**，且該理由不得與內建的事實性陳述相牴觸——**規則可以
 覆寫內建，理由不行**（矛盾的理由會讓模型在衝突時任意選邊，比刪掉規則更糟）。
-內建**行為層**與規則對撞時（不只是理由過期），一律回報使用者重新裁定，不自行沿用舊規則
-（2026-08-24 hard-rules #11 即為此類，見 `docs/harness-overlap-2026-08.md`）。
+內建**行為層**與規則對撞時（不只是理由過期），一律回報使用者重新裁定，不自行沿用舊規則。
 
 ## 常載規則
 

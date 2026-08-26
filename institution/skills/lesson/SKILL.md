@@ -46,4 +46,3 @@ description: 被使用者糾正後，先分流（單純事實/偏好交給內建
 - 糾正發生的**當下**就記，不要等任務結束（會忘）。
 - 一條 lesson 只記一個模式；混多個就拆開。
 
-<!-- 變更歷史見 git 與 CHANGELOG.md：git log -p -- institution/skills/lesson/SKILL.md -->

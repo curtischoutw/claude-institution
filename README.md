@@ -11,10 +11,8 @@ Claude Code 日常四大痛點：
 1. **假完成**——回報「✅ 測試通過」卻根本沒跑過任何指令。
 2. **規則不被遵守**——CLAUDE.md 寫了一大篇，模型看過就忘、挑著遵守。
 3. **主 context 燒在粗活**——掃 repo、大範圍搜尋、貼長輸出永久佔據主對話 context，
-   稀釋注意力。（本條的處理方式在 2026-08-24 大幅收斂：內建 Agent tool 說明現行原文
-   已是「Do not spawn agents unless the user asks…handle it inline」，故 hard-rules #11
-   由「一律派 subagent」改為條件式，只在中間輸出真的會淹沒主 context 時才派。
-   見 `docs/harness-overlap-2026-08.md`「2026-08-24 覆核」節。）
+   稀釋注意力。（處理方式是條件式派工：只在中間輸出真的會淹沒主 context 時才派
+   subagent，與內建 Agent tool 說明同向。見 hard-rules #11 與 `rules-lib/dispatch.md`。）
 4. **糾正不累積**——同一個錯誤，每個新 session 再犯一次。
 
 ## 它給你什麼（好處 → 機制 → 在哪）
@@ -39,8 +37,7 @@ Claude Code 日常四大痛點：
 - **正本**在 `~/.claude/`（`CLAUDE.md`、`rules/`、`skills/`）與
   `~/.claude/projects/-Users-<username>-GitHub-claude-institution/memory/`。
   制度靠正本運作：每個新 session 由 `~/.claude/CLAUDE.md` 經 `@import` 載入常載規則。
-- **本專案 `institution/` 是複製快照**（2026-07-05 由一次性 Fable 5 session 建立），
-  不是運作中的檔案。用途：可攜、可版本控管（git）、可災難還原（`restore.sh`）。
+- **本專案 `institution/` 是複製快照**，不是運作中的檔案。用途：可攜、可版本控管（git）、可災難還原（`restore.sh`）。
   改快照不會影響任何 session；要改制度請改正本。
 
 ## 設計理念（一句話）
@@ -54,8 +51,7 @@ Claude Code 日常四大痛點：
 ### 任務生命週期（一次任務走的路）
 
 1. **起手＋接單**：一句話複述任務範圍＋完成判準，動手前 XY problem 快速檢查
-   （CLAUDE.md 起手式常載，2026-08-06 由 `intake.md` 按需檔升級——實測按需觸發
-   不可靠）；scope 校準已於 2026-08-24 併入 hard-rules #7，`intake.md` 刪檔。
+   （CLAUDE.md 起手式常載）；規模與描述差一個量級以上先講再做（hard-rules #7）。
 2. **路由**：查 CLAUDE.md 路由表 → 按需讀 `rules-lib/` 或用 skill；常載僅 hard-rules＋code-standards。
 3. **執行**：預設主對話自己做完；只在中間輸出會淹沒主 context、需 fresh-context 第二意見、
    或使用者明講時才派 subagent（#11、`dispatch.md`）；派工顯式指定模型並在描述標明「agent 類型＋模型」。
@@ -130,7 +126,7 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 
 條文衝突優先序：誠實條款（judgment.md）> hard-rules > 按需檔/skills > lessons.md（hooks 機器強制，不參與排序）。
 
-## 檔案清單（快照內容，共 24 檔，2026-08-24 更新）
+## 檔案清單（快照內容，共 24 檔）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式（含 XY problem 快速檢查）、路由表、制度分層表。
@@ -141,7 +137,7 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 | `hard-rules.md` | 硬規則 #0–13、15（無 #14）：元規則、行為、調度、寫入查證、計畫、Git |
 | `code-standards.md` | In-file Structure、Security Floor、Core Principles、模組敘述檔頭要求（模板見 `rules-lib/code-craft.md`） |
 
-### institution/rules-lib/（6 檔，按需；2026-08-24 由 9 檔精簡）
+### institution/rules-lib/（6 檔，按需）
 | 檔案 | 內容 |
 |---|---|
 | `code-craft.md` | 動手寫碼前：5 條設計 heuristics ＋ File Docstring 完整模板（原 `design-heuristics.md`＋`code-header.md`） |
@@ -150,9 +146,6 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 | `uplift.md` | 判斷力增強協定：六個方法把單次直覺換成可檢驗流程（eval 唯一測出實質增益的一份） |
 | `reporting.md` | 對使用者的回報規則：結論先行、選擇性省略、決策選項化、ADHD 友善補充 |
 | `maintenance.md` | 制度檔維護：權限分級、加常載規則前兩題測試、精簡門檻、過期檢查 |
-
-已刪除：`intake.md`（其按需觸發機制 2026-08-06 實測三次全失敗，核心判準已在常載起手式，
-scope 校準併入 hard-rules #7）。
 
 ### institution/skills/（3 個 SKILL.md）
 - `done-check` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出
@@ -176,13 +169,10 @@ scope 校準併入 hard-rules #7）。
 同樣借鑑自 fable-harness，指示改為引用 `rules-lib/uplift.md` 方法 2（多答案評審）／
 方法 3（對抗自查）。正本放在 `~/.claude/agents/`；還原保障是這份快照 + `restore.sh`。
 
-**使用順序（2026-08-24）**：重大結論先用內建 `/code-review`、`/simplify`、
+**使用順序**：重大結論先用內建 `/code-review`、`/simplify`、
 `/security-review`；只有需要**三個獨立 verdict 各自表態**時才派這三個 agent
 （它們的固定 YAML verdict 信封與「不得為判 REFUTED 而編造牽強反例」是內建沒有的）。
 
-<!-- 舊版此處稱 `~/.claude/agents/` 是第三方 wshobson/agents 的 git clone、三個檔名
-     已加進該 clone 的 .git/info/exclude。2026-08-18 三邊對齊 session 已存疑，
-     2026-08-24 實測確認該描述過期：該目錄無 .git/，只有 3 個自製 .md，故刪除該段。 -->
 - `skeptic.md` — 正確性鏡頭，預設「推翻它」，找邏輯漏洞與反例
 - `red-team.md` — 安全／失效模式鏡頭，固定 5 項攻擊清單
 - `simplifier.md` — 過度工程鏡頭，須提出實際簡化程式碼
@@ -191,9 +181,9 @@ scope 校準併入 hard-rules #7）。
 - `institution-map.md` — 制度結構指標，供 recall
 - `MEMORY.md` — memory 索引
 
-### institution/settings.json ＋ institution/statusline.sh（2 檔，2026-08-18 新增）
-補上先前的災難還原缺口：舊快照只涵蓋 hooks 檔本身，沒有涵蓋「把 hook 掛上去」
-的接線設定，災難還原後 hooks 會全部躺著不生效。
+### institution/settings.json ＋ institution/statusline.sh（2 檔）
+這兩檔涵蓋「把 hook 掛上去」的接線設定。少了它們，快照就只有 hook 腳本本身，
+災難還原後 hooks 會全部躺著不生效。
 - `settings.json` — `permissions.deny`（rm -rf / 等 11 條）＋ 5 個 hook 的
   PreToolUse/Stop/UserPromptSubmit 綁定＋ model/statusLine/language 等。
   hook 綁定路徑去識別化為 `/Users/<username>/.claude/hooks/...`；**預設略過**，
@@ -212,7 +202,7 @@ scope 校準併入 hard-rules #7）。
   用法見 `eval/README.md`。
 - `tasks/` — 本 repo 自己的 lessons.md 與 todo.md。
 - `CHANGELOG.md` — repo 層級的顯著變更（Keep a Changelog 格式）。逐檔修改紀錄一律
-  用 `git log -- <file>`，不再放進各檔檔頭（2026-08-14 檔頭改版）。
+  用 `git log -- <file>`，不放進各檔檔頭。
 
 ## 執行需求（Python 與 git）
 

@@ -1,14 +1,10 @@
 # 對使用者的回報規則（按需）
 
-<!-- 按需引用檔。觸發時機：準備向使用者回報（完成、卡住、提問、階段更新）。
+<!-- 情境載入檔。觸發時機：準備向使用者回報（完成、卡住、提問、階段更新）。
      分工：dispatch.md 回報合約管 subagent→指揮官；/done-check 管完成報告的證據格式；
-     本檔管指揮官→使用者的所有回報寫法。
-     2026-08-24：§1 結論先行與 §3 決策選項化各壓成一行判準——內建 system prompt
-     已覆蓋（「Report outcomes faithfully」／「If you are weighing a choice, give a
-     recommendation, not an exhaustive survey」），只留內建沒有的格式要求與判準。
-     §5 ADHD 三條全留（內建無等價）。變更歷史見 git 與 CHANGELOG.md。 -->
+     本檔管指揮官→使用者的所有回報寫法。 -->
 
-## 1. 結論先行（本檔為唯一正本；原 hard-rules #14 已於 2026-08-06 移除）
+## 1. 結論先行（本檔為唯一正本）
 
 第一句話直接回答「結果是什麼」——完成了什麼／壞在哪／需要你決定什麼。過程、理由、
 細節放在結論之後。**判準**：if 使用者只讀第一句 → 他該已知道最重要的事。
@@ -41,8 +37,7 @@ scratchpad 或一句「細節在 <路徑>」）。中間走過的彎路、讀過
 
 ## 5. ADHD 友善補充
 
-<!-- 借鏡 ayghri/i-have-adhd 的 3 條本專案原未涵蓋規則；其餘 7 條已由 §1–§4／
-     done-check／誠實條款涵蓋。評估見 docs/i-have-adhd-skill-assessment.md。 -->
+<!-- 本節三條借鏡 ayghri/i-have-adhd；評估見 docs/i-have-adhd-skill-assessment.md。 -->
 
 - **可見進度**：多回合任務每回合開頭一行複述「已完成 X／進行中 Y／待辦 Z」，讓讀者
   不必回捲。與起手式的「任務範圍+判準」複述不同：那是開場一次，這是每回合的進度快照。

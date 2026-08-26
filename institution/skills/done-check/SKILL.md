@@ -65,8 +65,8 @@ description: 宣稱任務「完成」之前必跑的驗證 checklist。在準備
 - 任何一項標 ⚠️ 未驗證都可以，但**用 ✅ 包裝沒驗證過的項目是最嚴重的違規**。
 - 這份報告是給使用者的回報主體，不是附錄。
 
-<!-- 與內建 /verify 的分工（2026-08-24 實測）：/verify 列在官方 bundled skills 中，
-     但本帳號尚未開通——2.1.241 binary 內有 verifySkillRolloutGateLatch，且本 session
-     的可用 skill 清單無 /verify。因此本 skill 維持正本。待 /verify 開通後重評：
+<!-- 與內建 /verify 的分工：/verify 列在官方 bundled skills 中，但本帳號尚未開通
+     （實測：binary 裡有 verifySkillRolloutGateLatch，但可用 skill 清單無 /verify）。
+     因此本 skill 維持正本。待 /verify 開通後重評：
      若它涵蓋步驟 2–5，本 skill 可降為「內建不足時的補充」，只保留步驟 1、6、7
      與上方三個逐字必填欄位。 -->

@@ -25,8 +25,3 @@
 - **Simplicity First**：每個改動盡可能簡單，影響最少的程式碼。
 - **No Laziness**：找根因，不做臨時貼補。
 
-<!-- 原 Core Principles 另兩條 Surface Assumptions／Proactive Warnings 於 2026-08-24 刪除：
-     內建 system prompt「Delivering work」節已要求 state your assumption 與
-     flagging important factors for the user。
-     變更歷史一律在 git 與 repo 的 CHANGELOG.md，不放本檔。
-     查本檔逐次修改：git log -p -- institution/rules/code-standards.md -->
