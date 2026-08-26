@@ -51,9 +51,9 @@ hard-rules #4「範圍外發現記到 tasks/todo.md」是否該改用內建 Task
 且內容與新檔矛盾（例如舊 `dispatch.md` 的「一律派 subagent」）。**本次已手動 rm 處理**，
 但下次改版前應該把 `--prune` 做出來：比對快照與正本、列出正本獨有的檔案供確認刪除。
 
-## 為 5 個 hooks 補 e2e 測試（2026-08-24 新增，來自 fable-harness 比較）
+## 為 4 個 hooks 補 e2e 測試（2026-08-24 新增，來自 fable-harness 比較）
 
-`institution/hooks/` 共 1072 行（含 443 行的 `rm_guard.py`）**完全沒有測試**——repo 內
+`institution/hooks/` 共 1053 行（含 443 行的 `rm_guard.py`）**完全沒有測試**——repo 內
 唯一的 `test_*.py` 是 eval fixture，不測 hook。對照組 `Miguok/fable-harness` 有
 `tests/test_verify_gate.py` 12 案例 363 行，且每個案例都可追溯到一次真實失效
 （多生態測試指令誤擋、假放行、`--test` 自測入口誤擋、內部例外仍須 fail-open）。
@@ -87,7 +87,10 @@ Claude Code 2.1.241 的 hooks 已從 5 個事件擴充到 31 個，handler 除 `
 按風險排序，供後繼 session 接續：
 
 1. **lesson 升級迴圈無機器強制**：被糾正後不記 lesson 無人發現，而制度複利全靠此迴圈。
-   糾正事件難以程式偵測，屬固有弱點——靠 prompt_nudge 提醒＋使用者抽查 lessons.md。
+   糾正事件難以程式偵測，屬固有弱點——目前只靠使用者抽查 lessons.md。
+   （原本另有 `prompt_nudge.sh` 每回合提醒，已於本次刪除：它注入的三句話全部與常載規則或
+   `verify_gate` 的機器強制重複，成本卻隨回合數累積。機器強制的替代路徑見下方
+   「用 hook 的 prompt/agent handler 補兩個已知弱點」。）
 2. **verify_gate 已知極限**（已寫進其 docstring）：驗不了測試是否通過、雙 Stop 逃逸、
    窗口只到最後一則真人 prompt。補償：`grep BLOCK ~/.claude/hooks/hooks.log` 稽核。
 3. **「驗證不自驗」只有半條機器強制**：v1.1 認得「有沒有派驗證 agent」，判不了驗證品質。

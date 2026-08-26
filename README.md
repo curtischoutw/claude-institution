@@ -70,8 +70,8 @@ Claude Code 日常四大痛點：
 
 ### 層 0 攔截時序（hooks，機器強制，全部 fail-open）
 
-UserPromptSubmit（`prompt_nudge` 提醒）→ PreToolUse（`backup_gate` 攔無備份改制度檔／
-`commit_guard` 攔除錯碼 commit／`rm_guard` 攔災難級刪除）→ Stop（`verify_gate` 攔改了碼未驗證就收工）。細節見下方檔案清單。
+PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯碼 commit／
+`rm_guard` 攔災難級刪除）→ Stop（`verify_gate` 攔改了碼未驗證就收工）。細節見下方檔案清單。
 
 條文衝突優先序：誠實條款（judgment.md）> hard-rules > 按需檔/skills > lessons.md（hooks 機器強制，不參與排序）。
 
@@ -121,13 +121,11 @@ scope 校準併入 hard-rules #7）。
 - `lesson` — 被糾正後把教訓寫成 if-then 規則，含第 2 次觸發的升級程序
 - `debug-protocol` — 系統化除錯 + 假設生成優先序 + 3-strike 停損規則
 
-### institution/hooks/（5 檔，層 0 機器可判定規則）
+### institution/hooks/（4 檔，層 0 機器可判定規則）
 借鑑自 Miguok/fable-harness 的同款機制，判斷邏輯保留、訊息改寫成指向本專案自己的規則；
 不引入 fable 的 FABLE-PROTOCOL 命名或協定文字。
 - `verify_gate.py` — Stop hook。本回合動了程式碼卻無測試指令 → 擋下並指向
   `hard-rules.md` #5 與 `/done-check`；fail-open，任何例外一律放行。
-- `prompt_nudge.sh` — UserPromptSubmit hook。每回合一行提醒（指揮官不下場／
-  /done-check／對抗審查），內容綁定本專案制度。
 - `backup_gate.py` — PreToolUse hook（Edit/Write/NotebookEdit）。改動
   `~/.claude/` 制度檔前若今日無備份 → 擋下並提示備份指令；fail-open。
 - `commit_guard.py` — PreToolUse hook（Bash git commit）。staged diff

@@ -9,7 +9,7 @@ metadata:
 
 Curtis 的跨專案制度：正本在 `~/.claude/`（CLAUDE.md 索引；`rules/` 下 `hard-rules.md`／
 `code-standards.md` 無 `paths:` frontmatter，Claude Code 自動常載，不需 `@import`；
-`rules-lib/` 6 個按需檔；skills/ 3 個；hooks/ 5 個層 0 腳本；agents/ 3 個對抗審查
+`rules-lib/` 6 個按需檔；skills/ 3 個；hooks/ 4 個層 0 腳本；agents/ 3 個對抗審查
 subagent，內建 `/code-review`／`/simplify`／`/security-review` 優先，需三個獨立
 verdict 才派）。
 2026-08-24 對齊 Claude Code 2.1.241 精簡：hard-rules #11 由「一律派 subagent」改條件式
