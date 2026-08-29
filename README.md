@@ -4,6 +4,24 @@
 自我改進迴圈。目標：**弱模型也能穩定交出有證據的高品質產出**，而不是把品質賭在
 單次 prompt 與模型自律上。
 
+## 先備知識：Claude Code 的七個可設定元件
+
+本 repo 的制度全部由 Claude Code 內建的七個元件組成。下表由軟到硬排列——
+從模型「讀得到的文字」到模型「跳不過的機器強制」：
+
+| 元件 | 它是什麼 | 為什麼要用 | 本制度用在哪 |
+|---|---|---|---|
+| `CLAUDE.md` | 每次對話開場自動載入的核心背景與規範 | 讓 AI 一開始就具備足夠先備知識，不必每次重講 | 索引式主檔（≤150 行）：起手式、路由表、分層表 |
+| `rules/` | 同樣常載的工作規範檔（無 `paths:` frontmatter 者自動載入） | 把「每次都必須守」的行為標準寫死，避免不合預期的做法 | 層 1：`hard-rules.md`、`code-standards.md` |
+| `skills/` | 可重複使用的工作流程指令包（`SKILL.md`，可另附腳本），命中情境才展開 | 程序模組化，用到才進 context，不佔常載預算 | 層 2：`/done-check`、`/lesson`、`/debug-protocol` |
+| `commands/` | 自訂快捷指令：把常用工作流程封裝成 `/名稱`，不必每次重打 | 省去重複手打長 prompt | **本制度未使用**——同樣需求由 skill 承擔（skill 一樣能用 `/名稱` 呼叫） |
+| `agents/` | 帶獨立 context、自有指示與工具集的分身 | 把會淹沒主對話的粗活隔離出去，或要一份沒有前情包袱的第二意見 | 三個對抗審查鏡頭：`skeptic`／`red-team`／`simplifier`（派工是例外，見 hard-rules #11） |
+| `hooks/` | 特定工具呼叫前後由 harness 自動執行的腳本 | 讓檢查、驗證、攔截自動觸發，不因模型自律失效而遺漏 | 層 0：`backup_gate`／`rm_guard`／`commit_guard`／`verify_gate` |
+| `settings.json` | 權限與行為的集中設定 | 集中控制能做什麼、不能做什麼，確保安全與一致 | `permissions.deny` 11 條＋4 個 hook 綁定＋model／statusLine／language |
+
+除 `CLAUDE.md` 外，上表每個元件都有 user 層（`~/.claude/`，跨所有專案）與專案層
+（`.claude/`，只在該 repo 生效）兩種放法。本制度正本全放 user 層，所以是**跨專案**制度。
+
 ## 它解決什麼問題
 
 Claude Code 日常四大痛點：
@@ -36,7 +54,8 @@ Claude Code 日常四大痛點：
 
 - **正本**在 `~/.claude/`（`CLAUDE.md`、`rules/`、`skills/`）與
   `~/.claude/projects/-Users-<username>-GitHub-claude-institution/memory/`。
-  制度靠正本運作：每個新 session 由 `~/.claude/CLAUDE.md` 經 `@import` 載入常載規則。
+  制度靠正本運作：`~/.claude/CLAUDE.md` 與 `rules/` 下無 `paths:` frontmatter 的檔，
+  每個新 session 由 Claude Code 自動常載（不需 `@import`）。
 - **本專案 `institution/` 是複製快照**，不是運作中的檔案。用途：可攜、可版本控管（git）、可災難還原（`restore.sh`）。
   改快照不會影響任何 session；要改制度請改正本。
 
@@ -244,4 +263,5 @@ memory 因路徑含專案名、屬 project-scope，腳本只印提示、不自�
 
 「被安全機制導向到 Opus 4.8 的請求是否消耗當前窗口額度」——本環境查不到，未確認。
 建議到 claude.ai 的 usage 儀表板實測。詳見 `tasks/todo.md` 弱點路線圖第 7 項。
-（`@import` 是否於新 session 生效已於 2026-07-05 用 `claude -p` 實測確認。）
+（常載規則於新 session 生效已於 2026-07-05 用 `claude -p` 實測確認；當時的載入方式是
+`@import`，現行機制為 `rules/` 自動常載。）

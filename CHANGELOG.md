@@ -9,6 +9,17 @@
 
 ### Changed
 
+- **README 新增「Claude Code 七個可設定元件」速查節，並修正常載機制誤述**（2026-08-29）。
+  使用者提供一份 agents/commands/hooks/rules/skills/settings.json/CLAUDE.md 的白話說明
+  要求併入 README；查證後改寫其中三處以貼合本制度實況：agents 的價值改寫為 context
+  隔離／fresh-context 第二意見（原文「分工品質更高」與 hard-rules #11「派工是例外」
+  衝突）、commands 標註「本制度未使用，同需求由 skill 承擔」（`~/.claude/commands/`
+  查無此目錄）、skills 本體改稱「指令包」而非「工作腳本」（三個 SKILL.md 皆零腳本）。
+  順手修正 `README.md:39` 對常載機制的既有錯述——原文稱常載規則「經 `@import` 載入」，
+  已用 `grep` 確認 `~/.claude/CLAUDE.md` 內並無 `@import`，實際是 `rules/` 下無 `paths:`
+  frontmatter 的檔由 Claude Code 自動常載；`L247` 的 2026-07-05 實測註記同步改為註明
+  「當時機制是 `@import`，現行機制為自動常載」，不虛稱現行機制也做過同一輪實測。
+
 - **`rules-lib/reporting.md` 重組成五節，並再次評估 `i-have-adhd` skill**（2026-08-26）。
   使用者反映該檔「看起來很散亂」。根因是**五節用了四種分類軸**：§1 是回報的開頭、
   §2 是寫什麼／省什麼、§3 是特定情境、§4 是形式，而 §5「ADHD 友善補充」是**按來源分節**
