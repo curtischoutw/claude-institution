@@ -7,6 +7,17 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **`statusline.sh` 的 ctx 進度條顏色反向**（2026-08-31）。使用者回報 context 才用掉
+  5%（`/context` 顯示 `50.2k/1m (5%)`），狀態列的 `ctx` 卻顯示 95% 且是紅色。根因：
+  `ctx` 欄位讀的是 `.context_window.remaining_percentage`（剩餘），但 `make_bar()`
+  的顏色門檻（`≤50 綠 / ≤80 黃 / >80 紅`）是照「已用」語意寫的——結果 context
+  越空、bar 越滿越紅，把最健康的狀態畫成最危險的；同一行的 `5h`／`7d` 則讀
+  `used_percentage`（已用），三根 bar 並排卻用兩種語意，誤判幾乎必然。
+  改為由 `remaining_percentage` 反推 `100 − remaining` 顯示已用百分比（不改用未經
+  驗證是否存在的 `used_percentage` 欄位），`make_bar()` 門檻不動，三根 bar 語意統一。
+
 ### Changed
 
 - **README 新增「Claude Code 七個可設定元件」速查節，並修正常載機制誤述**（2026-08-29）。

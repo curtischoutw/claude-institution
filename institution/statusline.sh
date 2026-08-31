@@ -2,7 +2,7 @@
 #
 # Claude Code statusLine 腳本：由 ~/.claude/settings.json 的 statusLine.command 呼叫，
 # 每次畫面更新時從 stdin 收一份 session JSON，往 stdout 印一行狀態列。
-# 存在的理由：額度與 context 餘量是「用完才發現」的資源，把它們常駐在眼前，
+# 存在的理由：額度與 context 用量是「用完才發現」的資源，把它們常駐在眼前，
 # 才能在爆掉之前決定要不要 /compact 或換模型。
 #
 # 關鍵設計決策：
@@ -14,7 +14,7 @@
 #
 # Features:
 #   - 目錄（$HOME 縮寫為 ~）＋ git branch（不在 repo 內則省略）
-#   - model 顯示名稱、context 餘量、5 小時與 7 天額度用量，各附 10 格文字進度條
+#   - model 顯示名稱、context 用量、5 小時與 7 天額度用量，各附 10 格文字進度條
 #   - 進度條配色門檻：≤50% 綠、≤80% 黃、>80% 紅
 #
 # 已知極限:
@@ -84,8 +84,10 @@ rate_info=$(echo "$rate_info" | sed 's/^  *//')
 ctx_remaining=$(echo "$input" | jq -r '.context_window.remaining_percentage // empty')
 ctx_info=""
 if [ -n "$ctx_remaining" ]; then
-  ctx_int=$(printf '%.0f' "$ctx_remaining")
-  ctx_info="ctx [$(make_bar "$ctx_int")] ${ctx_int}%"
+  # 由 remaining 反推 used：欄位只保證有 remaining_percentage，
+  # 不賭未經驗證的 used_percentage 欄位存在。
+  ctx_used=$((100 - $(printf '%.0f' "$ctx_remaining")))
+  ctx_info="ctx [$(make_bar "$ctx_used")] ${ctx_used}%"
 fi
 
 parts=""
