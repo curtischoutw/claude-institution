@@ -22,7 +22,7 @@
 | 拿不定主意：算完成？該問人？該換路？品質夠嗎？ | 讀 `~/.claude/rules-lib/judgment.md` |
 | 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md` 照強度分級執行 |
 | 重大結論要對抗審查 | 讀 `~/.claude/rules-lib/dispatch.md` §3 |
-| 準備宣稱「完成」或 commit | 用 skill `/done-check` |
+| 準備宣稱「完成」或 commit | 用 skill `/verify` |
 | 除錯卡住、同一問題修 2 次沒好 | 用 skill `/debug-protocol` |
 | 被使用者糾正 | 用 skill `/lesson` |
 | 想修改 ~/.claude/ 下任何制度檔 | 先讀 `~/.claude/rules-lib/maintenance.md` |

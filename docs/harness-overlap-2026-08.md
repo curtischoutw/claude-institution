@@ -197,6 +197,36 @@ strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
 
 ---
 
+## 2026-10-02 覆核（Claude Code 2.1.241 → 2.1.287；主力模型換成 Opus 5.5）
+
+查證來源：官方 model-config、settings-reference、fast-mode、changelog 四份文件，加上
+`Prompting Claude Opus 5.5` 指南；使用量取自 `~/.claude/projects/` 的 43 份 transcript
+（用 grep 數 `Skill` 與 `subagent_type` 呼叫）。
+
+### 第一階段：事實與設定（已處理）
+
+| # | 發現 | 證據 | 判定 ／ 處理 |
+|---|---|---|---|
+| F1 | 頂層 `effortLevel: "high"` 對 Opus 5.5／Sonnet 5.5 **不生效**，兩者實際跑 `medium` | settings-reference：「Opus 5.5 and models released after it ignore it」 | **設定錯誤**。`settings.json` 加 `modelSettings` 對兩個型號各設 `high`（使用者裁定「兩隻都設 high」）；頂層保留給 Fable 5.1 |
+| F2 | 名為 `verify` 的 user skill 會被內建 commit 指引要求在 commit 前執行 | changelog 2.1.287 | `done-check` 改名 `verify`，引用同步更新；比靠模型自覺可靠的原生觸發 |
+| F3 | `/doctor prompt-audit` 稽核舊模型寫法 | changelog 2.1.283 | 寫進 `maintenance.md` 過期檢查第一步；互動式指令，需使用者在 session 內跑 |
+| F4 | hard-rules #1「小改用 Edit」被內建 Write 說明覆蓋 | Write 說明：「For partial changes, use Edit instead」 | 刪（內建已覆蓋）；編號不重排 |
+| F5 | plan mode 內建流程要求派 Explore／Plan，與 #11 衝突 | plan mode 指示 vs Agent tool「Do not spawn agents unless the user asks」 | **行為層衝突，使用者裁定 #11 優先**；`dispatch.md` §1 記明 |
+| F6 | `dispatch.md` §4 寫死「Fable 5」「Opus 5／4.8 才支援 fast」「`effortLevel` high」 | model-config：`fable` 別名現為 5.1；fast-mode：Opus 5.5／5／4.8 皆支援 | 改為不寫死別名版本；fast 清單附官方出處並註明會變動 |
+| F7 | 使用量：done-check 5 次、lesson／debug-protocol 各 0 次、三個審查 agent 0 次、Explore 14 次 | transcript grep | 僅作第三階段的輸入，**不單獨構成刪除理由** |
+| F8 | Opus 5.5／Sonnet 5.5／Fable 無法關 thinking | model-config | `alwaysThinkingEnabled` 無作用但無害，保留 |
+
+### 第二、三階段（待辦）
+
+在 Opus 5.5 上重跑 `eval/` t3–t6（A 現行制度 vs C 零制度），**判準先寫、跑完才套用**：
+
+- 起手式 XY 檢查：t6 的 A 比 C 高 ≥2 分才留；A≈C 且都高 → 刪；A≈C 且都低 → 回報使用者。
+- `uplift.md`：t5 的 A−C ≥2 分才完整保留，否則只留方法 1、4。
+- skeptic／red-team／simplifier：0 次使用，提議刪除，由內建 `/code-review` 接手（需使用者核准）。
+- 評分改由 fresh-context agent 執行（補上 2026-08-24 評分者即執行者的缺口）。
+
+---
+
 ## 下次覆核時怎麼用這份文件
 
 1. 對照本表「內建原文出處」欄，跑一次等價的官方文件查證（用 WebFetch／WebSearch，

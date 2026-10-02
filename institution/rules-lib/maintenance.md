@@ -50,7 +50,9 @@
 ## 過期檢查
 
 - 發現任何規則與 harness 實際行為不符：不要默默繞過——記入 lessons.md 並回報使用者。
-- 每次 Claude Code 大版本更新後，對照內建 system prompt 與官方文件覆核一次。
+- 每次 Claude Code 大版本更新或換主力模型後，先跑內建 `/doctor prompt-audit`（2.1.283 起，
+  稽核 CLAUDE.md／skills／agents 裡為舊模型寫的提示寫法；互動式指令，需使用者在 session 內執行），
+  再對照內建 system prompt 與官方文件覆核一次。
   **查證一律用 WebFetch／WebSearch 讀官方文件，不憑記憶**（hard-rules #8）。
 - 覆核順序：**先問規則的『理由』是否仍成立，再問規則本身的『行為』是否仍成立**——
   兩者會分開過期，且理由通常先死。

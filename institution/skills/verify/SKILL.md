@@ -1,9 +1,9 @@
 ---
-name: done-check
+name: verify
 description: 宣稱任務「完成」之前必跑的驗證 checklist。在準備回報完成、準備 commit、或使用者問「好了嗎」時使用。產出一份附證據的驗證報告。
 ---
 
-# done-check：完成前驗證
+# verify：完成前驗證
 
 目的：杜絕「假完成」。每一個 ✅ 都必須有貼出來的指令與輸出當證據；沒有證據就不是 ✅。
 
@@ -65,8 +65,7 @@ description: 宣稱任務「完成」之前必跑的驗證 checklist。在準備
 - 任何一項標 ⚠️ 未驗證都可以，但**用 ✅ 包裝沒驗證過的項目是最嚴重的違規**。
 - 這份報告是給使用者的回報主體，不是附錄。
 
-<!-- 與內建 /verify 的分工：/verify 列在官方 bundled skills 中，但本帳號尚未開通
-     （實測：binary 裡有 verifySkillRolloutGateLatch，但可用 skill 清單無 /verify）。
-     因此本 skill 維持正本。待 /verify 開通後重評：
-     若它涵蓋步驟 2–5，本 skill 可降為「內建不足時的補充」，只保留步驟 1、6、7
-     與上方三個逐字必填欄位。 -->
+<!-- 命名為 verify 的理由：Claude Code 2.1.287 起，user／project skill 若名為 `verify`，
+     內建 commit 指引會要求 commit 前先執行它（docs-only／tests-only commit 除外），
+     原生觸發比靠模型自覺可靠。原名 done-check；舊名只留在 CHANGELOG 與 docs 的歷史敘述。
+     內建 bundled /verify 在本帳號未開通；若日後開通且與本 skill 同名衝突，重評分工。 -->

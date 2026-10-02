@@ -9,6 +9,23 @@
 
 ### Changed
 
+- **對 Opus 5.5／Claude Code 2.1.287 的第一階段覆核：修設定、改名、刪一條**（2026-10-02）。
+  沿用 `docs/harness-overlap-2026-08.md` 的重跑流程，逐條判定見該檔新增的「2026-10-02 覆核」節。
+
+  - **`settings.json` 加 `modelSettings`**：官方文件明載頂層 `effortLevel` 對 Opus 5.5 這一代不生效，
+    原本以為 opusplan 在 `high` 跑，實際規劃與執行都落在預設 `medium`。現在對
+    `claude-opus-5-5`、`claude-sonnet-5-5` 各設 `high`（使用者裁定）。
+  - **`done-check` 改名 `verify`**：2.1.287 起名為 `verify` 的 skill 會被內建 commit 指引要求
+    commit 前執行。同步更新 hard-rules #5、CLAUDE.md 路由表、`verify_gate.py` 的 block 訊息等引用；
+    CHANGELOG 與 docs 的歷史敘述保留舊名。
+  - **刪 hard-rules #1**（內建 Write 說明已涵蓋「partial changes 用 Edit」）；編號不重排。
+  - **`dispatch.md`**：§1 記明 plan mode 也先過派工閘門（使用者裁定 #11 優先於 plan mode 內建的
+    「派 Explore／Plan」）；§4 拿掉寫死的型號版本，fast mode 支援清單改附官方出處。
+  - **`maintenance.md`**：過期檢查加入 `/doctor prompt-audit` 為第一步。
+
+  **未做**：行為層規則（XY 檢查、`uplift.md`、三個審查 agent）的刪減——先在 Opus 5.5 上重跑 eval
+  再依事先寫好的判準決定。
+
 - **README 新增「Claude Code 七個可設定元件」速查節，並修正常載機制誤述**（2026-08-29）。
   使用者提供一份 agents/commands/hooks/rules/skills/settings.json/CLAUDE.md 的白話說明
   要求併入 README；查證後改寫其中三處以貼合本制度實況：agents 的價值改寫為 context
