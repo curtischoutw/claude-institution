@@ -13,6 +13,7 @@
 ```
 eval/
 ├── README.md                本檔
+├── run.sh                    執行器：跑有制度（A）／零制度（C）並驗證條件確實不同
 ├── tasks/                    六個任務檔，每檔含「任務 prompt」「評分 checklist」「備註」
 ├── fixtures/                 t1~t4 用到的程式碼與測試 fixture
 ├── answers/                  t3~t6 的答案卷／評分備註，僅供評分者查看
@@ -32,19 +33,40 @@ eval/
 
 ## 執行方式
 
-1. 針對每一題，開一個**全新、乾淨 context 的 Opus session**（不要在同一個 session
-   連續跑多題，會有 context 汙染，也不公平——受測 session 應該像第一次遇到這個任務）。
-2. 把該任務檔「任務 prompt」節的內容**逐字**貼給受測 session（不要改寫、不要加額外
-   提示，除非該輪評測本身就是在測「有無制度」以外的另一個變因）。
-3. 讓受測 session 完成任務。
-4. 任務完成後，評分者（不是受測 session 自己）對照該任務檔的「評分 checklist」
-   逐項打 0 或 1 分。checklist 每一項都設計成「可觀察」（能從回報的指令輸出、diff、
-   檔案內容直接判斷），盡量不要靠印象裁量；判斷不了就標「不確定」，不要硬湊分數。
-5. t3、t4、t5、t6 有對應的答案卷／評分備註在 `eval/answers/`，**只給評分者看，
-   絕對不能貼給受測 session**（貼了等於洩題，t3/t4 會失去除錯任務的意義）。
-6. 把結果記錄到 `eval/results/<日期>-<模型>-<有無制度>.md`，複製
-   `eval/results/TEMPLATE.md` 開始填。例如：
-   `eval/results/2026-07-15-opus-有制度.md`、`eval/results/2026-07-15-fable-baseline.md`。
+**t3–t6 用 `run.sh`**（t1／t2 區分力低，目前不跑）：在**正常終端機**（不是 Claude Code session 內）執行
+
+```bash
+bash eval/run.sh A          # 有制度：t3/t4 各 1 次、t5 2 次、t6 3 次
+bash eval/run.sh C          # 零制度（--safe-mode）
+```
+
+它會預檢環境、每題開獨立沙盒（全新乾淨 context，不連續跑多題）、**prompt 直接取自任務檔**，
+跑完自動檢查「制度確實載入（A）／確實未載入（C）」。手動跑時照下列原則：
+
+1. 針對每一題，開一個**全新、乾淨 context 的 Opus session**，把該任務檔「任務 prompt」節的
+   內容**逐字**貼給它（不要改寫、不要加額外提示，除非該輪評測本身就是在測別的變因）。
+2. 評分者（不是受測 session 自己）對照該任務檔的「評分 checklist」逐項打 0 或 1 分。
+   每一項都設計成「可觀察」，判斷不了就標「不確定」，不要硬湊分數。
+3. t3、t4、t5、t6 有對應的答案卷／評分備註在 `eval/answers/`，**只給評分者看，
+   絕對不能貼給受測 session**（貼了等於洩題）。
+4. 結果記錄到 `eval/results/<日期>-<模型>-<條件>.md`（照 `TEMPLATE.md`）。有制度與零制度合併成一份時，
+   必須有「與協定的差異」節，誠實列出樣本數、作廢的 run、評分者是誰。
+
+## 已知陷阱（2026-10-03 第一輪 eval 全部踩到）
+
+1. **子 session 會繼承環境變數。** 在 Claude Code session 內用 `claude -p` 啟動受測 session，
+   會繼承 `CLAUDE_CODE_SAFE_MODE=1`／`CLAUDE_CODE_DISABLE_CLAUDE_MDS=1`，「有制度」組悄悄變成零制度，
+   整輪作廢。判斷條件有沒有生效，**不能只看 exit code**：要看 transcript 的 skill 清單有沒有
+   `verify`、上下文有沒有 `claudeMd`。`run.sh` 已內建預檢與載入檢查。
+2. **`answer.md`（`claude -p` 的 stdout）只存最後一則訊息。** 有制度組會被 `verify_gate` Stop hook
+   擋下一次，最後一則常變成對 hook 的補充說明，原始回報在前一則。評分一律用 transcript 裡
+   **全部 assistant 文字**，且有制度與零制度要用同一種方式取。
+3. **評分要盲、要同批。** 把答案換成隨機代號（對照表自己留著），有制度與零制度**放在同一批**交給同一個
+   fresh-context 評分者，才沒有「前後兩個評分者標準不同」的問題。評分者只讀答案與評分檔，不讀其他檔。
+4. **查證「受測 session 有沒有讀某個檔」要涵蓋所有工具。** 只搜 `Read` 工具會漏掉 `Bash cat`；
+   搜 transcript 裡 `tool_use` 的完整 input。
+5. **細項不確定或不適用不計分。** t6 第 4 項（提問）在答案沒提問時是 N/A；第 5 項只有條件句沒有明講
+   「假設」字樣時標「不確定」。所以 t6 的實際分數上限不是 6，比較時要在同一個口徑下。
 
 ## 執行時機
 

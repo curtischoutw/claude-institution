@@ -20,6 +20,21 @@
 
 ### Changed
 
+- **Opus 5.5 覆核的文件收尾稽核**（2026-10-03）。PR #17 合併後再掃一遍文件，修落後的敘述：
+  - **修懸空引用**：CLAUDE.md 分層表第 2 層寫「見起手式第 2 條」，那條（XY 檢查）已在 PR #17 刪除。
+    我先前的殘留掃描只搜了「XY 檢查」字樣，漏了這個說法。依使用者裁定連同整句原則刪除
+    （該原則的唯一實例已不存在，Opus 5.5 上也沒有證據支持它）。
+  - **README**：`settings.json` 描述補 `modelSettings` 與其必要性；「誠實邊界」補 Opus 5.5 結果；
+    流程圖節點「驗證／對抗審查」改「驗證／第二意見」。
+  - **新增 `eval/run.sh`**：由第一輪 eval 的臨時腳本改寫而成，A／C 兩組都支援；預檢環境變數、跑完檢查
+    制度確實載入（A 應載入、C 應未載入）。`eval/README.md` 新增「已知陷阱」五點（子 session 繼承環境變數、
+    `answer.md` 只存最後一則、盲評要同批、查證要涵蓋所有工具、不適用／不確定不計分）。
+  - **docs**：`harness-overlap` 的「下次覆核」加 `/doctor prompt-audit` 與 `eval/run.sh` 兩步；
+    `capability-transfer-assessment` 補 Opus 5.5 實測節與 Changelog，缺口 2 再修正。
+  - **tasks**：`todo.md` 常載表改為實測 132 行／8,799 B，新增 `/doctor prompt-audit` 待跑與
+    `verify_gate` 誤擋觀察；`lessons.md` 新增三條（子 session 繼承環境變數、單一工具查證會漏、
+    `git rm` 後 commit 的 staging 陷阱），並為 2026-08-06 情境觸發那條補 Opus 5.5 反證（不改原結論）。
+
 - **對 Opus 5.5／Claude Code 2.1.287 的第一階段覆核：修設定、改名、刪一條**（2026-10-02）。
   沿用 `docs/harness-overlap-2026-08.md` 的重跑流程，逐條判定見該檔新增的「2026-10-02 覆核」節。
 
@@ -34,8 +49,7 @@
     「派 Explore／Plan」）；§4 拿掉寫死的型號版本，fast mode 支援清單改附官方出處。
   - **`maintenance.md`**：過期檢查加入 `/doctor prompt-audit` 為第一步。
 
-  **未做**：行為層規則（XY 檢查、`uplift.md`、三個審查 agent）的刪減——先在 Opus 5.5 上重跑 eval
-  再依事先寫好的判準決定。
+  （行為層規則的刪減原本留待 eval 後決定，已完成，見下一條。）
 
 - **Opus 5.5 eval 結果與判準套用**（2026-10-03）。t3／t4 有無制度皆 6/6；t5 有制度 5.0／零制度 2.25
   （`uplift.md` 完整保留，且這次被實際讀取）；t6 有制度 4.0／零制度 3.6（差距在誤差內；零制度組 5 個裡
@@ -43,7 +57,7 @@
   `eval/results/2026-10-03-opus5.5-有制度vs零制度.md`。**第一輪 A 組作廢**：在 session 內啟動的子
   session 繼承了 `CLAUDE_CODE_SAFE_MODE`，A 組悄悄變成零制度；改由使用者在正常終端機重跑並以
   「制度確實載入」檢查把關。另修 `eval/answers/t3-answer.md` 行號（`:47`→`:38`）。刪減（XY 檢查、三個審查
-  agent）與 `reporting.md`／`uplift.md` 的規則衝突，待使用者裁定。
+  agent）與 `reporting.md`／`uplift.md` 的規則衝突，裁定結果見下。
 
   **使用者裁定後已執行**（2026-10-03）：**刪 CLAUDE.md 起手式第 2 條「XY problem 快速檢查」**
   （依事先寫好的判準：A−零制度 = 0.4 < 2 且兩邊都高）；**`uplift.md` 方法 1 加一段與 `reporting.md` §1 的

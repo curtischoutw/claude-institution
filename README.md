@@ -17,7 +17,7 @@
 | `commands/` | 自訂快捷指令：把常用工作流程封裝成 `/名稱`，不必每次重打 | 省去重複手打長 prompt | **本制度未使用**——同樣需求由 skill 承擔（skill 一樣能用 `/名稱` 呼叫） |
 | `agents/` | 帶獨立 context、自有指示與工具集的分身 | 把會淹沒主對話的粗活隔離出去，或要一份沒有前情包袱的第二意見 | **本制度未使用自製 agent**——審查用內建 `/code-review`／`/simplify`／`/security-review`；需要時派內建的 `Explore`／`general-purpose`（派工是例外，見 hard-rules #11） |
 | `hooks/` | 特定工具呼叫前後由 harness 自動執行的腳本 | 讓檢查、驗證、攔截自動觸發，不因模型自律失效而遺漏 | 層 0：`backup_gate`／`rm_guard`／`commit_guard`／`verify_gate` |
-| `settings.json` | 權限與行為的集中設定 | 集中控制能做什麼、不能做什麼，確保安全與一致 | `permissions.deny` 11 條＋4 個 hook 綁定＋model／statusLine／language |
+| `settings.json` | 權限與行為的集中設定 | 集中控制能做什麼、不能做什麼，確保安全與一致 | `permissions.deny` 11 條＋4 個 hook 綁定＋model／`modelSettings`（Opus 5.5／Sonnet 5.5 的 effort）／statusLine／language |
 
 除 `CLAUDE.md` 外，上表每個元件都有 user 層（`~/.claude/`，跨所有專案）與專案層
 （`.claude/`，只在該 repo 生效）兩種放法。本制度正本全放 user 層，所以是**跨專案**制度。
@@ -47,8 +47,12 @@ Claude Code 日常四大痛點：
 
 **誠實邊界**：制度補的是流程性判斷（防偏誤、防漏做、防過度自信），補不了模型本體的
 品味與長鏈推理；2026-08-06 已用 `eval/` 六題中的 t3–t6 對 Opus 5 做過一輪實測
-（現行制度 vs `--safe-mode` 零制度），結果是**逐題分裂**而非整體增益，
-見 `docs/capability-transfer-assessment.md` 與 `docs/harness-overlap-2026-08.md`。
+（現行制度 vs `--safe-mode` 零制度），結果是**逐題分裂**而非整體增益。
+2026-10-03 在 Opus 5.5 上重跑：t3／t4 兩組皆滿分；t5 架構取捨有制度 5.0／零制度 2.25
+（`uplift.md` 因此完整保留）；t6 差距在誤差內——零制度 5 例中 4 例已自行辨識 XY problem
+（Opus 5 時是 0/6），起手式的 XY 檢查因此刪除。
+見 `docs/capability-transfer-assessment.md`、`docs/harness-overlap-2026-08.md` 與
+`eval/results/2026-10-03-opus5.5-有制度vs零制度.md`。
 
 ## 快照與正本
 
@@ -105,7 +109,7 @@ flowchart TD
     T --> I["實作／重構"]
     T --> R["研究／查官方行為"]
     T --> A2["設計／架構取捨"]
-    T --> V["驗證／對抗審查"]
+    T --> V["驗證／第二意見"]
 ```
 
 每一類該用哪個 agent 類型、哪隻模型，以及主對話自己該用 `opusplan`／`opus`／`fable`
@@ -199,7 +203,8 @@ git history 可還原）。
 這兩檔涵蓋「把 hook 掛上去」的接線設定。少了它們，快照就只有 hook 腳本本身，
 災難還原後 hooks 會全部躺著不生效。
 - `settings.json` — `permissions.deny`（rm -rf / 等 11 條）＋ 4 個 hook 的
-  PreToolUse／Stop 綁定＋ model/statusLine/language 等。
+  PreToolUse／Stop 綁定＋ model／`modelSettings`／statusLine／language 等。
+  `modelSettings` 是必要的：頂層 `effortLevel` 對 Opus 5.5 這一代不生效，不寫的話會落回預設 `medium`。
   hook 綁定路徑去識別化為 `/Users/<username>/.claude/hooks/...`；**預設略過**，
   還原需 `--with-settings`（自動用 `whoami` 替換回實際路徑）。
 - `statusline.sh` — 被 `settings.json` 的 `statusLine` 引用；內容全用 `$HOME`/
@@ -207,13 +212,13 @@ git history 可還原）。
 
 ### repo 其他內容（非快照，不隨 restore.sh 還原）
 
-- `docs/capability-transfer-assessment.md` — 能力轉移評估基線；2026-08-06 已用
-  `eval/` t3–t6 對 Opus 5 實測一輪（現行制度 vs 零制度），結果與原推測值不同，
-  詳見檔內 Changelog。
-- `docs/harness-overlap-2026-08.md` — 2026-08-06 精簡計畫的逐條比對表：每條制度
-  規則對照 harness 內建原文出處與判定，供下次大版本更新後重跑覆核。
-- `eval/` — 制度蒸餾最小評測集（6 題＋fixtures＋答案卷）；只在制度改版時跑，
-  用法見 `eval/README.md`。
+- `docs/capability-transfer-assessment.md` — 能力轉移評估基線；2026-08-06（Opus 5）與
+  2026-10-03（Opus 5.5）已用 `eval/` t3–t6 各實測一輪（現行制度 vs 零制度），結果與原推測值不同，
+  詳見檔內各實測節與 Changelog。
+- `docs/harness-overlap-2026-08.md` — 逐條比對表：每條制度規則對照 harness 內建原文出處與判定
+  （2026-08-06、08-24、10-02 三輪覆核），供下次大版本更新後重跑覆核。
+- `eval/` — 制度蒸餾最小評測集（6 題＋fixtures＋答案卷＋`run.sh` 執行器）；只在制度改版時跑，
+  用法與已知陷阱見 `eval/README.md`。
 - `tasks/` — 本 repo 自己的 lessons.md 與 todo.md。
 - `CHANGELOG.md` — repo 層級的顯著變更（Keep a Changelog 格式）。逐檔修改紀錄一律
   用 `git log -- <file>`，不放進各檔檔頭。
