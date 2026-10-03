@@ -54,6 +54,9 @@
   → then 把該規則的核心判準（不是全文）升到常載，情境載入檔降級為細節參考。
 - 狀態：first-hit（`tasks/todo.md`「已知弱點路線圖」第 4 項 2026-07-14 已預先點出
   「觸發判斷本身」是蒸餾天花板之一，本次是該理論疑慮首次被實測數據證實）
+- **2026-10-03 補註（不改上述結論）**：Opus 5.5 上，t5 有制度組 2/2 實際讀了 `uplift.md`（觸發成功）；
+  XY problem 則零制度 5 例中 4 例自行辨識，起手式的 XY 檢查依判準刪除。「情境載入會漏」的證據
+  目前只來自 Opus 5，且 Opus 5.5 的樣本小，所以原則保留為觀察、不當成定論。
 
 ## [2026-08-24] 設定值的「較新」不等於「使用者要的」——時間先後是線索，不是意圖
 - 觸發情境：快照 settings.json 是 opusplan、家目錄是 opus。我用 mtime（家目錄 8/24
@@ -66,4 +69,28 @@
   不能說明「誰對」。回報先後，把選擇權交回使用者。
 - 判準：if 兩邊設定值不同且無法從程式碼／文件判定何者正確 → then 回報雙方值＋時間先後，
   明講「我無法從時間推斷你的意圖」，請使用者裁定；禁止自行選邊後才告知。
+- 狀態：first-hit
+
+## [2026-10-03] 在 Claude Code session 內用 `claude -p` 跑對照實驗，子 session 會繼承環境變數
+- 觸發情境：eval 的「有制度」組在 session 內啟動，繼承了 `CLAUDE_CODE_SAFE_MODE=1`、
+  `CLAUDE_CODE_DISABLE_CLAUDE_MDS=1`，兩組其實是同一個條件；12 個 run 全部 exit=0，照常評了分才發現。
+- 錯誤行為：把 exit code 當成「條件有生效」的證據，沒有先驗證兩組的差異真的存在。
+- 正確行為：跑前檢查環境變數；跑後檢查 transcript 的 skill 清單（有制度應含 `verify`）。
+- 判準：if 設計的是 A/B 對照 → then 評分之前先用獨立證據確認 A 與 B 的條件確實不同。
+- 狀態：promoted-to:`eval/run.sh`（預檢＋載入檢查，層 0 級機器強制）、`eval/README.md`「已知陷阱」
+
+## [2026-10-03] 查證「有沒有做某事」只看單一工具會漏
+- 觸發情境：我宣稱「A 組一次都沒讀 `rules-lib`」，依據是 transcript 裡沒有 `Read` 工具的呼叫；
+  實際上它們用 `Bash cat` 讀了。我在使用者面前講了錯誤的結論，後來才用全文搜尋更正。
+- 錯誤行為：用一個工具名當作「有無讀檔」的完整證據。
+- 正確行為：搜 `tool_use` 的完整 input（任何工具、含檔名字串），而不是只篩工具名稱。
+- 判準：if 要斷言「某檔沒被讀／某指令沒被跑」→ then 先涵蓋所有能達成它的工具再下結論。
+- 狀態：first-hit
+
+## [2026-10-03] `git rm` 之後 `git commit` 會帶走已 staged 的刪除；開分支前要先 fetch
+- 觸發情境：要把改動拆成兩個 commit，第一個 commit 只該有 `eval/`，卻夾帶了先前 `git rm` 的三個
+  agent 刪除；另外本機 `main` 落後 `origin/main`（PR #16 已合併），導致快照與正本的 statusline 看似不一致。
+- 錯誤行為：commit 前沒看 staging 內容；開分支前沒 `git fetch`。
+- 正確行為：拆 commit 前先 `git diff --cached --name-status` 核對；開分支前先 `git fetch`。
+- 判準：if 要拆多個 commit → then 每個 commit 前都印 staging 清單；if 要從 `main` 開分支 → then 先 fetch。
 - 狀態：first-hit

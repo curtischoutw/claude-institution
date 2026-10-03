@@ -1,5 +1,18 @@
 # Todo（範圍外發現，待使用者決定）
 
+## 待使用者執行：`/doctor prompt-audit`（2026-10-03）
+
+內建 `/doctor prompt-audit`（2.1.283 起）稽核 CLAUDE.md、skills、agents 裡為舊模型寫的提示寫法。它是互動式
+指令，只能在正常終端機的 Claude Code session 內跑。跑完把報告交給後續 session，逐條套用
+`maintenance.md`「先查理由、再查行為」。本輪 Opus 5.5 覆核**尚未**納入它的結果。
+
+## `verify_gate` 對沒有測試套件的 fixture 會誤擋一次（2026-10-03 eval 觀察，暫不處理）
+
+t3 有制度組：改了 `.py`，驗證是用 `python3 -c` 跑重現指令，不符合 `TEST_CMD_RE`／`SYNTAX_CHECK_RE`
+（後者只認 `ast.parse`、`py_compile`、`sh -n`、`node -c`），hook 擋下一次，受測 session 多花一輪說明。
+這是已寫進 docstring 的已知極限的活案例（只驗「指令是否出現」）。放寬會削弱層 0 的強制力，所以先記觀察；
+若日後常誤擋，再評估把「帶輸出的 `python3 -c` 重現指令」納入。
+
 ## reporting.md §1 的「好例」在 2026-08-24 精簡時被刪掉（2026-08-26 重組時發現，未修）
 
 `docs/i-have-adhd-skill-assessment.md:57` 引用「`reporting.md §1` 好例『測試全綠（輸出見下）』」，
@@ -20,20 +33,25 @@
 
 | 檔案 | 行數 | 位元組 |
 |---|---|---|
-| `CLAUDE.md` | 51 | 3,281 |
-| `rules/hard-rules.md` | 63 | 4,395 |
-| `rules/code-standards.md` | 27 | 1,513 |
-| 合計 | 141 | 9,189（約 3K token） |
+| `CLAUDE.md` | 46 | 2,921 |
+| `rules/hard-rules.md` | 60 | 4,360 |
+| `rules/code-standards.md` | 26 | 1,518 |
+| 合計 | 132 | 8,799（約 2.9K token） |
 
-外加 3 個 skill ＋ 3 個 agent 的 description 與 memory 索引。2026-08-26 這輪已做兩件事：
-刪掉 `prompt_nudge.sh`（原本每個 user turn 注入一次並留在對話歷史，成本隨回合數累積）、
-清掉制度檔內的變更沿革（156 → 141 行，9,687 → 9,189 B）。
+（2026-10-03 重測；原 2026-08-26 為 141 行／9,189 B。）外加 3 個 skill 的 description 與 memory 索引
+（三個自製 agent 已於 2026-10-03 刪除）。2026-08-26 做過兩件事：刪掉 `prompt_nudge.sh`
+（原本每個 user turn 注入一次並留在對話歷史，成本隨回合數累積）、清掉制度檔內的變更沿革
+（156 → 141 行，9,687 → 9,189 B）；2026-10-03 再刪起手式 XY 檢查與 hard-rules #1（141 → 132 行）。
 
 **核心論點：「讓模型自己判斷該載入什麼」不是沒試過，是試過會漏。**
 `intake.md` 就是情境載入檔，2026-08-06 實測三次自我觸發全部失敗，所以 XY problem
 判準被搬回常載起手式；本檔另記著 uplift 方法 1 在 t5 未被觸發。兩筆負面實測都指向
 同一件事：情境載入的觸發判斷本身會被任務表面「看起來單純」蓋過。
 **因此不建議把常載內容大幅拆成情境載入檔。**
+
+**2026-10-03 補註**：上述負面實測都來自 Opus 5。Opus 5.5 上 `uplift.md` 被實際讀取 2/2、零制度組
+也多半自行辨識 XY problem，「情境載入會漏」在 Opus 5.5 上較弱；但樣本數小（A 組 t5 兩次），
+不足以推翻，維持不建議大幅拆分。
 
 **剩下兩條路徑，依可靠度排序：**
 

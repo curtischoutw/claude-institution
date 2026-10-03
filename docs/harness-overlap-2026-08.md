@@ -240,6 +240,8 @@ strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
 
 ## 下次覆核時怎麼用這份文件
 
+0. 先跑內建 `/doctor prompt-audit`（2.1.283 起；互動式指令，需在 Claude Code session 內執行），
+   把它點名的過時寫法併入本輪判斷。
 1. 對照本表「內建原文出處」欄，跑一次等價的官方文件查證（用 WebFetch／WebSearch，
    不要憑記憶）——確認引文是否還成立、是否有新增的內建機制。
 2. 任何一格「內建原文出處」不成立了 → 該規則的判定可能要重新跑一輪，不要只改
@@ -248,3 +250,6 @@ strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
    真的解決，不能只憑推論——比照 t6 的實驗設計（`eval/tasks/`＋A/C 對照）重跑。
 4. 新發現的重疊或衝突，記入 `tasks/lessons.md`，第 2 次觸發依 `maintenance.md`
    權限分級走升級流程。
+5. 需要跑 eval 時，一律用 `eval/run.sh`（在正常終端機執行，不要在 Claude Code session 內），
+   並確認跑完的「載入檢查」通過；判準必須在跑之前寫定。陷阱與盲評做法見 `eval/README.md`
+   「已知陷阱」（2026-10-03 第一輪因子 session 繼承 safe mode 變數而整輪作廢）。
