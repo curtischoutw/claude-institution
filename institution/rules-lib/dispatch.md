@@ -17,6 +17,9 @@ asks… handle it inline」）。逐條檢查，命中任一條才往下走 §2�
 站不住的理由（出現這些就是還在 §1，不准往下）：省額度、任務看起來有好幾個面向、
 量大、覺得自己做很慢。
 
+**plan mode 也一樣先過這道閘門**：plan mode 內建流程指示「派 Explore 探索、派 Plan 設計」，
+與本節衝突。使用者 2026-10-02 裁定本節優先——小 repo 由主對話直接讀；只有命中 (a)(b)(c) 才派。
+
 ## §2 情境 → agent 類型 ＋ 模型
 
 **型號與 agent 類型清單以當前 Agent tool schema 的 `model` enum 與環境宣告為準**
@@ -32,7 +35,6 @@ asks… handle it inline」）。逐條檢查，命中任一條才往下走 §2�
 | 事實查證研究 | `general-purpose` | `haiku`；需權衡結論時 `sonnet` | |
 | 查 Claude Code／Agent SDK／Claude API 的官方行為 | `claude-code-guide` | 依該 agent 定義 | 專職 agent，勝過自己猜 |
 | 設計實作策略、架構取捨 | `Plan` | `opus` | 判斷密集 |
-| 重大結論要三個獨立 verdict | `skeptic`／`red-team`／`simplifier` | `opus` | 見 §3 |
 | fresh-context 驗證 | `general-purpose` | 文件 read-back `haiku`；程式碼實跑 `sonnet` | 見 §7 |
 
 一句話原則：**越唯讀、越機械化就越便宜；越需要判斷、越需要仲裁就越貴。**
@@ -45,23 +47,25 @@ asks… handle it inline」）。逐條檢查，命中任一條才往下走 §2�
 - 任務描述（使用者可見的 description）標明 agent 類型與模型，例：「掃描 repo（Explore+haiku）」，
   讓使用者一眼看見每筆派工用了哪隻模型。
 
-## §3 內建指令 vs 自製 agent
+## §3 重大結論的審查：用內建指令
 
-**先用內建**，它們已覆蓋大部分審查鏡頭：
+本制度不自製審查 agent，一律用內建指令：
 
 | 要審什麼 | 用什麼 |
 |---|---|
-| 程式碼正確性 | `/code-review` |
+| 程式碼正確性 | `/code-review`（高風險加 `ultra` 雲端多 agent 深審） |
 | 過度工程、可簡化處 | `/simplify` |
 | 安全問題 | `/security-review` |
 
-**只有需要三個獨立 verdict 各自表態時**，才派 `skeptic`／`red-team`／`simplifier`。
-它們比內建多的東西只有兩樣：固定 YAML verdict 信封，以及「不得為了判 REFUTED 而編造
-牽強反例」的約束。除此之外沒有理由派它們。
+要「多個獨立意見」的設計題（不是程式碼審查）→ `uplift.md` 方法 2：派 2–3 個 fresh-context
+subagent 走不同路線，照 §6 派工包寫，各自作答後比對分歧點。
 
 ## §4 主對話模型：opusplan、fast mode、fable
 
-`~/.claude/settings.json` 目前設 `"model": "opusplan"`、`"effortLevel": "high"`。
+`~/.claude/settings.json` 目前設 `"model": "opusplan"`；effort 由 `modelSettings` 對
+`claude-opus-5-5`、`claude-sonnet-5-5` 各設 `high`。**頂層 `effortLevel` 對 Opus 5.5 這一代
+不生效**（只管 Opus 5、Fable 5.1 與更早的模型），所以不能只靠它——不寫 `modelSettings`
+的話，5.5 會落回預設 `medium`。別名對應哪個版本以 `/model` 與官方 model-config 為準，不在本檔寫死。
 
 **`opusplan`**（官方定義）：plan mode 用 `opus`，切到執行時自動換 `sonnet`。
 所以「先進 plan mode 想清楚，再退出執行」不只是流程紀律，也直接決定了哪隻模型在想、
@@ -74,13 +78,14 @@ asks… handle it inline」）。逐條檢查，命中任一條才往下走 §2�
 | 純機械批次改、規格已完全確定 | `/model sonnet` |
 
 **fast mode（`/fast`）**：不是換模型，是 Opus 換一組偏向低延遲的 API 設定，
-最快 2.5 倍、每 token 較貴（Opus 5／4.8 才支援，Sonnet／Haiku 沒有）。
+最快 2.5 倍、每 token 較貴（官方：Opus 5.5／5／4.8 支援，Sonnet／Haiku 沒有；
+支援清單會變動，以 fast-mode 官方文件為準）。
 判準：**互動式工作（快速迭代、現場除錯）才開；長時間自動跑的任務不開。**
 成本陷阱：一段對話裡第一次開啟時，要用 fast 價付掉**當下整個 context** 的未快取輸入——
 所以要開就在 session 開頭開，不要聊到一半才開。訂閱制的 fast mode 走 usage credits，
 不算在方案額度內。
 
-**切到 `fable` 的兩個情境**（`fable` 別名＝Claude Fable 5，官方定位是「最難、最長時間的任務」）：
+**切到 `fable` 的兩個情境**（`fable` 別名指向最新的 Claude Fable，官方定位是「最難、最長時間的任務」）：
 
 | 情境 | 判準 |
 |---|---|

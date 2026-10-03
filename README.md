@@ -13,9 +13,9 @@
 |---|---|---|---|
 | `CLAUDE.md` | 每次對話開場自動載入的核心背景與規範 | 讓 AI 一開始就具備足夠先備知識，不必每次重講 | 索引式主檔（≤150 行）：起手式、路由表、分層表 |
 | `rules/` | 同樣常載的工作規範檔（無 `paths:` frontmatter 者自動載入） | 把「每次都必須守」的行為標準寫死，避免不合預期的做法 | 層 1：`hard-rules.md`、`code-standards.md` |
-| `skills/` | 可重複使用的工作流程指令包（`SKILL.md`，可另附腳本），命中情境才展開 | 程序模組化，用到才進 context，不佔常載預算 | 層 2：`/done-check`、`/lesson`、`/debug-protocol` |
+| `skills/` | 可重複使用的工作流程指令包（`SKILL.md`，可另附腳本），命中情境才展開 | 程序模組化，用到才進 context，不佔常載預算 | 層 2：`/verify`、`/lesson`、`/debug-protocol` |
 | `commands/` | 自訂快捷指令：把常用工作流程封裝成 `/名稱`，不必每次重打 | 省去重複手打長 prompt | **本制度未使用**——同樣需求由 skill 承擔（skill 一樣能用 `/名稱` 呼叫） |
-| `agents/` | 帶獨立 context、自有指示與工具集的分身 | 把會淹沒主對話的粗活隔離出去，或要一份沒有前情包袱的第二意見 | 三個對抗審查鏡頭：`skeptic`／`red-team`／`simplifier`（派工是例外，見 hard-rules #11） |
+| `agents/` | 帶獨立 context、自有指示與工具集的分身 | 把會淹沒主對話的粗活隔離出去，或要一份沒有前情包袱的第二意見 | **本制度未使用自製 agent**——審查用內建 `/code-review`／`/simplify`／`/security-review`；需要時派內建的 `Explore`／`general-purpose`（派工是例外，見 hard-rules #11） |
 | `hooks/` | 特定工具呼叫前後由 harness 自動執行的腳本 | 讓檢查、驗證、攔截自動觸發，不因模型自律失效而遺漏 | 層 0：`backup_gate`／`rm_guard`／`commit_guard`／`verify_gate` |
 | `settings.json` | 權限與行為的集中設定 | 集中控制能做什麼、不能做什麼，確保安全與一致 | `permissions.deny` 11 條＋4 個 hook 綁定＋model／statusLine／language |
 
@@ -37,11 +37,11 @@ Claude Code 日常四大痛點：
 
 | 好處 | 靠什麼機制 | 在哪 |
 |---|---|---|
-| 「完成」必附實跑指令與輸出，假完成被攔下 | `/done-check` checklist ＋ `verify_gate` Stop hook 攔「改了碼未驗證就收工」 | `skills/done-check/`、`hooks/` |
+| 「完成」必附實跑指令與輸出，假完成被攔下 | `/verify` checklist ＋ `verify_gate` Stop hook 攔「改了碼未驗證就收工」 | `skills/verify/`、`hooks/` |
 | 規則真的被遵守——強制力來自放對層，不是寫得多 | 制度分層：機器可判定→hook（模型跳不過）；每次必守→常載；程序→情境載入 | `CLAUDE.md` 分層表 |
 | 主對話保持乾淨——粗活的中間輸出不進主 context | 派工是例外（條件式觸發）＋升降級路徑＋派工標明模型 | `rules-lib/dispatch.md` |
 | 同一個錯不犯第二次——糾正複利成制度 | lesson 迴圈：記錄→第 2 次觸發→升級固化到 hook／常載／skill | `skills/lesson/` |
-| 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查三鏡頭（skeptic／red-team／simplifier） | `rules-lib/uplift.md`、`agents/` |
+| 高風險判斷不靠單次直覺 | 判準先行、多答案評審、對抗自查，外加內建 `/code-review`／`/simplify`／`/security-review` | `rules-lib/uplift.md`、`rules-lib/dispatch.md` §3 |
 | 災難級誤操作被機器擋下，不靠模型自律 | 層 0 hooks：`rm_guard`／`backup_gate`／`commit_guard`（fail-open） | `hooks/` |
 | 整套制度可攜、可版本控管、可一鍵還原 | 本 repo 快照＋`restore.sh`（覆寫前自動備份） | `restore.sh` |
 
@@ -69,13 +69,13 @@ Claude Code 日常四大痛點：
 
 ### 任務生命週期（一次任務走的路）
 
-1. **起手＋接單**：一句話複述任務範圍＋完成判準，動手前 XY problem 快速檢查
-   （CLAUDE.md 起手式常載）；規模與描述差一個量級以上先講再做（hard-rules #7）。
+1. **起手＋接單**：一句話複述任務範圍＋完成判準（CLAUDE.md 起手式常載）；
+   規模與描述差一個量級以上先講再做（hard-rules #7）。
 2. **路由**：查 CLAUDE.md 路由表 → 需要時才讀 `rules-lib/` 或用 skill；常載僅 hard-rules＋code-standards。
 3. **執行**：預設主對話自己做完；只在中間輸出會淹沒主 context、需 fresh-context 第二意見、
    或使用者明講時才派 subagent（#11、`dispatch.md`）；派工明確指定模型並在描述標明「agent 類型＋模型」。
 4. **驗證**：修改者不自驗，派 fresh-context agent read-back 或實跑（#12）；寫入後印磁碟實態（#15）。
-5. **收尾**：宣稱完成前走 `/done-check`（每個 ✅ 附指令與輸出）→ 回報結論先行（`reporting.md`）。
+5. **收尾**：宣稱完成前走 `/verify`（每個 ✅ 附指令與輸出）→ 回報結論先行（`reporting.md`）。
 
 ```mermaid
 flowchart TD
@@ -84,7 +84,7 @@ flowchart TD
     C --> H1["層 0 攔截：backup_gate ／ rm_guard ／ commit_guard"]
     H1 --> D["驗證：派 fresh-context agent read-back 或實跑"]
     D --> H2["層 0 攔截：verify_gate"]
-    H2 --> E["走 /done-check，每個 ✅ 附指令與輸出"]
+    H2 --> E["走 /verify，每個 ✅ 附指令與輸出"]
     E --> F["回報：結論先行"]
     classDef hook fill:#fde,stroke:#c49,color:#000
     class H1,H2 hook
@@ -145,15 +145,15 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 
 條文衝突優先序：誠實條款（judgment.md）> hard-rules > 情境載入檔/skills > lessons.md（hooks 機器強制，不參與排序）。
 
-## 檔案清單（快照內容，共 24 檔）
+## 檔案清單（快照內容，共 21 檔）
 
 ### institution/CLAUDE.md
-索引式主檔（≤150 行）：起手式（含 XY problem 快速檢查）、路由表、制度分層表。
+索引式主檔（≤150 行）：起手式、路由表、制度分層表。
 
 ### institution/rules/（2 檔，無 `paths:` frontmatter，Claude Code 自動常載）
 | 檔案 | 內容 |
 |---|---|
-| `hard-rules.md` | 硬規則 #0–13、15（無 #14）：元規則、行為、調度、寫入查證、計畫、Git |
+| `hard-rules.md` | 硬規則 #0、2–13、15（無 #1、#14）：元規則、行為、調度、寫入查證、計畫、Git |
 | `code-standards.md` | In-file Structure、Security Floor、Core Principles、模組敘述檔頭要求（模板見 `rules-lib/code-craft.md`） |
 
 ### institution/rules-lib/（6 檔，情境載入）
@@ -167,7 +167,8 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 | `maintenance.md` | 制度檔維護：權限分級、加常載規則前兩題測試、精簡門檻、過期檢查 |
 
 ### institution/skills/（3 個 SKILL.md）
-- `done-check` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出
+- `verify` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出（原名 `done-check`；
+  Claude Code 2.1.287 起名為 `verify` 的 skill 會被內建 commit 指引要求在 commit 前執行）
 - `lesson` — 被糾正後把教訓寫成 if-then 規則，含第 2 次觸發的升級程序
 - `debug-protocol` — 系統化除錯 + 假設生成優先序 + 3-strike 停損規則
 
@@ -175,7 +176,7 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 借鑑自 Miguok/fable-harness 的同款機制，判斷邏輯保留、訊息改寫成指向本專案自己的規則；
 不引入 fable 的 FABLE-PROTOCOL 命名或協定文字。
 - `verify_gate.py` — Stop hook。本回合動了程式碼卻無測試指令 → 擋下並指向
-  `hard-rules.md` #5 與 `/done-check`；fail-open，任何例外一律放行。
+  `hard-rules.md` #5 與 `/verify`；fail-open，任何例外一律放行。
 - `backup_gate.py` — PreToolUse hook（Edit/Write/NotebookEdit）。改動
   `~/.claude/` 制度檔前若今日無備份 → 擋下並提示備份指令；fail-open。
 - `commit_guard.py` — PreToolUse hook（Bash git commit）。staged diff
@@ -184,17 +185,11 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
   `/`、`~`、`/Users/*` 等災難級路徑或未防呆的變數開頭遞迴刪除 → 擋下；
   fail-open（單一片段解析失敗且含 rm 時改保守 regex 擋，不直接放行）。
 
-### institution/agents/（3 個對抗審查 subagent）
-同樣借鑑自 fable-harness，指示改為引用 `rules-lib/uplift.md` 方法 2（多答案評審）／
-方法 3（對抗自查）。正本放在 `~/.claude/agents/`；還原保障是這份快照 + `restore.sh`。
-
-**使用順序**：重大結論先用內建 `/code-review`、`/simplify`、
-`/security-review`；只有需要**三個獨立 verdict 各自表態**時才派這三個 agent
-（它們的固定 YAML verdict 信封與「不得為判 REFUTED 而編造牽強反例」是內建沒有的）。
-
-- `skeptic.md` — 正確性鏡頭，預設「推翻它」，找邏輯漏洞與反例
-- `red-team.md` — 安全／失效模式鏡頭，固定 5 項攻擊清單
-- `simplifier.md` — 過度工程鏡頭，須提出實際簡化程式碼
+### 審查：不自製 agent，用內建指令
+重大結論的對抗審查用內建 `/code-review`、`/simplify`、`/security-review`（分工見
+`rules-lib/dispatch.md` §3）。本制度曾有 `skeptic`／`red-team`／`simplifier` 三個自製審查 agent，
+2026-10-03 依「歷史與評測皆 0 次使用」刪除（備份在 `~/.claude/backups/agents-20261003/`，
+git history 可還原）。
 
 ### institution/memory/（2 檔）
 - `institution-map.md` — 制度結構指標，供 recall
@@ -250,7 +245,7 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 bash restore.sh
 ```
 
-腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、`rules-lib/`、三個 `skills/`、`agents/`、
+腳本會把 `institution/` 的 `CLAUDE.md`、`rules/`、`rules-lib/`、三個 `skills/`、
 `statusline.sh` 複製回 `~/.claude/`，**覆寫前先把現有檔備份到
 `~/.claude/backups/restore-<timestamp>/`**。
 `hooks/` 與 `settings.json` **預設略過**：快照是去識別化版本（email/username 為

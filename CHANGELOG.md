@@ -20,6 +20,43 @@
 
 ### Changed
 
+- **對 Opus 5.5／Claude Code 2.1.287 的第一階段覆核：修設定、改名、刪一條**（2026-10-02）。
+  沿用 `docs/harness-overlap-2026-08.md` 的重跑流程，逐條判定見該檔新增的「2026-10-02 覆核」節。
+
+  - **`settings.json` 加 `modelSettings`**：官方文件明載頂層 `effortLevel` 對 Opus 5.5 這一代不生效，
+    原本以為 opusplan 在 `high` 跑，實際規劃與執行都落在預設 `medium`。現在對
+    `claude-opus-5-5`、`claude-sonnet-5-5` 各設 `high`（使用者裁定）。
+  - **`done-check` 改名 `verify`**：2.1.287 起名為 `verify` 的 skill 會被內建 commit 指引要求
+    commit 前執行。同步更新 hard-rules #5、CLAUDE.md 路由表、`verify_gate.py` 的 block 訊息等引用；
+    CHANGELOG 與 docs 的歷史敘述保留舊名。
+  - **刪 hard-rules #1**（內建 Write 說明已涵蓋「partial changes 用 Edit」）；編號不重排。
+  - **`dispatch.md`**：§1 記明 plan mode 也先過派工閘門（使用者裁定 #11 優先於 plan mode 內建的
+    「派 Explore／Plan」）；§4 拿掉寫死的型號版本，fast mode 支援清單改附官方出處。
+  - **`maintenance.md`**：過期檢查加入 `/doctor prompt-audit` 為第一步。
+
+  **未做**：行為層規則（XY 檢查、`uplift.md`、三個審查 agent）的刪減——先在 Opus 5.5 上重跑 eval
+  再依事先寫好的判準決定。
+
+- **Opus 5.5 eval 結果與判準套用**（2026-10-03）。t3／t4 有無制度皆 6/6；t5 有制度 5.0／零制度 2.25
+  （`uplift.md` 完整保留，且這次被實際讀取）；t6 有制度 4.0／零制度 3.6（差距在誤差內；零制度組 5 個裡
+  4 個已自行辨識出 XY problem，Opus 5 時是 0/6）。完整記錄與協定差異見
+  `eval/results/2026-10-03-opus5.5-有制度vs零制度.md`。**第一輪 A 組作廢**：在 session 內啟動的子
+  session 繼承了 `CLAUDE_CODE_SAFE_MODE`，A 組悄悄變成零制度；改由使用者在正常終端機重跑並以
+  「制度確實載入」檢查把關。另修 `eval/answers/t3-answer.md` 行號（`:47`→`:38`）。刪減（XY 檢查、三個審查
+  agent）與 `reporting.md`／`uplift.md` 的規則衝突，待使用者裁定。
+
+  **使用者裁定後已執行**（2026-10-03）：**刪 CLAUDE.md 起手式第 2 條「XY problem 快速檢查」**
+  （依事先寫好的判準：A−零制度 = 0.4 < 2 且兩邊都高）；**`uplift.md` 方法 1 加一段與 `reporting.md` §1 的
+  分工**——約束的是判準寫定的**時間點**，不是回報的呈現順序，回報可先給結論，但判準必須先於方案寫定並附上。
+  README、memory `institution-map.md`、`eval/answers/t5-t6-scoring-notes.md` 中對該起手式的敘述同步改寫。
+  **刪除 skeptic／red-team／simplifier 三個審查 agent**（使用者裁定選刪）：43 份 transcript 與本輪 7 個有制度
+  run 皆 0 次使用；`skeptic.md`／`simplifier.md` 引用不存在的「judgment.md 方法 5」，已是腐爛的指標。
+  誠實記錄：證據只證明「沒人用」，沒證明「比內建差」（沒有拿它們與 `/code-review` 實測比較；低使用率
+  部分是制度設計使然）。備份在 `~/.claude/backups/agents-20261003/`，git history 可還原。
+  同步：`dispatch.md` §2 表格刪一列、§3 改寫成「重大結論用內建指令」；`uplift.md`、CLAUDE.md 路由表、
+  `code-standards.md`、`code-craft.md`、README、memory 的引用改指內建指令；`restore.sh` 移除 agents 迴圈；
+  快照檔數 24 → 21。
+
 - **README 新增「Claude Code 七個可設定元件」速查節，並修正常載機制誤述**（2026-08-29）。
   使用者提供一份 agents/commands/hooks/rules/skills/settings.json/CLAUDE.md 的白話說明
   要求併入 README；查證後改寫其中三處以貼合本制度實況：agents 的價值改寫為 context

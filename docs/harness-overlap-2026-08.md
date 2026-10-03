@@ -197,6 +197,47 @@ strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
 
 ---
 
+## 2026-10-02 覆核（Claude Code 2.1.241 → 2.1.287；主力模型換成 Opus 5.5）
+
+查證來源：官方 model-config、settings-reference、fast-mode、changelog 四份文件，加上
+`Prompting Claude Opus 5.5` 指南；使用量取自 `~/.claude/projects/` 的 43 份 transcript
+（用 grep 數 `Skill` 與 `subagent_type` 呼叫）。
+
+### 第一階段：事實與設定（已處理）
+
+| # | 發現 | 證據 | 判定 ／ 處理 |
+|---|---|---|---|
+| F1 | 頂層 `effortLevel: "high"` 對 Opus 5.5／Sonnet 5.5 **不生效**，兩者實際跑 `medium` | settings-reference：「Opus 5.5 and models released after it ignore it」 | **設定錯誤**。`settings.json` 加 `modelSettings` 對兩個型號各設 `high`（使用者裁定「兩隻都設 high」）；頂層保留給 Fable 5.1 |
+| F2 | 名為 `verify` 的 user skill 會被內建 commit 指引要求在 commit 前執行 | changelog 2.1.287 | `done-check` 改名 `verify`，引用同步更新；比靠模型自覺可靠的原生觸發 |
+| F3 | `/doctor prompt-audit` 稽核舊模型寫法 | changelog 2.1.283 | 寫進 `maintenance.md` 過期檢查第一步；互動式指令，需使用者在 session 內跑 |
+| F4 | hard-rules #1「小改用 Edit」被內建 Write 說明覆蓋 | Write 說明：「For partial changes, use Edit instead」 | 刪（內建已覆蓋）；編號不重排 |
+| F5 | plan mode 內建流程要求派 Explore／Plan，與 #11 衝突 | plan mode 指示 vs Agent tool「Do not spawn agents unless the user asks」 | **行為層衝突，使用者裁定 #11 優先**；`dispatch.md` §1 記明 |
+| F6 | `dispatch.md` §4 寫死「Fable 5」「Opus 5／4.8 才支援 fast」「`effortLevel` high」 | model-config：`fable` 別名現為 5.1；fast-mode：Opus 5.5／5／4.8 皆支援 | 改為不寫死別名版本；fast 清單附官方出處並註明會變動 |
+| F7 | 使用量：done-check 5 次、lesson／debug-protocol 各 0 次、三個審查 agent 0 次、Explore 14 次 | transcript grep | 僅作第三階段的輸入，**不單獨構成刪除理由** |
+| F8 | Opus 5.5／Sonnet 5.5／Fable 無法關 thinking | model-config | `alwaysThinkingEnabled` 無作用但無害，保留 |
+
+### 第二、三階段：eval 結果與判準套用（2026-10-03）
+
+在 Opus 5.5 上重跑 t3–t6（有制度 vs 零制度，t5／t6 由 fresh-context agent 盲評）。完整記錄見
+`eval/results/2026-10-03-opus5.5-有制度vs零制度.md`，含與協定的差異。**判準在跑之前已寫定**：
+
+| 對象 | 判準 | 結果 | 判定 |
+|---|---|---|---|
+| 起手式 XY 檢查 | t6 的 A 比零制度高 ≥2 分才留；A≈零制度且都高 → 刪 | A 4.0／零制度 3.6，差 0.4 | 依規則應刪；證據弱（n=3 對 5） |
+| `uplift.md` | t5 的 A−零制度 ≥2 分 → 完整保留 | A 5.0／零制度 2.25，差 2.75，且被實際讀取 | **完整保留** |
+| skeptic／red-team／simplifier | 0 次使用 → 提議刪除 | 歷史與本輪皆 0 次 | **已刪除**（使用者核准） |
+
+**這次踩到的評測陷阱**：在 Claude Code session 內用 `claude -p` 啟動子 session 會繼承
+`CLAUDE_CODE_SAFE_MODE`／`CLAUDE_CODE_DISABLE_CLAUDE_MDS`，A 組悄悄變成零制度。之後跑 eval 一律用
+`scratchpad/eval55/run_A.sh` 那種「預檢環境變數＋跑完檢查制度確實載入」的寫法，不要只看 exit code。
+
+**新發現的規則衝突（使用者 2026-10-03 裁定）**：`reporting.md` §1「結論先行」與 `uplift.md` 方法 1
+「先寫判準」對撞，t5 A 組唯一的失分項就是它。裁定：`uplift.md` 方法 1 加分工段落（約束判準寫定的時間點，
+不約束回報呈現順序）。**已執行**：刪 CLAUDE.md 起手式 XY 檢查（常載 141 → 132 行）；`uplift.md` 加分工段落。
+使用者裁定刪除三個審查 agent（證據只支持「0 次使用」，不支持「比內建差」，見 CHANGELOG）。
+
+---
+
 ## 下次覆核時怎麼用這份文件
 
 1. 對照本表「內建原文出處」欄，跑一次等價的官方文件查證（用 WebFetch／WebSearch，

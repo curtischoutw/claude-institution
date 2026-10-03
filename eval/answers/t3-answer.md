@@ -2,7 +2,7 @@
 
 ## Bug 位置
 
-`eval/fixtures/buggy_stats.py:47`（`longest_error_streak` 函式內的 for 迴圈行）：
+`eval/fixtures/buggy_stats.py:38`（`longest_error_streak` 函式內的 for 迴圈行）：
 
 ```python
 for i in range(len(levels) - 1):

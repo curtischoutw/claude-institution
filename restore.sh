@@ -5,8 +5,7 @@
 # memory 因路徑含專案名、屬 project-scope，僅印出提示不自動覆寫。
 #
 # Features:
-#   - 還原 CLAUDE.md、rules/、rules-lib/、skills/（動態列舉）、agents/、statusline.sh 到 ~/.claude/
-#   - 還原 agents/（對抗審查 subagent）
+#   - 還原 CLAUDE.md、rules/、rules-lib/、skills/（動態列舉）、statusline.sh 到 ~/.claude/
 #   - hooks/ 預設略過，需 --with-hooks 才還原（還原後補 +x）：快照裡的 hooks 是
 #     去識別化版本，註解中的路徑範例已改為 <username> 佔位，整包還原會劣化正本
 #   - settings.json 預設略過，需 --with-settings 才還原：快照裡 hook 綁定的絕對
@@ -112,10 +111,6 @@ done
 
 for f in "$SRC"/skills/*/SKILL.md; do
   restore_file "skills/$(basename "$(dirname "$f")")/SKILL.md"
-done
-
-for f in "$SRC"/agents/*.md; do
-  restore_file "agents/$(basename "$f")"
 done
 
 if [ "$WITH_HOOKS" = 1 ]; then

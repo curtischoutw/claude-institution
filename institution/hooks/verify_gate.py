@@ -2,17 +2,17 @@
 """
 Stop hook（層 0，機器可判定規則）。在每次 session 要結束(Stop 事件)時檢查：
 本回合是否用 Edit/Write/NotebookEdit 動了程式碼副檔名的檔案，卻沒有出現任何
-測試/驗證指令。若是，擋下這次 Stop 並要求走 /done-check。
+測試/驗證指令。若是，擋下這次 Stop 並要求走 /verify。
 
 設計取材自 Miguok/fable-harness 的 verify_gate.py（同款 Stop-hook + fail-open
 機制），但判斷邏輯保留、訊息全部改寫成指向本專案自己的規則
-（~/.claude/rules/hard-rules.md #5、/done-check skill），不引入 fable 的
+（~/.claude/rules/hard-rules.md #5、/verify skill），不引入 fable 的
 FABLE-PROTOCOL 命名或協定文字，避免與既有制度重複/衝突
 （原引用 ~/.claude/rules-lib/diagnosis.md 第 2 名：常載膨脹與規則衝突，
 該檔 2026-08-06 已刪並併入 ~/.claude/rules-lib/maintenance.md）。
 
 本制度的「第一條機器可判定規則」（層 0）：
-hard-rules.md #5「宣稱完成之前必走 /done-check；回報必附實際指令與輸出」
+hard-rules.md #5「宣稱完成之前必走 /verify；回報必附實際指令與輸出」
 原本純靠模型自覺遵守，現在有 hook 機器強制。
 
 Features:
@@ -272,10 +272,10 @@ def main():
                 "但這個回合裡沒看到任何測試執行指令（如 pytest/npm test 等），"
                 "也沒有派出帶驗證意圖的 subagent"
                 "（本 hook 只檢查兩者是否出現，不檢查輸出/是否通過）。\n"
-                "依 ~/.claude/rules/hard-rules.md #5：宣稱「完成」之前必走 /done-check，"
+                "依 ~/.claude/rules/hard-rules.md #5：宣稱「完成」之前必走 /verify，"
                 "回報必附實際指令與輸出，不得只寫「測試通過」。\n"
                 "請三選一：實際跑相關測試/驗證指令並貼出輸出；"
-                "派 fresh-context agent 驗證（見 dispatch.md「驗證」節）；或走 /done-check。"
+                "派 fresh-context agent 驗證（見 dispatch.md「驗證」節）；或走 /verify。"
                 "若這次改動真的不需要測試（例如純設定調整且已用其他方式驗證），"
                 "請在結束前說明理由。"
             )

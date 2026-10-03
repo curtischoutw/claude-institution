@@ -60,5 +60,9 @@
   "language": "繁體中文台灣用語",
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
+  "modelSettings": {
+    "claude-opus-5-5": { "effortLevel": "high" },
+    "claude-sonnet-5-5": { "effortLevel": "high" }
+  },
   "tui": "fullscreen"
 }
