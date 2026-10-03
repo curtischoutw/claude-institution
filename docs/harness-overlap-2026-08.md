@@ -216,14 +216,25 @@ strings 2.1.241 | grep verifySkillRolloutGateLatch   → 命中
 | F7 | 使用量：done-check 5 次、lesson／debug-protocol 各 0 次、三個審查 agent 0 次、Explore 14 次 | transcript grep | 僅作第三階段的輸入，**不單獨構成刪除理由** |
 | F8 | Opus 5.5／Sonnet 5.5／Fable 無法關 thinking | model-config | `alwaysThinkingEnabled` 無作用但無害，保留 |
 
-### 第二、三階段（待辦）
+### 第二、三階段：eval 結果與判準套用（2026-10-03）
 
-在 Opus 5.5 上重跑 `eval/` t3–t6（A 現行制度 vs C 零制度），**判準先寫、跑完才套用**：
+在 Opus 5.5 上重跑 t3–t6（有制度 vs 零制度，t5／t6 由 fresh-context agent 盲評）。完整記錄見
+`eval/results/2026-10-03-opus5.5-有制度vs零制度.md`，含與協定的差異。**判準在跑之前已寫定**：
 
-- 起手式 XY 檢查：t6 的 A 比 C 高 ≥2 分才留；A≈C 且都高 → 刪；A≈C 且都低 → 回報使用者。
-- `uplift.md`：t5 的 A−C ≥2 分才完整保留，否則只留方法 1、4。
-- skeptic／red-team／simplifier：0 次使用，提議刪除，由內建 `/code-review` 接手（需使用者核准）。
-- 評分改由 fresh-context agent 執行（補上 2026-08-24 評分者即執行者的缺口）。
+| 對象 | 判準 | 結果 | 判定 |
+|---|---|---|---|
+| 起手式 XY 檢查 | t6 的 A 比零制度高 ≥2 分才留；A≈零制度且都高 → 刪 | A 4.0／零制度 3.6，差 0.4 | 依規則應刪；證據弱（n=3 對 5） |
+| `uplift.md` | t5 的 A−零制度 ≥2 分 → 完整保留 | A 5.0／零制度 2.25，差 2.75，且被實際讀取 | **完整保留** |
+| skeptic／red-team／simplifier | 0 次使用 → 提議刪除 | 歷史與本輪皆 0 次 | **已刪除**（使用者核准） |
+
+**這次踩到的評測陷阱**：在 Claude Code session 內用 `claude -p` 啟動子 session 會繼承
+`CLAUDE_CODE_SAFE_MODE`／`CLAUDE_CODE_DISABLE_CLAUDE_MDS`，A 組悄悄變成零制度。之後跑 eval 一律用
+`scratchpad/eval55/run_A.sh` 那種「預檢環境變數＋跑完檢查制度確實載入」的寫法，不要只看 exit code。
+
+**新發現的規則衝突（使用者 2026-10-03 裁定）**：`reporting.md` §1「結論先行」與 `uplift.md` 方法 1
+「先寫判準」對撞，t5 A 組唯一的失分項就是它。裁定：`uplift.md` 方法 1 加分工段落（約束判準寫定的時間點，
+不約束回報呈現順序）。**已執行**：刪 CLAUDE.md 起手式 XY 檢查（常載 141 → 132 行）；`uplift.md` 加分工段落。
+使用者裁定刪除三個審查 agent（證據只支持「0 次使用」，不支持「比內建差」，見 CHANGELOG）。
 
 ---
 

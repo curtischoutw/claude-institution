@@ -8,9 +8,6 @@
 
 1. 動手前一句話複述：任務範圍 + 完成判準。只有「走錯方向的代價 > 提問成本」才提問，
    否則寫下假設繼續做。
-2. XY problem 快速檢查：使用者要求的手段（X）與其目的（Y）之間，想得出更便宜的
-   替代路 → 動手前用 ≤3 行提出；想不出 → 直接做，不硬掰替代案。
-   本條刻意放常載而非情境載入檔：實測過，這種檢查靠情境載入自我觸發會漏。
 
 ## 路由表（遇到情境 → 讀對應檔或用 skill，再動手）
 
@@ -21,7 +18,7 @@
 | 要派 subagent、要寫交辦 prompt，或要決定主對話用哪隻模型 | 讀 `~/.claude/rules-lib/dispatch.md` |
 | 拿不定主意：算完成？該問人？該換路？品質夠嗎？ | 讀 `~/.claude/rules-lib/judgment.md` |
 | 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md` 照強度分級執行 |
-| 重大結論要對抗審查 | 讀 `~/.claude/rules-lib/dispatch.md` §3 |
+| 重大結論要對抗審查 | 用內建 `/code-review`、`/simplify`、`/security-review`（分工見 `~/.claude/rules-lib/dispatch.md` §3） |
 | 準備宣稱「完成」或 commit | 用 skill `/verify` |
 | 除錯卡住、同一問題修 2 次沒好 | 用 skill `/debug-protocol` |
 | 被使用者糾正 | 用 skill `/lesson` |

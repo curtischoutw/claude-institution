@@ -35,7 +35,6 @@ asks… handle it inline」）。逐條檢查，命中任一條才往下走 §2�
 | 事實查證研究 | `general-purpose` | `haiku`；需權衡結論時 `sonnet` | |
 | 查 Claude Code／Agent SDK／Claude API 的官方行為 | `claude-code-guide` | 依該 agent 定義 | 專職 agent，勝過自己猜 |
 | 設計實作策略、架構取捨 | `Plan` | `opus` | 判斷密集 |
-| 重大結論要三個獨立 verdict | `skeptic`／`red-team`／`simplifier` | `opus` | 見 §3 |
 | fresh-context 驗證 | `general-purpose` | 文件 read-back `haiku`；程式碼實跑 `sonnet` | 見 §7 |
 
 一句話原則：**越唯讀、越機械化就越便宜；越需要判斷、越需要仲裁就越貴。**
@@ -48,19 +47,18 @@ asks… handle it inline」）。逐條檢查，命中任一條才往下走 §2�
 - 任務描述（使用者可見的 description）標明 agent 類型與模型，例：「掃描 repo（Explore+haiku）」，
   讓使用者一眼看見每筆派工用了哪隻模型。
 
-## §3 內建指令 vs 自製 agent
+## §3 重大結論的審查：用內建指令
 
-**先用內建**，它們已覆蓋大部分審查鏡頭：
+本制度不自製審查 agent，一律用內建指令：
 
 | 要審什麼 | 用什麼 |
 |---|---|
-| 程式碼正確性 | `/code-review` |
+| 程式碼正確性 | `/code-review`（高風險加 `ultra` 雲端多 agent 深審） |
 | 過度工程、可簡化處 | `/simplify` |
 | 安全問題 | `/security-review` |
 
-**只有需要三個獨立 verdict 各自表態時**，才派 `skeptic`／`red-team`／`simplifier`。
-它們比內建多的東西只有兩樣：固定 YAML verdict 信封，以及「不得為了判 REFUTED 而編造
-牽強反例」的約束。除此之外沒有理由派它們。
+要「多個獨立意見」的設計題（不是程式碼審查）→ `uplift.md` 方法 2：派 2–3 個 fresh-context
+subagent 走不同路線，照 §6 派工包寫，各自作答後比對分歧點。
 
 ## §4 主對話模型：opusplan、fast mode、fable
 

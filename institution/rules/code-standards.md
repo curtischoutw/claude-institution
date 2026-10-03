@@ -13,7 +13,7 @@
 - 每個 function/method docstring 必含 `Args` 與 `Returns`。
 - 版本號不放檔名，也不放檔頭：套件版本在套件管理檔，變更歷史在 git／`CHANGELOG.md`。
 
-## Security Floor（寫碼當下的底線，red-team 審查前就要守住）
+## Security Floor（寫碼當下的底線，`/security-review` 之前就要守住）
 
 - 外部輸入（使用者輸入、API 回應、檔案內容）先驗證再使用（型別、必要欄位存在、長度/範圍），不假設格式正確。
 - Secrets（金鑰、token、密碼）永不寫進程式碼、log 或錯誤訊息；一律走環境變數或密鑰管理。
