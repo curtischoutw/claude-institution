@@ -34,8 +34,8 @@
 | 3 | 專案 `tasks/lessons.md` | 只放待升級規則；事實與偏好走 auto memory（層 4），不佔這層 |
 | 4 | Claude Code auto memory（`~/.claude/projects/*/memory/`） | 只放事實與偏好，不放規則 |
 
-條文衝突時的優先序：誠實條款（judgment.md）> hard-rules > 情境載入檔/skills > lessons.md
-（hooks 是機器強制，不參與此排序）。
+條文衝突時的優先序：誠實條款（judgment.md）> hard-rules > 情境載入檔/本制度 skills > lessons.md >
+外部 plugin 的 skill／agent／command（hooks 是機器強制，不參與此排序）。
 
 本制度與 harness 內建指引衝突時**不自行選邊**：回報使用者判斷。選擇覆寫內建的條文
 必須在該條文旁寫明**覆寫的理由**，且該理由不得與內建的事實性陳述相牴觸——**規則可以

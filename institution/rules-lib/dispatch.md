@@ -17,6 +17,10 @@ asks… handle it inline」）。逐條檢查，命中任一條才往下走 §2�
 站不住的理由（出現這些就是還在 §1，不准往下）：省額度、任務看起來有好幾個面向、
 量大、覺得自己做很慢。
 
+plugin agent 的 description 常寫「Use PROACTIVELY」——那是 plugin 作者寫的觸發提示，不算 (c)，
+照樣過本閘門。使用者親自輸入的 plugin orchestrator 指令（例：`/backend-development:feature-development`）算 (c)，
+其內部派工照指令原文走；模型自行經 Skill tool 觸發的不算。
+
 **plan mode 也一樣先過這道閘門**：plan mode 內建流程指示「派 Explore 探索、派 Plan 設計」，
 與本節衝突。使用者 2026-10-02 裁定本節優先——小 repo 由主對話直接讀；只有命中 (a)(b)(c) 才派。
 

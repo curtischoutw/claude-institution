@@ -203,7 +203,8 @@ git history 可還原）。
 這兩檔涵蓋「把 hook 掛上去」的接線設定。少了它們，快照就只有 hook 腳本本身，
 災難還原後 hooks 會全部躺著不生效。
 - `settings.json` — `permissions.deny`（rm -rf / 等 11 條）＋ 4 個 hook 的
-  PreToolUse／Stop 綁定＋ model／`modelSettings`／statusLine／language 等。
+  PreToolUse／Stop 綁定＋ model／`modelSettings`／statusLine／language 等，
+  以及 `enabledPlugins`／`extraKnownMarketplaces`（新機器還原後可能仍需 `claude plugin install`，未實測）。
   `modelSettings` 是必要的：頂層 `effortLevel` 對 Opus 5.5 這一代不生效，不寫的話會落回預設 `medium`。
   hook 綁定路徑去識別化為 `/Users/<username>/.claude/hooks/...`；**預設略過**，
   還原需 `--with-settings`（自動用 `whoami` 替換回實際路徑）。
@@ -211,6 +212,9 @@ git history 可還原）。
   `$cwd`，無個人化資訊，隨預設流程還原（還原後自動補可執行位元）。
 
 ### repo 其他內容（非快照，不隨 restore.sh 還原）
+
+- `docs/plugin-guide.md` — 已安裝 plugin 的用途、指令與注意事項；依安裝當下的
+  plugin 檔案整理，plugin 升版後可能不準。
 
 - `docs/capability-transfer-assessment.md` — 能力轉移評估基線；2026-08-06（Opus 5）與
   2026-10-03（Opus 5.5）已用 `eval/` t3–t6 各實測一輪（現行制度 vs 零制度），結果與原推測值不同，

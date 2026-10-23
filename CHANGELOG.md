@@ -20,6 +20,15 @@
 
 ### Changed
 
+- **制度跟上已安裝的 plugin**（2026-10-24）。裝了 13 個 claude-code-workflows plugin 後比對快照與
+  `~/.claude/`，修四處落差：
+  - `institution/settings.json` 補 `enabledPlugins`、`extraKnownMarketplaces`、`switchModelsOnFlag`。
+    原本 `enabledPlugins: {}`，用 `--with-settings` 還原會把 plugin 全關。`model` 依使用者裁定維持 `opusplan`。
+  - `dispatch.md` §1：plugin agent description 的「Use PROACTIVELY」不算派工理由；使用者自己下的
+    plugin orchestrator command 算 (c)。
+  - `CLAUDE.md` 衝突優先序最後加「外部 plugin 的 skill／agent／command」。
+  - 新增 `docs/plugin-guide.md`（plugin 使用指南），README 補索引。
+
 - **Opus 5.5 覆核的文件收尾稽核**（2026-10-03）。PR #17 合併後再掃一遍文件，修落後的敘述：
   - **修懸空引用**：CLAUDE.md 分層表第 2 層寫「見起手式第 2 條」，那條（XY 檢查）已在 PR #17 刪除。
     我先前的殘留掃描只搜了「XY 檢查」字樣，漏了這個說法。依使用者裁定連同整句原則刪除
