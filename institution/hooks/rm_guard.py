@@ -33,7 +33,7 @@ Features:
   - 逐段追蹤 cd/pushd：「cd /Users && rm -rf <username>」用切換後的目錄
     解析相對路徑；cd 到變數等未知位置後，相對路徑放棄解析（fail-open）。
   - 誤判逃生口：指令內含 SKIP_RM_GUARD=1 即放行（寫 log 留痕供稽核）。
-  - fail-open：stdin 解析失敗、內部錯誤 → 放行＋log（與其他 hook 一致）；
+  - fail-open：stdin 解析失敗、內部錯誤 → 放行＋log；
     但單一片段 shlex 解析失敗且含 rm 時，改用保守 regex 掃描不直接放行。
 
 已知極限（誠實列出，勿當作全面保證）:

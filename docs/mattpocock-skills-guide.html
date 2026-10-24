@@ -325,12 +325,6 @@
         </div>
       </li>
       <li>
-        <div class="step-title"><span class="cmd">/verify</span><span class="what">宣稱完成前（你自己制度裡的）</span><span class="tag you">你的制度</span></div>
-        <dl class="facts">
-          <dt>為什麼放這裡</dt><dd>你的硬規則 #5 要求宣稱完成前走 <code>/verify</code> 並附實際指令輸出。mattpocock 的 <code>/implement</code> 沒有這一步，需要你自己補。</dd>
-        </dl>
-      </li>
-      <li>
         <div class="step-title"><span class="what">開 PR：叫 Claude 開，不用另外打指令</span><span class="tag auto">自動</span></div>
         <dl class="facts">
           <dt>怎麼做</dt><dd>說「幫我開 PR」。Claude 寫 PR 本文時會自己載入 <code>pr</code> skill。</dd>
@@ -565,7 +559,7 @@
           <tr data-kind="manual"><td class="k"><span class="cmd">to-tickets</span></td><td>手動</td><td>切成帶阻擋關係的薄切片票。</td><td>A 第 5 步、D</td></tr>
           <tr data-kind="manual"><td class="k"><span class="cmd">implement</span></td><td>手動</td><td>做一張票或一份 spec：tdd → code-review → commit。</td><td>A 第 6 步、C</td></tr>
           <tr data-kind="manual"><td class="k"><span class="cmd">implement-spec</span></td><td>手動</td><td>整份 spec 在一條 integration branch 上用子 agent 平行做完。</td><td>A 第 6 步</td></tr>
-          <tr data-kind="manual"><td class="k"><span class="cmd">retro</span></td><td>手動</td><td>回顧 session，建議改善 agent 的環境。</td><td>A 第 9 步、B</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">retro</span></td><td>手動</td><td>回顧 session，建議改善 agent 的環境。</td><td>A 第 8 步、B</td></tr>
           <tr data-kind="manual"><td class="k"><span class="cmd">triage</span></td><td>手動</td><td>把別人開的 issue 和 PR 放進狀態機，產出 agent brief。</td><td>C</td></tr>
           <tr data-kind="manual"><td class="k"><span class="cmd">wayfinder</span></td><td>手動</td><td>把大案子畫成決策票的地圖，一次解一張。</td><td>D</td></tr>
           <tr data-kind="manual"><td class="k"><span class="cmd">improve-codebase-architecture</span></td><td>手動</td><td>掃出可深化的模組，輸出 HTML 報告。</td><td>E</td></tr>
@@ -579,7 +573,7 @@
           <tr data-kind="auto"><td class="k"><span class="cmd">prototype</span></td><td>自動</td><td>做拋棄式原型回答一個設計問題。</td><td>A 第 3 步</td></tr>
           <tr data-kind="auto"><td class="k"><span class="cmd">tdd</span></td><td>自動</td><td>先確認 seam，再一次一個紅綠切片。</td><td>A 第 6 步內部</td></tr>
           <tr data-kind="auto"><td class="k"><span class="cmd">code-review</span></td><td>自動</td><td>Standards 與 Spec 兩軸、各派一個子 agent 的審查。</td><td>A 第 6 步內部</td></tr>
-          <tr data-kind="auto"><td class="k"><span class="cmd">pr</span></td><td>自動</td><td>PR 本文的形狀：Summary、Evidence、Merge Danger。</td><td>A 第 8 步</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">pr</span></td><td>自動</td><td>PR 本文的形狀：Summary、Evidence、Merge Danger。</td><td>A 第 7 步</td></tr>
           <tr data-kind="auto"><td class="k"><span class="cmd">diagnosing-bugs</span></td><td>自動</td><td>先建紅燈指令，再重現、假設、埋點、修、回歸測試。</td><td>B</td></tr>
           <tr data-kind="auto"><td class="k"><span class="cmd">research</span></td><td>自動</td><td>背景 agent 查第一手來源，寫成附引用的 Markdown。</td><td>D、F</td></tr>
           <tr data-kind="auto"><td class="k"><span class="cmd">codebase-design</span></td><td>自動</td><td>深模組的詞彙與原則：module、interface、depth、seam…</td><td>E、F</td></tr>
@@ -615,15 +609,15 @@
   <section id="caveats">
     <div class="section-head">
       <h2>用之前要知道的事</h2>
-      <p class="sub">只列事實。要不要調整你的制度，是另外的決定。</p>
+      <p class="sub">只列事實。</p>
     </div>
     <ul class="plain">
       <li><b>撞名：</b><code>code-review</code> 和 Claude Code 內建的 <code>/code-review</code> 同名。要用 plugin 版請打 <span class="cmd">/mattpocock-skills:code-review</span>。<code>/implement</code> 內部呼叫 <code>code-review</code> 時會用到哪一個，我沒有驗證過。</li>
-      <li><b>會自動 commit：</b><code>/implement</code> 最後一步是 commit 到目前的 branch；<code>/implement-spec</code> 會建 integration branch，可能開 draft PR。你的全域規則是「未經要求不 commit／push」，而 plugin 沒有規定 commit 訊息格式。</li>
+      <li><b>會自動 commit：</b><code>/implement</code> 最後一步是 commit 到目前的 branch；<code>/implement-spec</code> 會建 integration branch，可能開 draft PR。plugin 沒有規定 commit 訊息格式，也沒有除錯碼檢查。</li>
       <li><b>會做別人看得到的事：</b><code>/to-spec</code>、<code>/to-tickets</code>、<code>/triage</code>、<code>/wayfinder</code> 在 tracker 上建 issue、貼留言、改標籤；<code>/triage</code> 和 <code>/wayfinder</code> 會關閉 issue；<code>/implement-spec</code> 會開 PR；<code>/setup-matt-pocock-skills</code> 會建標籤。</li>
-      <li><b>會派子 agent：</b><code>/implement-spec</code>、<code>code-review</code>、<code>research</code>、<code>improve-codebase-architecture</code>、<code>grilling</code>、<code>wayfinder</code> 都會。你手動打指令時，可以視為你要求派工；由模型自動載入的那幾個，要對照你的硬規則 #11。</li>
-      <li><b>會改專案檔：</b><code>/setup-matt-pocock-skills</code> 會編輯該 repo 的 <code>CLAUDE.md</code>（沒有才找 <code>AGENTS.md</code>）。在 claude-institution 這個 repo 跑它，會動到制度相關檔案。</li>
-      <li><b>功能重疊：</b><code>diagnosing-bugs</code> 對應你的 <code>/debug-protocol</code>，<code>retro</code> 對應 <code>/lesson</code>（時機不同：一個是 session 後回顧環境，一個是被糾正當下記錄）。你的 <code>CLAUDE.md</code> 規定外部 plugin 的 skill 在條文衝突時排最低。</li>
+      <li><b>會派子 agent：</b><code>/implement-spec</code>、<code>code-review</code>、<code>research</code>、<code>improve-codebase-architecture</code>、<code>grilling</code>、<code>wayfinder</code> 都會。你手動打指令時，可以視為你要求派工；由模型自動載入的那幾個，是否派工由模型自行判斷。</li>
+      <li><b>會改專案檔：</b><code>/setup-matt-pocock-skills</code> 會編輯該 repo 的 <code>CLAUDE.md</code>（沒有才找 <code>AGENTS.md</code>）。</li>
+      <li><b>功能重疊：</b><code>retro</code> 是 session 結束後回顧並改善環境；它不會在被糾正的當下記錄。</li>
       <li><b>語言：</b><code>/wait-what</code> 指定用簡化技術<b>英文</b>重講。想要中文請另外說。</li>
       <li><b>新裝的 plugin：</b>安裝當下已開啟的 session，skill 清單裡沒有它們。通常重開 session 後才會出現，這一點我沒有驗證過。</li>
     </ul>

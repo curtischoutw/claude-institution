@@ -9,6 +9,15 @@
 
 ### Removed
 
+- **制度最小化**（2026-10-24）。改以 mattpocock-skills＋ws 當開發流程，自製制度只留：
+  `CLAUDE.md`（路由＋精簡派工規則）、`rules/code-standards.md`（精簡）、`rules-lib/uplift.md`、
+  `hooks/rm_guard.py`。刪除 `rules/hard-rules.md`、`rules-lib/` 的 code-craft／dispatch／judgment／
+  maintenance／reporting、skills `verify`／`lesson`、hooks `backup_gate`／`commit_guard`／`verify_gate`，
+  以及只為制度存在的 `eval/`、`tasks/`、`institution/memory/`、`docs/i-have-adhd-skill-assessment.md`。
+  README 重寫、`restore.sh` 拿掉 skills 與 memory 段、兩份 mattpocock 步驟卡移除對應敘述。
+  舊版完整制度見 commit `7a409e6`；`~/.claude/backups/institution-before-minimize.20261024.tar.gz` 也有打包。
+  已知後果：`/implement` 自動 commit 時不再檢查除錯碼；「宣稱完成要附指令輸出」不再強制；
+  plan mode 照內建流程派 Explore／Plan agent；誠實條款與不可逆動作前引原話的規定隨 `judgment.md` 消失。
 - **skill `/debug-protocol`**（2026-10-24）。裝了 mattpocock-skills 後，`diagnosing-bugs` 涵蓋並超過它
   （紅燈指令、最小化、3–5 個可證偽假設、`[DEBUG-xxxx]` 清理、回歸測試 seam）；eval 2026-10-03 該 skill 0 次呼叫。
   獨有的「3 輪停損」已在 hard-rules #6，「不准改測試預期值」已在 #2（就地補了判準）。

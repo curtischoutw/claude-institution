@@ -1,50 +1,58 @@
-# AI Assistant Workflow Configuration（索引）
+# 工作設定
 
-<!-- 本檔只當索引路由：新增內容一律寫新檔再在此加一行路由，不塞長內容進本檔。
-     常載預算：本檔＋rules/ 合計 ≤200 行（比照官方 CLAUDE.md 建議上限）。
-     維護規約見 ~/.claude/rules-lib/maintenance.md。 -->
-
-## Session 起手式
-
-1. 動手前一句話複述：任務範圍 + 完成判準。只有「走錯方向的代價 > 提問成本」才提問，
-   否則寫下假設繼續做。
-
-## 路由表（遇到情境 → 讀對應檔或用 skill，再動手）
+## 路由
 
 | 情境 | 去處 |
 |---|---|
-| 設計新模組/公開 API/資料結構，或建立新的原始碼檔（需檔頭） | 讀 `~/.claude/rules-lib/code-craft.md` |
-| 準備向使用者回報（完成/卡住/提問） | 讀 `~/.claude/rules-lib/reporting.md` |
-| 要派 subagent、要寫交辦 prompt，或要決定主對話用哪隻模型 | 讀 `~/.claude/rules-lib/dispatch.md` |
-| 拿不定主意：算完成？該問人？該換路？品質夠嗎？ | 讀 `~/.claude/rules-lib/judgment.md` |
-| 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md` 照強度分級執行 |
-| 重大結論要對抗審查 | 用內建 `/code-review`、`/simplify`、`/security-review`（分工見 `~/.claude/rules-lib/dispatch.md` §3） |
-| 準備宣稱「完成」或 commit | 用 skill `/verify` |
-| 除錯卡住、同一問題修 2 次沒好 | 用 plugin skill `diagnosing-bugs`（mattpocock-skills） |
-| 新功能、需求模糊 | 用 `/grill-with-docs`；一個 session 做不完再 `/to-spec` → `/to-tickets` → `/implement`（mattpocock-skills） |
-| 使用者親手打 mattpocock 指令 | 其內部確認點（tdd 的 seam、to-tickets 的粒度）照指令原文問使用者，不套起手式「能不問就不問」；`/implement` 的自動 commit 之後仍要走 `/verify` |
-| 被使用者糾正 | 用 skill `/lesson` |
-| 想修改 ~/.claude/ 下任何制度檔 | 先讀 `~/.claude/rules-lib/maintenance.md` |
+| 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md`，照強度分級執行 |
+| 除錯 | plugin skill `diagnosing-bugs`（mattpocock-skills） |
+| 新功能、需求模糊 | `/grill-with-docs`；一個 session 做不完再 `/to-spec` → `/to-tickets` → `/implement` |
+| 審查 | 內建 `/code-review`（正確性）、`/simplify`、`/security-review`；plugin 的 `/mattpocock-skills:code-review` 是 Standards／Spec 兩軸，撞名時明打全名 |
 
-## 制度分層（任何新規則先決定放哪層，能上不下）
+## 派工
 
-| 層 | 載體 | 放什麼 |
+預設主對話自己做完。派 subagent 的合理理由只有：中間輸出會淹沒主 context、需要 fresh-context 第二意見、使用者明講要派。
+
+**模型選擇**（型號以當前 Agent tool schema 的 `model` enum 為準）：
+
+| 情境 | agent 類型 | model |
 |---|---|---|
-| 0 | hooks / permissions（settings.json，用 /update-config） | 機器可判定的規則，最可靠 |
-| 1 | 本檔 ＋ `~/.claude/rules/` 下無 `paths:` frontmatter 的檔（自動常載） | 每次必守、1–2 行寫得完的硬規則 |
-| 2 | `~/.claude/skills/` 與 `~/.claude/rules-lib/` 情境載入檔 | 多步驟程序、checklist、範例 |
-| 3 | 專案 `tasks/lessons.md` | 只放待升級規則；事實與偏好走 auto memory（層 4），不佔這層 |
-| 4 | Claude Code auto memory（`~/.claude/projects/*/memory/`） | 只放事實與偏好，不放規則 |
+| 掃 repo、位置不明的大範圍搜尋、批次讀十幾個檔 | `Explore` | `haiku` |
+| 探索後要跨多處歸納結論 | `Explore` | `sonnet` |
+| 規格清楚的實作、有基線測試的重構 | `general-purpose` | `sonnet` |
+| 事實查證研究 | `general-purpose` | `haiku`；要權衡結論用 `sonnet` |
+| 查 Claude Code／Agent SDK／API 官方行為 | `claude-code-guide` | 依該 agent 定義 |
+| 設計實作策略、架構取捨 | `Plan` | `opus` |
+| fresh-context 驗證 | `general-purpose` | 文件 read-back `haiku`；程式碼實跑 `sonnet` |
 
-條文衝突時的優先序：誠實條款（judgment.md）> hard-rules > 情境載入檔/本制度 skills > lessons.md >
-外部 plugin 的 skill／agent／command（hooks 是機器強制，不參與此排序）。
+越唯讀、越機械就越便宜；越需要判斷就越貴。拿不準先派便宜的。
 
-本制度與 harness 內建指引衝突時**不自行選邊**：回報使用者判斷。選擇覆寫內建的條文
-必須在該條文旁寫明**覆寫的理由**，且該理由不得與內建的事實性陳述相牴觸——**規則可以
-覆寫內建，理由不行**（矛盾的理由會讓模型在衝突時任意選邊，比刪掉規則更糟）。
-內建**行為層**與規則對撞時（不只是理由過期），一律回報使用者重新裁定，不自行沿用舊規則。
+- **必明確指定 `model`**，不留空繼承。description 標明類型與模型，例：「掃描 repo（Explore+haiku）」。
+- 互相獨立的任務在同一則訊息平行派出。
+- plugin agent 的 description 寫「Use PROACTIVELY」只是作者的提示，不等於使用者要派。
 
-## 常載規則
+**升降級**：
+- `haiku` 錯 1 次 → 升 `sonnet`，附 haiku 的錯誤輸出當反例。
+- `sonnet` 同一子任務連錯 2 次 → 升 `opus`，附完整失敗軌跡。
+- `opus` 解出模式後 → 寫成明確步驟，降回 `sonnet`／`haiku` 批次套用。
+- 同一子任務最多重試 2 輪（升級也算），仍失敗就停，向使用者回報事實、已排除的假設、卡點。
+- 量大不等於需要升級：改 40 個檔的 import 路徑是機械活，`haiku` 批次做加抽查即可。
+- `fable` 不派為 subagent，使用者明說才用。
 
-`~/.claude/rules/` 下無 `paths:` frontmatter 的檔（`hard-rules.md`、`code-standards.md`）
-由 Claude Code 自動常載，不需 `@import`。變更歷史一律在 git 與 repo 的 `CHANGELOG.md`。
+**派工包**（目標與動機、驗收條件、回報格式缺一不發）：
+
+```
+目標與動機：<做什麼>，因為 <為什麼>。
+範圍與限制：只准動 <檔案範圍>；不確定的設計決策用最簡單解並標註 ASSUMPTION。
+驗收條件：<可機械判定，例如「pytest tests/x.py 全綠」>，不是「能動就好」。
+回報格式：結論 ＋「檔案:行號」；長產物存到 <路徑> 後只回路徑＋3 行摘要。上限 N 行。
+查不到／做不到就直說，禁止編造，禁止交出沒跑過的程式碼。
+```
+
+各類任務加一句：
+- 搜尋：也查別名、舊名、字串引用；找不到回「無結果」並列出搜過的 pattern。
+- 重構：列出不變式；先跑測試記錄基線再小步改；任何一步變紅且 2 次內修不回就 revert 全部並回報。
+- 研究：來源優先序為官方文件 > 原始碼 > 其他；每個結論附出處；區分事實與推測；禁止用訓練記憶充當查證結果。
+- 審查：審查者沒參與實作，只看規格與程式碼，不給實作者自述；回 verdict 加按嚴重度排序的問題清單。
+
+**驗證不自驗**：修改者不當自己產出的唯一驗證者。文件用 fresh-context read-back；程式碼派 agent 實跑並貼輸出；高風險判斷同題派 2 個 agent 各自作答比對分歧。
