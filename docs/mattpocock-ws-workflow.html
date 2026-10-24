@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  mattpocock × ws 結合工作流（HTML）。
+  為什麼存在：docs/mattpocock-skills-guide.html 只講 mattpocock 單獨怎麼用；
+  這一頁回答「ws（claude-code-workflows）的 42 個 agent 要怎麼接進 mattpocock 的流程」，
+  讓每個情境都有「第幾步、打什麼、派誰」。
+  關鍵設計：每個主張標【事實】（查得到來源）、【建議】（我的設計，非任一方官方做法）或【未驗證】（沒實際跑過）。
+  資料來源：mattpocock-skills v1.3.1 的 SKILL.md、docs/plugin-guide.md、~/.claude/rules-lib/dispatch.md、
+  Agent tool 的類型宣告。
+  已知極限：手寫整理，plugin 升版後不會自動更新；子 agent 的實際行為（見頁尾「未驗證」）沒有實測。
+-->
+<title>mattpocock × ws 工作流</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  /* Layout: 一條主幹（先拷問、再切票、再實作、最後回顧）+ 每種日常情境各一張步驟卡 */
+  :root {
+    --bg: #F3F5F8;
+    --surface: #FFFFFF;
+    --fg: #151A21;
+    --muted: #55606C;
+    --line: #D7DEE6;
+    --accent: #0F766E;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #DCF0ED;
+    --warn: #8F5200;
+    --warn-soft: #FAEACB;
+    --code-bg: #E7ECF1;
+    --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1217;
+      --surface: #151C23;
+      --fg: #E5EAEF;
+      --muted: #96A2AE;
+      --line: #27313B;
+      --accent: #4FD1C0;
+      --accent-ink: #05201C;
+      --accent-soft: #123029;
+      --warn: #F0B35C;
+      --warn-soft: #33250F;
+      --code-bg: #1D2731;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1217;
+    --surface: #151C23;
+    --fg: #E5EAEF;
+    --muted: #96A2AE;
+    --line: #27313B;
+    --accent: #4FD1C0;
+    --accent-ink: #05201C;
+    --accent-soft: #123029;
+    --warn: #F0B35C;
+    --warn-soft: #33250F;
+    --code-bg: #1D2731;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 64px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  h1, h2, h3 { line-height: 1.3; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 1.45rem; font-weight: 700; }
+  h3 { font-size: 1.1rem; font-weight: 700; }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  code, .cmd {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 0.1em 0.45em;
+    border-radius: 4px;
+    word-break: break-word;
+  }
+  .cmd { font-weight: 500; color: var(--accent); }
+
+  /* 頁首 */
+  .lede { color: var(--muted); max-width: 62ch; margin-top: 10px; }
+  .meta { color: var(--muted); font-size: 0.85rem; margin-top: 14px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  nav.toc a {
+    font-size: 0.88rem; text-decoration: none; color: var(--fg);
+    border: 1px solid var(--line); background: var(--surface);
+    padding: 4px 12px; border-radius: 999px;
+  }
+  nav.toc a:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* 一行主幹 */
+  .chain { display: flex; flex-wrap: wrap; gap: 8px 6px; align-items: center; margin-top: 16px; }
+  .chain .node {
+    font-family: var(--font-mono); font-size: 0.82rem; font-weight: 500;
+    background: var(--surface); border: 1px solid var(--line);
+    padding: 5px 11px; border-radius: 6px;
+  }
+  .chain .node.opt { border-style: dashed; color: var(--muted); }
+  .chain .node.auto { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .chain .arrow { color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--muted); margin-top: 10px; }
+
+  /* 情境卡 */
+  section.flow { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 22px 8px; }
+  section.flow > header { display: flex; flex-direction: column; gap: 4px; padding-bottom: 14px; }
+  .when { color: var(--muted); font-size: 0.93rem; }
+  .letter {
+    font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500;
+    color: var(--accent); letter-spacing: 0.08em;
+  }
+
+  ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  ol.steps > li {
+    counter-increment: s; position: relative;
+    padding: 0 0 22px 52px;
+  }
+  ol.steps > li::before {
+    content: counter(s);
+    position: absolute; left: 0; top: 0;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-weight: 500; font-size: 0.95rem;
+  }
+  ol.steps > li::after {
+    content: ""; position: absolute; left: 16px; top: 40px; bottom: 4px;
+    width: 2px; background: var(--line);
+  }
+  ol.steps > li:last-child::after { display: none; }
+  ol.steps > li.optional::before { background: var(--surface); color: var(--accent); border: 2px dashed var(--accent); }
+  .step-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+  .step-title .cmd { font-size: 0.95rem; padding: 0.2em 0.6em; }
+  .step-title .what { font-weight: 700; }
+  .tag {
+    font-size: 0.72rem; font-weight: 500; padding: 1px 8px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+  }
+  .tag.auto { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .tag.you { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+  dl.facts { margin: 6px 0 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 0.93rem; }
+  dl.facts dt { color: var(--muted); font-weight: 500; }
+  dl.facts dd { margin: 0; min-width: 0; }
+  .note {
+    margin-top: 8px; font-size: 0.9rem; color: var(--warn);
+    background: var(--warn-soft); padding: 8px 12px; border-radius: 6px;
+  }
+  .branch { display: grid; gap: 10px; margin-top: 8px; }
+  @media (min-width: 640px) { .branch { grid-template-columns: 1fr 1fr; } }
+  .branch > div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 0.93rem; min-width: 0; }
+  .branch b { display: block; margin-bottom: 2px; }
+
+  /* 表格 */
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 0.8rem; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.n { white-space: nowrap; }
+  td.k { white-space: nowrap; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .filters button {
+    font: inherit; font-size: 0.88rem; cursor: pointer;
+    background: var(--surface); color: var(--fg);
+    border: 1px solid var(--line); padding: 4px 14px; border-radius: 999px;
+  }
+  .filters button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  ul.plain { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 8px; }
+  .sub { color: var(--muted); font-size: 0.93rem; margin-top: 6px; }
+  .section-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 16px; }
+
+  @media (max-width: 520px) {
+    dl.facts { grid-template-columns: 1fr; }
+    dl.facts dt { margin-top: 4px; }
+    section.flow { padding: 18px 16px 6px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    nav.toc a, .filters button { transition: border-color .15s, background .15s, color .15s; }
+  }
+</style>
+<style>
+  /* 這一頁新增：來源標籤（事實／建議／未驗證）、ws 節點、agent 類型 ID、可複製的派工範本 */
+  .tag.fact { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .tag.sug { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+  .tag.unv { background: transparent; border: 1px dashed var(--muted); color: var(--muted); }
+  .chain .node.ws { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+  code.id { font-size: 0.8em; }
+  td code.id { display: inline-block; margin: 1px 0; }
+  .two { display: grid; gap: 12px; margin-top: 14px; }
+  @media (min-width: 640px) { .two { grid-template-columns: 1fr 1fr; } }
+  .two > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+  .two h3 { margin-bottom: 6px; }
+  .two .who { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); letter-spacing: 0.06em; }
+  .prompt {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    background: var(--code-bg); border-radius: 8px;
+    font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+  }
+  .copy {
+    font: inherit; font-size: 0.85rem; cursor: pointer; margin-top: 8px;
+    background: var(--surface); color: var(--fg); border: 1px solid var(--line);
+    padding: 4px 14px; border-radius: 999px;
+  }
+  .copy:hover { border-color: var(--accent); color: var(--accent); }
+  .tpl-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 18px 0 8px; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <h1>mattpocock × ws 結合工作流</h1>
+    <p class="lede">mattpocock 管流程：問什麼、何時切票、何時審、何時停。ws 管專業：誰來寫、誰來審、這個領域怎麼做才對。這一頁把兩邊接起來，每個情境告訴你第一步打什麼、第二步派誰。</p>
+    <div class="chain" aria-label="結合後的主流程縮圖">
+      <span class="node">/grill-with-docs</span><span class="arrow">→</span>
+      <span class="node">/to-spec</span><span class="arrow">→</span>
+      <span class="node">/to-tickets</span><span class="arrow">→</span>
+      <span class="node">/implement-spec</span><span class="arrow">→</span>
+      <span class="node ws">ws 語言型 agent 當 implementer</span><span class="arrow">→</span>
+      <span class="node auto">code-review</span><span class="arrow">→</span>
+      <span class="node ws">ws 審查型 agent</span><span class="arrow">→</span>
+      <span class="node">/verify</span><span class="arrow">→</span>
+      <span class="node">/retro</span>
+    </div>
+    <div class="legend">
+      <span>白底：mattpocock 的指令</span>
+      <span>橘底：ws 的 agent</span>
+      <span>綠底：mattpocock 內部自動呼叫</span>
+    </div>
+    <p class="meta">
+      每個主張都標來源：
+      <span class="tag fact">事實</span> 我從 SKILL.md、設定檔或工具說明查到的；
+      <span class="tag sug">建議</span> 我的設計，不是任何一方的官方做法；
+      <span class="tag unv">未驗證</span> 我沒有實際跑過。
+    </p>
+    <nav class="toc" aria-label="頁面目錄">
+      <a href="#join">兩邊怎麼接</a>
+      <a href="#trunk">先選主幹</a>
+      <a href="#flow-a">A 後端功能</a>
+      <a href="#flow-b">B 前端／跨平台</a>
+      <a href="#flow-c">C ML／資料／監控</a>
+      <a href="#flow-d">D 修 bug</a>
+      <a href="#flow-e">E 定期保養</a>
+      <a href="#roster">42 個 agent</a>
+      <a href="#template">派工範本</a>
+      <a href="#avoid">不要這樣做</a>
+      <a href="#institution">你的制度</a>
+      <a href="#unverified">未驗證</a>
+    </nav>
+  </header>
+
+  <!-- ============================== 兩邊怎麼接 ============================== -->
+  <section id="join">
+    <div class="section-head">
+      <h2>兩邊怎麼接</h2>
+      <p class="sub">先講結論：它們不會自動接起來，要靠你在派工時指名。</p>
+    </div>
+    <div class="two">
+      <div>
+        <span class="who">mattpocock</span>
+        <h3>流程</h3>
+        <p>問什麼問題、什麼時候寫 spec、怎麼切票、什麼時候審、什麼時候回顧。27 個 skill，沒有一個是某個語言或領域的專家。</p>
+      </div>
+      <div>
+        <span class="who">ws（claude-code-workflows）</span>
+        <h3>專業</h3>
+        <p>42 個 agent 與一批 skill、command：Python、TypeScript、K8s、ML、資料、安全、效能、無障礙等。它們各有專長，但自己沒有「先問清楚再切票」的紀律。</p>
+      </div>
+    </div>
+    <ul class="plain" style="margin-top:16px">
+      <li><span class="tag fact">事實</span> mattpocock 的 27 個 SKILL.md 從不指定子 agent 的類型。它們只寫「sub-agent」「implementer subagent」「exploration subagent」。所以不會自動用到 ws 的 agent。要用，就在指令後面加一句話指名；沒指名，就由主對話模型依你的 <code>dispatch.md</code> §2 自己挑。</li>
+      <li><span class="tag fact">事實</span> 派工時的 <code>model</code> 參數會蓋過 agent 定義裡的 model（Agent tool 說明明載）。ws 有 11 個 agent 定義固定 opus、7 個固定 sonnet（見 <code>docs/plugin-guide.md</code>），你可以在派工時改。<code>dispatch.md</code> §2 也規定派工必明確指定 model。</li>
+      <li><span class="tag fact">事實</span> <code>/to-spec</code> 產出的 spec 有一節 <b>Testing Decisions</b>，寫明要測的 seam。<code>/implement-spec</code> 本來就要求子 agent 靠「脈絡指標」溝通（指向 spec、票、先前 commit）。</li>
+      <li><span class="tag sug">建議</span> 把 spec 的 Testing Decisions 當成給所有子 agent 的共同指標：每個 implementer 先讀它，只在那裡列出的 seam 寫測試。這樣不同的 ws agent 不會各自決定測哪裡。</li>
+    </ul>
+  </section>
+
+  <!-- ============================== 先選主幹 ============================== -->
+  <section id="trunk">
+    <div class="section-head">
+      <h2>先選主幹：一個功能只選一條</h2>
+      <p class="sub"><span class="tag sug">建議</span> 兩邊都有「從需求做到交付」的完整流程（ws 的 <code>feature-development</code> 分 Discovery、Implementation、Delivery 三階段；mattpocock 是 grill → spec → tickets → implement）。疊在同一個功能上，需求釐清和實作會做兩遍。</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>情境</th><th>主幹</th><th>另一邊的角色</th><th>看哪張卡</th></tr></thead>
+        <tbody>
+          <tr><td>一般程式功能：API、服務、前端元件</td><td><b>mattpocock</b></td><td>ws agent 當 implementer 和額外審查者；ws skill 提供領域知識</td><td><a href="#flow-a">A</a>、<a href="#flow-b">B</a></td></tr>
+          <tr><td>修 bug、效能退化</td><td><b>mattpocock</b>（<code>diagnosing-bugs</code>）</td><td>ws 的效能、資料庫專家 agent</td><td><a href="#flow-d">D</a></td></tr>
+          <tr><td>重構、定期保養</td><td><b>mattpocock</b>（<code>/improve-codebase-architecture</code>）</td><td>ws 的架構型 agent</td><td><a href="#flow-e">E</a></td></tr>
+          <tr><td>ML 管線、資料管線、LLM 微調、監控與 SLO、三平台同步功能</td><td><b>ws 的專屬流程指令</b></td><td>mattpocock 當前夾層（grill、spec）和後夾層（code-review、retro）</td><td><a href="#flow-c">C</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== A 後端功能 ============================== -->
+  <section class="flow" id="flow-a">
+    <header>
+      <span class="letter">結合流程 A</span>
+      <h2>後端功能（Python 為例）</h2>
+      <p class="when">主幹：mattpocock。小功能（一個 session 做得完）就跳過第 2、3 步，直接 <span class="cmd">/implement</span>；<code>dispatch.md</code> §1 的預設本來就是主對話自己做完，不派 agent。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="cmd">/grill-with-docs</span><span class="what">先把點子問清楚</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>預設不派。需要查 repo 現況時，主對話會自己派找事實的子 agent，<span class="tag sug">建議</span> 指定 <code class="id">Explore</code>（<code>dispatch.md</code> §2：要歸納結論用 sonnet）。需要架構取捨的第二意見時，才請 <code class="id">backend-development:backend-development-backend-architect</code> 或 <code class="id">backend-development:event-sourcing-architect</code> 列出選項。</dd>
+          <dt>你要做</dt><dd>回答每輪問題。架構型 agent 只給選項，<span class="tag fact">事實</span> <code>grilling</code> 規定「決定是使用者的」。</dd>
+          <dt>產出</dt><dd><code>GLOSSARY.md</code>、<code>docs/adr/</code>。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/to-spec</span><span class="what">寫規格，並把 seam 定死</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>不派，主對話整理。</dd>
+          <dt>你要做</dt><dd>確認它提的測試 seam。這是之後所有 implementer 的共同依據。</dd>
+          <dt>產出</dt><dd>發佈到 tracker 的 spec，含 Testing Decisions。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/to-tickets</span><span class="what">切成薄切片的票</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>不派。</dd>
+          <dt>你要做</dt><dd>檢查粒度和阻擋關係。<span class="tag sug">建議</span> 順便在每張票註明技術領域（後端、前端、資料），第 4 步指名 implementer 時才不用重猜。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/implement-spec</span><span class="what">ws agent 當 implementer</span><span class="tag fact">事實：它派 implementer 子 agent</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>
+            <span class="tag sug">建議</span> 依票的領域在指令後面指名：<br>
+            FastAPI／SQLAlchemy → <code class="id">python-development:python-development-fastapi-pro</code><br>
+            Django／DRF／Celery → <code class="id">python-development:python-development-django-pro</code><br>
+            一般 Python → <code class="id">python-development:python-pro</code><br>
+            Temporal 工作流 → <code class="id">backend-development:temporal-python-pro</code>
+          </dd>
+          <dt>你要做</dt><dd>在 <span class="cmd">/implement-spec</span> 後面貼<a href="#template">派工範本</a>，並明確指定 model。規格清楚的實作 <code>dispatch.md</code> §2 建議 sonnet；有難度的票才升 opus。</dd>
+          <dt>產出</dt><dd>一條 integration branch。每張票在自己的 worktree 做，全部完成後 worktree 會被清掉，成果留在 integration branch。</dd>
+        </dl>
+        <p class="note">不要讓 <code>backend-development:backend-development-tdd-orchestrator</code> 或 <code>…test-automator</code> 自己決定測哪裡。<code>tdd</code> 規定沒經你確認的 seam 不准寫測試。</p>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">code-review</span><span class="what">兩軸審查</span><span class="tag auto">自動</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd><span class="tag fact">事實</span> <code>/implement-spec</code> 收尾時自己呼叫，內部派 Standards 與 Spec 兩個子 agent，不指定類型。</dd>
+          <dt>注意</dt><dd><span class="tag fact">事實</span> 它只有 Standards 和 Spec 兩軸，沒有安全與效能。這兩項在下一步補。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">補上 ws 的專業審查</span><span class="tag sug">建議</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>
+            安全 → <code class="id">backend-development:backend-development-security-auditor</code>（定義為 sonnet），再加內建 <code>/security-review</code><br>
+            效能、查詢、併發 → <code class="id">backend-development:backend-development-performance-engineer</code>（定義為 sonnet）
+          </dd>
+          <dt>你要做</dt><dd>用<a href="#template">審查範本</a>派，指定審查 <code>git diff &lt;固定點&gt;...HEAD</code>。審查者沒有參與實作，符合你的硬規則 #12。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/verify</span><span class="what">宣稱完成前</span><span class="tag sug">你的制度</span></div>
+        <dl class="facts"><dt>為什麼</dt><dd>硬規則 #5。mattpocock 的 <code>/implement</code>、<code>/implement-spec</code> 沒有這一步。</dd></dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">開 PR，然後 </span><span class="cmd">/retro</span></div>
+        <dl class="facts">
+          <dt>怎麼做</dt><dd>說「幫我開 PR」，<code>pr</code> 會自動載入。收尾在 <span class="cmd">/clear</span> 之前打 <span class="cmd">/retro</span>。</dd>
+        </dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== B 前端／跨平台 ============================== -->
+  <section class="flow" id="flow-b">
+    <header>
+      <span class="letter">結合流程 B</span>
+      <h2>前端或跨平台功能</h2>
+      <p class="when">主幹：mattpocock。如果是「同一個功能三個平台同步做」，改走流程 C 的 <code>/multi-platform-apps:multi-platform</code>。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="cmd">/grill-with-docs</span><span class="what">問清楚</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>同流程 A 第 1 步。UI 相關的詞（「卡片」「面板」到底指什麼）會在這裡寫進 <code>GLOSSARY.md</code>。</dd>
+        </dl>
+      </li>
+      <li class="optional">
+        <div class="step-title"><span class="what">UI 樣子說不清？先做原型</span><span class="cmd">/handoff</span><span class="what">→</span><span class="cmd">prototype</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd><span class="tag fact">事實</span> <code>prototype</code> 由主對話自己做，不派 agent，產出同一路由上多個風格迥異的 UI 變體。<span class="tag sug">建議</span> 想要更多風格方向時，先請 <code class="id">ui-design:ui-designer</code> 或 <code class="id">multi-platform-apps:ui-ux-designer</code> 各提一種方向，再交給 prototype 實作。</dd>
+          <dt>專案還沒有 design token？</dt><dd><span class="tag sug">建議</span> 先打 <span class="cmd">/ui-design:design-system-setup</span>（它會把狀態寫在 <code>.ui-design/</code>）。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/to-spec</span><span class="cmd">/to-tickets</span><span class="what">寫規格、切票</span></div>
+        <dl class="facts"><dt>你要做</dt><dd>同流程 A 第 2、3 步。票註明「前端」「iOS」等領域。</dd></dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/implement-spec</span><span class="what">ws agent 當 implementer</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>
+            <span class="tag sug">建議</span><br>
+            React／Next.js／TypeScript → <code class="id">javascript-typescript:typescript-pro</code> 或 <code class="id">frontend-mobile-development:frontend-mobile-development-frontend-developer</code><br>
+            React Native → <code class="id">frontend-mobile-development:frontend-mobile-development-mobile-developer</code><br>
+            iOS／SwiftUI → <code class="id">multi-platform-apps:ios-developer</code><br>
+            Flutter → <code class="id">multi-platform-apps:flutter-expert</code>
+          </dd>
+          <dt>你要做</dt><dd>貼<a href="#template">派工範本</a>。要先有元件骨架時，可以另外手動打 <span class="cmd">/frontend-mobile-development:component-scaffold</span>。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">code-review</span><span class="what">兩軸審查</span><span class="tag auto">自動</span></div>
+        <dl class="facts"><dt>注意</dt><dd><span class="tag fact">事實</span> 同流程 A：只有 Standards 與 Spec 兩軸。</dd></dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">補上 UI 專業審查</span><span class="tag sug">建議</span></div>
+        <dl class="facts">
+          <dt>指令</dt><dd><span class="cmd">/ui-design:design-review</span>（依 Critical／Major／Minor 分級）、<span class="cmd">/ui-design:accessibility-audit</span>（WCAG，有逐項修正模式）。</dd>
+          <dt>或派 agent</dt><dd><code class="id">ui-design:accessibility-expert</code>（定義為 inherit）。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/verify</span><span class="what">→ PR → </span><span class="cmd">/retro</span></div>
+        <dl class="facts"><dt>特別留意</dt><dd><span class="tag fact">事實</span> <code>pr</code> 把截圖列為最好的證據（S-tier），UI 改動記得附改前改後截圖。</dd></dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== C ML／資料／監控 ============================== -->
+  <section class="flow" id="flow-c">
+    <header>
+      <span class="letter">結合流程 C</span>
+      <h2>ML、資料、微調、監控：ws 當主幹</h2>
+      <p class="when">這些是 ws 有專屬流程指令的領域，mattpocock 沒有對應流程。做法是 mattpocock 前後夾住：先把範圍問清楚、寫死，跑完再審、再回顧。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="cmd">/grill-with-docs</span><span class="what">先釐清領域詞彙和目標</span></div>
+        <dl class="facts">
+          <dt>為什麼</dt><dd>「活躍用戶」「訓練資料」「合格的 checkpoint」這類詞，每個團隊定義不同。把它們寫進 <code>GLOSSARY.md</code>，之後 ws 的多個 agent 才在講同一件事。</dd>
+          <dt>產出</dt><dd><code>GLOSSARY.md</code>、必要的 ADR。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/to-spec</span><span class="what">把範圍和「不做什麼」寫死</span></div>
+        <dl class="facts">
+          <dt>為什麼</dt><dd><span class="tag fact">事實</span> <code>/machine-learning-ops:ml-pipeline</code> 沒有 checkpoint、沒有狀態檔，4 個階段一路跑完，不會停下來等你核准，中斷後也無法接續（<code>docs/plugin-guide.md</code>）。所以範圍必須在它開跑前就寫死，重點寫 <b>Out of Scope</b> 和驗收條件。</dd>
+          <dt>你要做</dt><dd>確認 spec 的驗收條件是可以用指令判定的。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">記下起點</span><span class="tag sug">建議</span></div>
+        <dl class="facts">
+          <dt>指令</dt><dd><code>git rev-parse HEAD</code>，記下輸出。第 5 步審查要用它當「固定點」，因為 orchestrator 跑完會留下一大批變更。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">打 ws 的專屬流程指令</span></div>
+        <dl class="facts">
+          <dt>怎麼選</dt><dd>
+            ML 管線 → <span class="cmd">/machine-learning-ops:ml-pipeline</span>（4 階段，<span class="tag fact">事實</span> 會派 7 個 agent，其中 4 個來自別的 plugin，現在你都裝了）<br>
+            資料管線 → <span class="cmd">/data-engineering:data-pipeline</span><br>
+            資料驅動的功能 → <span class="cmd">/data-engineering:data-driven-feature</span>（<span class="tag fact">事實</span> 5 階段 16 步驟、4 個 checkpoint，可以在 checkpoint 拿 spec 對照）<br>
+            LLM 微調 → <span class="cmd">/llm-finetuning:finetune</span>（<span class="tag fact">事實</span> Phase 0–7，以 eval 把關；中間不要插 mattpocock 的流程）<br>
+            監控與 SLO → <span class="cmd">/observability-monitoring:monitor-setup</span>、<span class="cmd">/observability-monitoring:slo-implement</span><br>
+            三平台同步功能 → <span class="cmd">/multi-platform-apps:multi-platform</span>
+          </dd>
+          <dt>你要做</dt><dd>在指令的需求描述裡貼 spec 的 Problem Statement、Solution 和 Out of Scope。</dd>
+          <dt>派誰</dt><dd><span class="tag fact">事實</span> 要看是哪個指令。<code>ml-pipeline</code>、<code>data-driven-feature</code>、<code>finetune</code>、<code>multi-platform</code> 會分階段自己派 agent，你不用指名；<code>data-pipeline</code>、<code>monitor-setup</code>、<code>slo-implement</code> 是單一長 prompt，不派子 agent，由主對話照著做。你親手輸入這個指令，符合 <code>dispatch.md</code> §1 的 (c)「使用者明講要派」。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">跑完後審查：</span><span class="cmd">code-review</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>說「review 自 &lt;第 3 步記下的 commit&gt; 以來的變更，spec 在 &lt;spec 位置&gt;」。<code>code-review</code> 是模型可自動載入的 skill，這樣說就會載入。</dd>
+          <dt>為什麼</dt><dd><span class="tag fact">事實</span> orchestrator 沒有 mattpocock 的 Standards／Spec 兩軸審查，這一步補上。Spec 軸正好用第 2 步的 spec 檢查它有沒有超出範圍。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/verify</span><span class="what">→ </span><span class="cmd">/retro</span></div>
+        <dl class="facts"><dt>你要做</dt><dd>跑得出指令輸出的驗證（測試、pipeline 的 dry run）才算數。收尾 <span class="cmd">/retro</span> 看 orchestrator 這一輪暴露了哪些環境問題。</dd></dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== D 修 bug ============================== -->
+  <section class="flow" id="flow-d">
+    <header>
+      <span class="letter">結合流程 D</span>
+      <h2>修難纏的 bug 或效能退化</h2>
+      <p class="when">主幹：mattpocock 的 <code>diagnosing-bugs</code>。一眼看得出原因的小 bug 直接改，不必走這張卡。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="what">說出症狀</span><span class="tag auto">自動載入 diagnosing-bugs</span></div>
+        <dl class="facts"><dt>你要做</dt><dd>說「diagnose 這個」或貼錯誤。沒載入就打 <span class="cmd">/diagnosing-bugs</span>。</dd></dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">階段 1–2：建紅燈指令並縮小</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>不派。這是整套流程的核心，需要主對話握住脈絡。</dd>
+          <dt>你要做</dt><dd>它建不起來時會跟你要環境、log 或錄下的請求檔，盡量給。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">效能退化：先量基準，再二分</span></div>
+        <dl class="facts">
+          <dt>事實</dt><dd><span class="tag fact">事實</span> <code>diagnosing-bugs</code> 的效能分支要求：先建立基準量測（計時、profiler、query plan），再二分；不要靠 log 猜。</dd>
+          <dt>派誰</dt><dd>
+            <span class="tag sug">建議</span><br>
+            全系統 profiling、tracing → <code class="id">observability-monitoring:observability-monitoring-performance-engineer</code><br>
+            慢查詢、索引、query plan → <code class="id">observability-monitoring:observability-monitoring-database-optimizer</code><br>
+            功能層的效能審查 → <code class="id">backend-development:backend-development-performance-engineer</code>
+          </dd>
+          <dt>ws skill</dt><dd><code>python-performance-optimization</code>、<code>python-observability</code> 會依情境自動載入，不用另外打。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">階段 3：看假設清單</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>它列 3–5 個假設並排序，先給你看。你知道的背景可以直接重排。</dd>
+          <dt>想要第二意見</dt><dd><span class="tag sug">建議</span> 把同一份假設清單派給一隻領域型 agent（例如 <code class="id">python-development:python-pro</code>），只問「哪個假設最可疑、為什麼」，符合 <code>dispatch.md</code> (b)「需要 fresh-context 第二意見」。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">階段 4–6：埋點、修、回歸測試、清理</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd>小修補由主對話自己做。<span class="tag sug">建議</span> 修補很大、要換語言型專家時，才用<a href="#template">派工範本</a>派 implementer。</dd>
+          <dt>事實</dt><dd><span class="tag fact">事實</span> debug log 都加了 <code>[DEBUG-xxxx]</code> 前綴，最後 grep 清掉。你的 <code>commit_guard.py</code> 在 commit 前只掃少數明確的除錯寫法：<code>console.log(</code>、<code>debugger</code>、<code>breakpoint()</code>、<code>set_trace(</code>、<code>binding.pry</code>、<code>var_dump(</code>、<code>dd(</code>。它刻意不含裸 <code>print</code>，所以帶前綴的 <code>print</code> 或 logger 呼叫它擋不到，清理要靠那條 grep。另外它有 <code>SKIP_DEBUG_GUARD=1</code> 逃生口，內部出錯時放行。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/retro</span><span class="what">同一個 session 問「什麼能預防它」</span></div>
+        <dl class="facts">
+          <dt>接下來</dt><dd>如果結論是「這個 codebase 沒有能鎖住這種 bug 的測試位置」，轉到<a href="#flow-e">流程 E</a>。</dd>
+        </dl>
+        <p class="note">你的 <code>/debug-protocol</code>（硬規則 #6：同一問題修 2 次沒好就進）和 <code>diagnosing-bugs</code> 目的相近。兩者同時載入時誰先主導，我沒有驗證過。</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== E 定期保養 ============================== -->
+  <section class="flow" id="flow-e">
+    <header>
+      <span class="letter">結合流程 E</span>
+      <h2>定期保養 codebase</h2>
+      <p class="when">主幹：mattpocock 的 <code>/improve-codebase-architecture</code>。作者建議每隔幾天跑一次。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="cmd">/improve-codebase-architecture</span><span class="what">掃出可深化的模組</span></div>
+        <dl class="facts">
+          <dt>派誰</dt><dd><span class="tag fact">事實</span> 它自己會派一個子 agent 走訪 codebase，不指定類型。<span class="tag sug">建議</span> 指定 <code class="id">Explore</code>，model 用 sonnet（要跨處歸納，<code>dispatch.md</code> §2）。</dd>
+          <dt>產出</dt><dd>HTML 報告寫到系統暫存目錄並自動開啟，每個候選有改前改後圖和建議強度。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">選一個候選，進入拷問</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>它問「想探索哪個」，你選。之後自動接 <code>grilling</code> 和 <code>domain-modeling</code>。</dd>
+        </dl>
+      </li>
+      <li class="optional">
+        <div class="step-title"><span class="what">想比較不同的介面設計：design it twice</span></div>
+        <dl class="facts">
+          <dt>事實</dt><dd><span class="tag fact">事實</span> <code>codebase-design</code> 的 <code>DESIGN-IT-TWICE.md</code> 會平行派 3 個以上子 agent，<b>每個給不同的設計限制</b>（最小介面、最大彈性、最佳化最常見的呼叫者、ports &amp; adapters），而且 brief 必須帶 <code>codebase-design</code> 的詞彙與 <code>GLOSSARY.md</code> 的詞彙。</dd>
+          <dt>派誰</dt><dd>
+            <span class="tag sug">建議</span> 多樣性仍來自「不同限制」，不是換 agent。agent 類型只依模組的領域挑：後端服務 → <code class="id">backend-development:backend-development-backend-architect</code>；K8s 或平台 → <code class="id">kubernetes-operations:kubernetes-operations-kubernetes-architect</code>；UI 元件庫 → <code class="id">ui-design:design-system-architect</code>。
+          </dd>
+        </dl>
+        <p class="note">架構型 agent 慣用 service、boundary、layer 這些詞；<code>codebase-design</code> 禁用 service、boundary、component、API。要在 brief 裡寫明「只用 module／interface／depth／seam／adapter／leverage／locality」。</p>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">把結果帶回流程 A</span></div>
+        <dl class="facts"><dt>接下來</dt><dd>規模大 → <a href="#flow-a">流程 A</a> 從 <span class="cmd">/grill-with-docs</span> 開始；規模小 → 直接 <span class="cmd">/implement</span>。</dd></dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== 42 個 agent ============================== -->
+  <section id="roster">
+    <div class="section-head">
+      <h2>42 個 ws agent：各自用在哪</h2>
+      <p class="sub">類型 ID 是派工時用的完整名稱（<code>plugin:名稱</code>）。「model」欄是 agent 定義裡的設定；<span class="tag fact">事實</span> 派工時的 <code>model</code> 參數可以覆蓋它。</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>agent 類型 ID</th><th>model</th><th>用在哪</th></tr></thead>
+        <tbody>
+          <tr><td colspan="3" style="background:var(--code-bg);font-weight:700">語言與領域實作者（14）：當 implementer</td></tr>
+          <tr><td><code class="id">python-development:python-pro</code></td><td>opus</td><td>通用 Python（流程 A、D）</td></tr>
+          <tr><td><code class="id">python-development:python-development-fastapi-pro</code></td><td>opus</td><td>FastAPI 票（A）</td></tr>
+          <tr><td><code class="id">python-development:python-development-django-pro</code></td><td>opus</td><td>Django 票（A）</td></tr>
+          <tr><td><code class="id">javascript-typescript:typescript-pro</code></td><td>opus</td><td>TypeScript、React、Node（A、B）</td></tr>
+          <tr><td><code class="id">javascript-typescript:javascript-pro</code></td><td>inherit</td><td>一般 JavaScript、Node（A、B）</td></tr>
+          <tr><td><code class="id">frontend-mobile-development:frontend-mobile-development-frontend-developer</code></td><td>inherit</td><td>React、Next.js 元件（B）</td></tr>
+          <tr><td><code class="id">frontend-mobile-development:frontend-mobile-development-mobile-developer</code></td><td>inherit</td><td>React Native、Flutter（B）</td></tr>
+          <tr><td><code class="id">multi-platform-apps:multi-platform-apps-frontend-developer</code></td><td>inherit</td><td>與上面的前端 agent 內容相同、只差名稱</td></tr>
+          <tr><td><code class="id">multi-platform-apps:multi-platform-apps-mobile-developer</code></td><td>inherit</td><td>與上面的行動 agent 內容相同、只差名稱</td></tr>
+          <tr><td><code class="id">multi-platform-apps:ios-developer</code></td><td>inherit</td><td>iOS、SwiftUI（B）</td></tr>
+          <tr><td><code class="id">multi-platform-apps:flutter-expert</code></td><td>inherit</td><td>Flutter（B）</td></tr>
+          <tr><td><code class="id">backend-development:temporal-python-pro</code></td><td>inherit</td><td>Temporal 工作流（A）</td></tr>
+          <tr><td><code class="id">game-development:unity-developer</code></td><td>opus</td><td>Unity；本頁的流程沒用到</td></tr>
+          <tr><td><code class="id">game-development:minecraft-bukkit-pro</code></td><td>opus</td><td>Minecraft plugin；本頁的流程沒用到</td></tr>
+
+          <tr><td colspan="3" style="background:var(--code-bg);font-weight:700">架構顧問（8）：給選項和第二意見，不做決定</td></tr>
+          <tr><td><code class="id">backend-development:backend-development-backend-architect</code></td><td>inherit</td><td>服務邊界、API 設計（A 第 1 步、E）</td></tr>
+          <tr><td><code class="id">backend-development:backend-development-graphql-architect</code></td><td>opus</td><td>GraphQL 專案</td></tr>
+          <tr><td><code class="id">backend-development:event-sourcing-architect</code></td><td>inherit</td><td>事件溯源、CQRS 取捨（A 第 1 步）</td></tr>
+          <tr><td><code class="id">kubernetes-operations:kubernetes-operations-kubernetes-architect</code></td><td>opus</td><td>K8s、平台（E；<code>ml-pipeline</code> Phase 3 也會自己派它）</td></tr>
+          <tr><td><code class="id">ui-design:design-system-architect</code></td><td>inherit</td><td>設計系統、token（E）</td></tr>
+          <tr><td><code class="id">llm-finetuning:llm-finetuning-architect</code></td><td>opus</td><td>微調前的方法選擇</td></tr>
+          <tr><td><code class="id">data-engineering:data-engineering-backend-architect</code></td><td>inherit</td><td>與 backend-architect 內容相同、只差名稱</td></tr>
+          <tr><td><code class="id">multi-platform-apps:multi-platform-apps-backend-architect</code></td><td>inherit</td><td>與 backend-architect 內容相同、只差名稱</td></tr>
+
+          <tr><td colspan="3" style="background:var(--code-bg);font-weight:700">審查者（4）：補 <code>code-review</code> 沒有的軸</td></tr>
+          <tr><td><code class="id">backend-development:backend-development-security-auditor</code></td><td>sonnet</td><td>安全審查（A 第 6 步）</td></tr>
+          <tr><td><code class="id">backend-development:backend-development-performance-engineer</code></td><td>sonnet</td><td>功能層的效能審查（A、D）</td></tr>
+          <tr><td><code class="id">observability-monitoring:observability-monitoring-performance-engineer</code></td><td>inherit</td><td>全系統 profiling、tracing（D）</td></tr>
+          <tr><td><code class="id">ui-design:accessibility-expert</code></td><td>inherit</td><td>無障礙審查（B）</td></tr>
+
+          <tr><td colspan="3" style="background:var(--code-bg);font-weight:700">測試（2）：預設不指名</td></tr>
+          <tr><td><code class="id">backend-development:backend-development-tdd-orchestrator</code></td><td>opus</td><td>自己管紅綠重構；會和 <code>tdd</code> 的 seam 約定打架</td></tr>
+          <tr><td><code class="id">backend-development:backend-development-test-automator</code></td><td>sonnet</td><td>自己決定測哪裡；要用就在派工包寫死 seam</td></tr>
+
+          <tr><td colspan="3" style="background:var(--code-bg);font-weight:700">設計（2）</td></tr>
+          <tr><td><code class="id">ui-design:ui-designer</code></td><td>inherit</td><td>提 UI 方向給 <code>prototype</code>（B）</td></tr>
+          <tr><td><code class="id">multi-platform-apps:ui-ux-designer</code></td><td>sonnet</td><td>同上，另一種視角（B）</td></tr>
+
+          <tr><td colspan="3" style="background:var(--code-bg);font-weight:700">資料與 ML（9）：ml-pipeline、data-driven-feature、finetune 會自己派其中幾隻</td></tr>
+          <tr><td><code class="id">data-engineering:data-engineer</code></td><td>opus</td><td><code>data-driven-feature</code>、<code>ml-pipeline</code> Phase 1 會自己派它（C）。<code>data-pipeline</code> 不會派它</td></tr>
+          <tr><td><code class="id">machine-learning-ops:data-scientist</code></td><td>inherit</td><td><code>ml-pipeline</code> Phase 1 自動派（C）</td></tr>
+          <tr><td><code class="id">machine-learning-ops:ml-engineer</code></td><td>inherit</td><td><code>ml-pipeline</code> Phase 2 自動派（C）</td></tr>
+          <tr><td><code class="id">machine-learning-ops:mlops-engineer</code></td><td>inherit</td><td><code>ml-pipeline</code> Phase 3 自動派（C）</td></tr>
+          <tr><td><code class="id">llm-application-dev:ai-engineer</code></td><td>inherit</td><td>RAG、agent 應用</td></tr>
+          <tr><td><code class="id">llm-application-dev:prompt-engineer</code></td><td>inherit</td><td>prompt 設計與優化</td></tr>
+          <tr><td><code class="id">llm-application-dev:vector-database-engineer</code></td><td>inherit</td><td>向量資料庫、檢索</td></tr>
+          <tr><td><code class="id">llm-finetuning:llm-finetuning-eval-engineer</code></td><td>sonnet</td><td>微調流程的 eval 把關（C）</td></tr>
+          <tr><td><code class="id">llm-finetuning:llm-finetuning-training-engineer</code></td><td>sonnet</td><td>微調流程的訓練實作（C）</td></tr>
+
+          <tr><td colspan="3" style="background:var(--code-bg);font-weight:700">維運（3）</td></tr>
+          <tr><td><code class="id">observability-monitoring:observability-monitoring-observability-engineer</code></td><td>inherit</td><td><code>ml-pipeline</code> Phase 4 會自己派它（C）。<code>monitor-setup</code> 不會派它，需要時要你自己指名</td></tr>
+          <tr><td><code class="id">observability-monitoring:observability-monitoring-database-optimizer</code></td><td>inherit</td><td>慢查詢、索引（D）</td></tr>
+          <tr><td><code class="id">observability-monitoring:observability-monitoring-network-engineer</code></td><td>sonnet</td><td>網路與連線問題</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub">另有內建的 <code class="id">Explore</code>（唯讀搜尋）、<code class="id">Plan</code>、<code class="id">general-purpose</code>，不在 ws 內，但 mattpocock 的多個步驟用得到。</p>
+  </section>
+
+  <!-- ============================== 派工範本 ============================== -->
+  <section id="template">
+    <div class="section-head">
+      <h2>派工範本</h2>
+      <p class="sub"><span class="tag sug">建議</span> 照你的 <code>dispatch.md</code> §6 三要素（目標與動機、驗收條件、回報格式）寫。尖括號 &lt;…&gt; 的地方換成你的內容。</p>
+    </div>
+
+    <div class="tpl-head"><h3>1. 指名 implementer（接在 /implement-spec 後面）</h3></div>
+    <pre class="prompt" id="tpl-impl">/implement-spec
+implementer 請這樣派，每個都明確指定 model：
+- 後端票：agent 類型 python-development:python-development-fastapi-pro，model 指定 sonnet
+- 前端票：agent 類型 javascript-typescript:typescript-pro，model 指定 sonnet
+- 遇到我標了「困難」的票：同一個 agent 類型，model 改指定 opus
+
+每個 implementer 的派工包：
+目標與動機：實作 &lt;票的標題&gt;，因為 &lt;spec 的 Problem Statement 一句話&gt;。
+範圍與限制：只准動 &lt;票涉及的模組&gt;。先讀 spec 的 Testing Decisions，只在那裡列出的 seam 寫測試，不自行新增 seam。命名用 GLOSSARY.md 的詞；架構用語只用 module、interface、depth、seam、adapter、leverage、locality，不用 service、boundary。
+驗收條件：&lt;測試指令&gt; 全綠；票上的驗收項目逐條打勾。
+回報格式：結論 ＋ 檔案:行號，10 行內。做不到就直說並回報卡點，不交沒跑過的程式碼。</pre>
+    <button type="button" class="copy" data-target="tpl-impl">複製範本 1</button>
+
+    <div class="tpl-head"><h3>2. 額外審查（code-review 之後）</h3></div>
+    <pre class="prompt" id="tpl-review">派一個 &lt;backend-development:backend-development-security-auditor 或 …performance-engineer&gt;，model 指定 sonnet。
+
+你是沒有參與實作的審查者，只依 spec 與程式碼本身判斷，不看實作者的自述。
+審查範圍：git diff &lt;固定點&gt;...HEAD，規格在 &lt;spec 位置&gt;。
+重點：&lt;安全：輸入驗證、認證授權、祕密外洩｜效能：N+1 查詢、鎖、逾時&gt;。
+回報：verdict（通過／退回）＋問題清單按嚴重度排序，每項附 檔案:行號；沒把握的標「不確定」。10 行內。</pre>
+    <button type="button" class="copy" data-target="tpl-review">複製範本 2</button>
+  </section>
+
+  <!-- ============================== 不要這樣做 ============================== -->
+  <section id="avoid">
+    <div class="section-head">
+      <h2>不要這樣做</h2>
+    </div>
+    <ul class="plain">
+      <li><b>兩條主幹疊在同一個功能上。</b><span class="tag sug">建議</span> 例如對同一功能先跑 <code>/backend-development:feature-development</code>，又跑 <code>/grill-with-docs</code> → <code>/implement-spec</code>。需求釐清和實作會做兩遍。</li>
+      <li><b>讓 <code>tdd-orchestrator</code>、<code>test-automator</code> 自己決定測哪裡。</b><span class="tag fact">事實</span> <code>tdd</code> 規定沒經你確認的 seam 不准寫測試；這兩個 agent 的設定是自己管測試策略，會繞過約定。</li>
+      <li><b>架構用語不一致。</b><span class="tag fact">事實</span> <code>codebase-design</code> 禁用 component、service、API、boundary；<code>architecture-patterns</code>、<code>microservices-patterns</code> 這些 ws skill 正是用 boundary、service、layer 在說話。派 agent 時在 brief 寫明用語。</li>
+      <li><b>全指定 opus、又同時派很多個。</b><span class="tag fact">事實</span> <code>/implement-spec</code> 會對所有沒被擋住的票平行派 implementer。<span class="tag sug">建議</span> 規格清楚的票用 sonnet，只對困難票升 opus。</li>
+      <li><b>沒寫 spec 就直接丟 <code>/machine-learning-ops:ml-pipeline</code>。</b><span class="tag fact">事實</span> 它不會停下來等你核准。</li>
+      <li><b>把架構型 agent 當成決策者。</b><span class="tag fact">事實</span> <code>grilling</code> 規定決定歸使用者；架構型 agent 只負責列選項與取捨。</li>
+      <li><b>用 ws orchestrator 做完又 <code>/implement</code> 重做一次。</b>先審查（<code>code-review</code>），有缺口再補票。</li>
+    </ul>
+  </section>
+
+  <!-- ============================== 你的制度 ============================== -->
+  <section id="institution">
+    <div class="section-head">
+      <h2>和你的制度、hooks 怎麼銜接</h2>
+      <p class="sub">你的 <code>CLAUDE.md</code> 規定：條文衝突時，外部 plugin 的 skill、agent、command 排最後。</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>你在做的事</th><th>碰到的規則或 hook</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>手動打 <code>/implement-spec</code>、<code>/wayfinder</code> 或 ws 的 orchestrator</td><td>硬規則 #11 的 (c)</td><td><span class="tag fact">事實</span> <code>dispatch.md</code> §1：使用者親手輸入的 plugin orchestrator 算「使用者明講要派」。模型自己載入的 <code>code-review</code>、<code>research</code>、<code>grilling</code> 不算，要看是否符合 (a)(b)。</td></tr>
+          <tr><td>派額外審查 agent</td><td>硬規則 #12：驗證不自驗</td><td>審查者是 fresh context、沒參與實作，派工包只給規格與程式碼，不給實作者自述（<code>dispatch.md</code> §6、§7）。</td></tr>
+          <tr><td>任何派工</td><td><code>dispatch.md</code> §2</td><td>必明確指定 model，並在任務描述標明 agent 類型與模型。</td></tr>
+          <tr><td><code>/implement</code> 最後一步 commit</td><td>Git 紀律、<code>commit_guard.py</code></td><td><span class="tag fact">事實</span> <code>/implement</code> 明寫「Commit your work to the current branch」，是無條件 commit。你的規則是「未經要求不 commit／push」，所以兩者直接衝突；你手動打 <code>/implement</code> 算不算「要求」，由你判斷。訊息格式你的規則是 <code>type(scope): description</code>，skill 沒有規定。<code>commit_guard</code> 只掃少數除錯寫法，不管有沒有被要求 commit。</td></tr>
+          <tr><td>宣稱完成</td><td>硬規則 #5、<code>verify_gate.py</code>（Stop）</td><td><span class="tag fact">事實</span> <code>/implement</code> 沒有 <code>/verify</code>，要你自己補。<code>verify_gate</code> 只驗「有沒有出現測試指令」，不驗是否通過。</td></tr>
+          <tr><td><code>/retro</code> 建議改全域設定</td><td><code>backup_gate.py</code>、硬規則 #9</td><td><span class="tag fact">事實</span> <code>/retro</code> 會看「repo 或使用者全域」的 CLAUDE.md。硬規則 #9 要求動 <code>~/.claude/</code> 下的制度檔先備份。<code>backup_gate</code> 只攔 Edit／Write／NotebookEdit 對 <code>CLAUDE.md</code>、<code>settings.json</code>、<code>rules/</code>、<code>skills/</code>、<code>hooks/</code> 和 <code>agents/</code> 頂層 <code>.md</code> 的修改；Bash 直接改（例如 <code>sed -i</code>）它擋不到，新建檔案也直接放行。</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== 未驗證 ============================== -->
+  <section id="unverified">
+    <div class="section-head">
+      <h2>我沒驗證的</h2>
+      <p class="sub">下面這些我沒有實際跑過，寫在這裡，不當成已知事實。</p>
+    </div>
+    <ul class="plain">
+      <li><span class="tag unv">未驗證</span> implementer 指定成 ws agent 之後，它能不能呼叫 <code>tdd</code> skill。agent 的工具清單寫 All tools，但我沒實測。</li>
+      <li><span class="tag unv">未驗證</span> 子 agent 是否真的照派工包裡的 seam 約定走，而不是照自己 system prompt 的習慣。</li>
+      <li><span class="tag unv">未驗證</span> <code>code-review</code> 和 Claude Code 內建 <code>/code-review</code> 撞名時，<code>/implement</code> 內部呼叫會解析到哪一個。</li>
+      <li><span class="tag unv">未驗證</span> <code>diagnosing-bugs</code> 與你的 <code>/debug-protocol</code> 同時載入時，誰先主導。</li>
+      <li><span class="tag unv">未驗證</span> <code>tdd</code> 的 mocking 指引和 <code>python-testing-patterns</code>、<code>javascript-testing-patterns</code> 的做法是否矛盾，我沒有逐條比對。</li>
+      <li><span class="tag unv">未驗證</span> <code>verify_gate.py</code> 對「檔案是子 agent 改的、不是主對話改的」會怎麼判斷。</li>
+      <li><span class="tag unv">未驗證</span> 不同 ws agent 各自的 system prompt 偏好（例如 <code>fastapi-pro</code> 的慣用寫法）會不會和 spec、<code>GLOSSARY.md</code> 的用語衝突。</li>
+    </ul>
+  </section>
+
+  <footer>
+    資料來源：mattpocock-skills v1.3.1 的 <code>plugin.json</code> 與 27 個 <code>SKILL.md</code>（含 <code>codebase-design/DESIGN-IT-TWICE.md</code>）；
+    repo 的 <code>docs/plugin-guide.md</code>；<code>~/.claude/rules-lib/dispatch.md</code>；<code>~/.claude/hooks/</code> 下四支 hook 的檔頭說明；Agent tool 的類型宣告。
+    單獨看 mattpocock 的用法，見另一頁 <code>docs/mattpocock-skills-guide.html</code>。
+  </footer>
+</div>
+
+<script>
+  (function () {
+    document.querySelectorAll('button.copy').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var el = document.getElementById(btn.getAttribute('data-target'));
+        if (!el) { return; }
+        var label = btn.textContent;
+        function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = label; }, 1500); }
+        function fallback() {
+          var r = document.createRange(); r.selectNodeContents(el);
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+          done('已選取，請按複製');
+        }
+        try {
+          navigator.clipboard.writeText(el.innerText).then(function () { done('已複製'); }, fallback);
+        } catch (e) { fallback(); }
+      });
+    });
+  })();
+</script>
+</body>
+</html>

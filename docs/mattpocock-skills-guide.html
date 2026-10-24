@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  mattpocock-skills 日常工作流程指南（HTML 版）。
+  為什麼存在：說明 27 個 skill 各自的功能不夠，還要有「第一步用哪個、第二步用哪個」的順序；
+  這一頁把它們排成可照做的日常流程，並保留一覽表當查詢用。
+  資料來源：mattpocock-skills v1.3.1 的 plugin.json、各 SKILL.md、ask-matt/PHASE-BOUNDARIES.md。
+  已知極限：內容是手寫整理，plugin 升版後不會自動更新；以各 SKILL.md 為準。
+  「示範的一天」的時段是舉例，不是官方規定。
+-->
+<title>mattpocock-skills 工作流程</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  /* Layout: 一條主幹（先拷問、再切票、再實作、最後回顧）+ 每種日常情境各一張步驟卡 */
+  :root {
+    --bg: #F3F5F8;
+    --surface: #FFFFFF;
+    --fg: #151A21;
+    --muted: #55606C;
+    --line: #D7DEE6;
+    --accent: #0F766E;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #DCF0ED;
+    --warn: #8F5200;
+    --warn-soft: #FAEACB;
+    --code-bg: #E7ECF1;
+    --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1217;
+      --surface: #151C23;
+      --fg: #E5EAEF;
+      --muted: #96A2AE;
+      --line: #27313B;
+      --accent: #4FD1C0;
+      --accent-ink: #05201C;
+      --accent-soft: #123029;
+      --warn: #F0B35C;
+      --warn-soft: #33250F;
+      --code-bg: #1D2731;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1217;
+    --surface: #151C23;
+    --fg: #E5EAEF;
+    --muted: #96A2AE;
+    --line: #27313B;
+    --accent: #4FD1C0;
+    --accent-ink: #05201C;
+    --accent-soft: #123029;
+    --warn: #F0B35C;
+    --warn-soft: #33250F;
+    --code-bg: #1D2731;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 64px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  h1, h2, h3 { line-height: 1.3; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 1.45rem; font-weight: 700; }
+  h3 { font-size: 1.1rem; font-weight: 700; }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  code, .cmd {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 0.1em 0.45em;
+    border-radius: 4px;
+    word-break: break-word;
+  }
+  .cmd { font-weight: 500; color: var(--accent); }
+
+  /* 頁首 */
+  .lede { color: var(--muted); max-width: 62ch; margin-top: 10px; }
+  .meta { color: var(--muted); font-size: 0.85rem; margin-top: 14px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  nav.toc a {
+    font-size: 0.88rem; text-decoration: none; color: var(--fg);
+    border: 1px solid var(--line); background: var(--surface);
+    padding: 4px 12px; border-radius: 999px;
+  }
+  nav.toc a:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* 一行主幹 */
+  .chain { display: flex; flex-wrap: wrap; gap: 8px 6px; align-items: center; margin-top: 16px; }
+  .chain .node {
+    font-family: var(--font-mono); font-size: 0.82rem; font-weight: 500;
+    background: var(--surface); border: 1px solid var(--line);
+    padding: 5px 11px; border-radius: 6px;
+  }
+  .chain .node.opt { border-style: dashed; color: var(--muted); }
+  .chain .node.auto { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .chain .arrow { color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--muted); margin-top: 10px; }
+
+  /* 情境卡 */
+  section.flow { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 22px 8px; }
+  section.flow > header { display: flex; flex-direction: column; gap: 4px; padding-bottom: 14px; }
+  .when { color: var(--muted); font-size: 0.93rem; }
+  .letter {
+    font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500;
+    color: var(--accent); letter-spacing: 0.08em;
+  }
+
+  ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  ol.steps > li {
+    counter-increment: s; position: relative;
+    padding: 0 0 22px 52px;
+  }
+  ol.steps > li::before {
+    content: counter(s);
+    position: absolute; left: 0; top: 0;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-weight: 500; font-size: 0.95rem;
+  }
+  ol.steps > li::after {
+    content: ""; position: absolute; left: 16px; top: 40px; bottom: 4px;
+    width: 2px; background: var(--line);
+  }
+  ol.steps > li:last-child::after { display: none; }
+  ol.steps > li.optional::before { background: var(--surface); color: var(--accent); border: 2px dashed var(--accent); }
+  .step-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+  .step-title .cmd { font-size: 0.95rem; padding: 0.2em 0.6em; }
+  .step-title .what { font-weight: 700; }
+  .tag {
+    font-size: 0.72rem; font-weight: 500; padding: 1px 8px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+  }
+  .tag.auto { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .tag.you { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+  dl.facts { margin: 6px 0 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 0.93rem; }
+  dl.facts dt { color: var(--muted); font-weight: 500; }
+  dl.facts dd { margin: 0; min-width: 0; }
+  .note {
+    margin-top: 8px; font-size: 0.9rem; color: var(--warn);
+    background: var(--warn-soft); padding: 8px 12px; border-radius: 6px;
+  }
+  .branch { display: grid; gap: 10px; margin-top: 8px; }
+  @media (min-width: 640px) { .branch { grid-template-columns: 1fr 1fr; } }
+  .branch > div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 0.93rem; min-width: 0; }
+  .branch b { display: block; margin-bottom: 2px; }
+
+  /* 表格 */
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 0.8rem; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.n { white-space: nowrap; }
+  td.k { white-space: nowrap; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .filters button {
+    font: inherit; font-size: 0.88rem; cursor: pointer;
+    background: var(--surface); color: var(--fg);
+    border: 1px solid var(--line); padding: 4px 14px; border-radius: 999px;
+  }
+  .filters button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  ul.plain { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 8px; }
+  .sub { color: var(--muted); font-size: 0.93rem; margin-top: 6px; }
+  .section-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 16px; }
+
+  @media (max-width: 520px) {
+    dl.facts { grid-template-columns: 1fr; }
+    dl.facts dt { margin-top: 4px; }
+    section.flow { padding: 18px 16px 6px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    nav.toc a, .filters button { transition: border-color .15s, background .15s, color .15s; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <h1>mattpocock-skills 工作流程</h1>
+    <p class="lede">這一頁只回答一件事：現在要做的事，第一步打哪個指令、第二步打哪個。每種情境一張步驟卡，照著從 1 做到最後。</p>
+    <div class="chain" aria-label="主流程縮圖">
+      <span class="node opt">/setup-matt-pocock-skills</span><span class="arrow">→</span>
+      <span class="node">/grill-with-docs</span><span class="arrow">→</span>
+      <span class="node opt">原型繞道</span><span class="arrow">→</span>
+      <span class="node">/to-spec</span><span class="arrow">→</span>
+      <span class="node">/to-tickets</span><span class="arrow">→</span>
+      <span class="node">/implement</span><span class="arrow">→</span>
+      <span class="node auto">tdd + code-review</span><span class="arrow">→</span>
+      <span class="node auto">pr</span><span class="arrow">→</span>
+      <span class="node">/retro</span>
+    </div>
+    <div class="legend">
+      <span>實線：你要手動打的指令</span>
+      <span>虛線：視情況才做</span>
+      <span>淺色底：由別的 skill 在內部自動呼叫</span>
+    </div>
+    <nav class="toc" aria-label="頁面目錄">
+      <a href="#day">示範的一天</a>
+      <a href="#flow-a">A 新功能</a>
+      <a href="#flow-b">B 修 bug</a>
+      <a href="#flow-c">C 整理 issue</a>
+      <a href="#flow-d">D 大案子</a>
+      <a href="#flow-e">E 定期保養</a>
+      <a href="#flow-f">F 隨時可用</a>
+      <a href="#which">我該用哪個</a>
+      <a href="#all">27 個 skill</a>
+      <a href="#boundary">Phase 交界</a>
+      <a href="#caveats">注意事項</a>
+    </nav>
+    <p class="meta">依據 mattpocock-skills v1.3.1（2026-10-24 安裝）。升版後以各 SKILL.md 為準。</p>
+  </header>
+
+  <!-- ============================== 示範的一天 ============================== -->
+  <section id="day">
+    <div class="section-head">
+      <h2>示範的一天</h2>
+      <p class="sub">時段只是舉例，不是官方規定。重點是每個時段各用哪個 skill，以及它們的先後順序。</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>時段</th><th>在做什麼</th><th>用哪個</th></tr></thead>
+        <tbody>
+          <tr><td class="n">早上</td><td>整理別人開的 issue，挑出今天要做的</td><td><span class="cmd">/triage</span> → 步驟卡 C</td></tr>
+          <tr><td class="n">上午</td><td>把一張標好 <code>ready-for-agent</code> 的票做完</td><td><span class="cmd">/implement</span> → 步驟卡 C 的第 4 步</td></tr>
+          <tr><td class="n">中午後</td><td>開始一個新功能：先想清楚、再寫規格、再切票</td><td><span class="cmd">/grill-with-docs</span> → <span class="cmd">/to-spec</span> → <span class="cmd">/to-tickets</span> → 步驟卡 A</td></tr>
+          <tr><td class="n">下午</td><td>一張票一個 session 地做</td><td><span class="cmd">/implement</span>，票與票之間 <span class="cmd">/clear</span></td></tr>
+          <tr><td class="n">隨時</td><td>撞到難纏的 bug</td><td>步驟卡 B（<code>diagnosing-bugs</code>）</td></tr>
+          <tr><td class="n">收工前</td><td>回顧這個 session，改善 agent 的環境</td><td><span class="cmd">/retro</span>（要在 <span class="cmd">/clear</span> 之前）</td></tr>
+          <tr><td class="n">每隔幾天</td><td>掃一次 codebase 找可重構的地方</td><td><span class="cmd">/improve-codebase-architecture</span> → 步驟卡 E</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== A 新功能 ============================== -->
+  <section class="flow" id="flow-a">
+    <header>
+      <span class="letter">步驟卡 A</span>
+      <h2>做一個新功能（最常用）</h2>
+      <p class="when">什麼時候用：你有個點子，要把它做出來，而且有 repo 可以留紀錄。</p>
+    </header>
+    <ol class="steps">
+      <li class="optional">
+        <div class="step-title"><span class="cmd">/setup-matt-pocock-skills</span><span class="what">每個 repo 只做一次</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>回答三題：issue 放哪（GitHub／GitLab／本機 <code>.scratch/</code>）、triage 標籤要不要用預設（建議用）、詞彙表放哪（單一 context 即可）。</dd>
+          <dt>產出</dt><dd>repo 的 <code>CLAUDE.md</code> 多一段 <code>## Agent skills</code>，以及 <code>docs/agents/*.md</code>。</dd>
+          <dt>沒做會怎樣</dt><dd><span class="cmd">/to-spec</span>、<span class="cmd">/to-tickets</span>、<span class="cmd">/triage</span> 會叫你先來做這步。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/grill-with-docs</span><span class="what">先被拷問，把點子問到清楚</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>用一兩句話講點子。之後它每一輪列出編號問題，每題附推薦答案；你回「全部接受」或「Q2 改成…」。重複到它說沒有問題了，你再明確告訴它「達成共識」。</dd>
+          <dt>產出</dt><dd>討論中釐清的詞會當場寫進 <code>GLOSSARY.md</code>，難以回頭的決定寫成 <code>docs/adr/NNNN-*.md</code>。</dd>
+          <dt>它內部呼叫</dt><dd><span class="tag auto">自動</span> <code>grilling</code> 與 <code>domain-modeling</code>。</dd>
+        </dl>
+        <p class="note">從這一步到第 5 步的 <span class="cmd">/to-tickets</span>，盡量留在同一個 session，不要 <code>/clear</code>。</p>
+      </li>
+      <li class="optional">
+        <div class="step-title"><span class="what">有問題只能跑起來才答得出來？先做原型</span><span class="tag">視情況</span></div>
+        <dl class="facts">
+          <dt>什麼情況</dt><dd>狀態模型對不對、商業邏輯順不順、UI 該長什麼樣，光講講不出答案。</dd>
+          <dt>做法</dt><dd>
+            ① <span class="cmd">/handoff</span> 把目前脈絡存成檔。
+            ② 開新 session，說「照這份交接檔做個原型，回答這個問題」，<code>prototype</code> 會自動載入。
+            ③ 原型答完，<span class="cmd">/handoff</span> 把結論帶回原本的 session。
+          </dd>
+          <dt>原型的樣子</dt><dd>邏輯問題 → 一個你雙擊就能玩的 HTML 檔；UI 問題 → 同一路由上多個風格迥異的版本，用網址參數切換。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">判斷：一個 session 做得完嗎？</span></div>
+        <div class="branch">
+          <div><b>做得完（小功能）</b>直接跳到第 6 步 <span class="cmd">/implement</span>，不用寫 spec 和切票。</div>
+          <div><b>做不完（跨多個 session）</b>繼續第 5 步：先 <span class="cmd">/to-spec</span>，再 <span class="cmd">/to-tickets</span>。</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/to-spec</span><span class="cmd">/to-tickets</span><span class="what">把討論變成規格，再切成票</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>/to-spec</dt><dd>不再訪談你，只把剛才的對話整理成 spec。唯一要你回答的是「要測試的 seam 對不對」（它會建議盡量只有一個、而且愈高層愈好）。確認後發佈到 tracker，貼上 <code>ready-for-agent</code>。</dd>
+          <dt>/to-tickets</dt><dd>切成「薄切片」票，每張都穿過所有層、自己能驗證、並標明被哪些票擋住。它會把清單給你看，問你粒度對不對、阻擋關係對不對、要不要合併或再拆；你同意才發佈。</dd>
+          <dt>產出</dt><dd>GitHub／GitLab：一票一個 issue，用原生阻擋關係。本機：<code>.scratch/&lt;feature&gt;/issues/01-*.md</code>、<code>02-*.md</code>…，blockers 先編號。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/implement</span><span class="what">開始寫</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>多張票時，一張票一個 session：<span class="cmd">/implement &lt;票的編號或網址&gt;</span>，做完 <span class="cmd">/clear</span>，再做下一張（從沒被擋住的票開始）。單一小功能就在原 session 直接 <span class="cmd">/implement</span>。</dd>
+          <dt>它內部依序做</dt><dd>
+            <span class="tag auto">自動</span> <code>tdd</code>：先跟你確認要測的 seam，再一次一個「紅 → 綠」切片；
+            中途定期跑型別檢查與單檔測試，最後跑一次完整測試；
+            <span class="tag auto">自動</span> <code>code-review</code> 審 diff；
+            最後 <b>commit 到目前的 branch</b>。
+          </dd>
+          <dt>你要盯的一點</dt><dd>寫第一個測試之前，它會把「要測哪些 seam」列給你。這是你唯一必須回答的地方，別直接略過。</dd>
+        </dl>
+        <div class="branch">
+          <div><b>想自己一張一張驅動</b>用 <span class="cmd">/implement</span>，如上。</div>
+          <div><b>想整份 spec 一次叫它跑完</b>用 <span class="cmd">/implement-spec</span>：它在一條 integration branch 上，派多個子 agent 平行做互不阻擋的票，最後審一次、開 draft PR。</div>
+        </div>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/verify</span><span class="what">宣稱完成前（你自己制度裡的）</span><span class="tag you">你的制度</span></div>
+        <dl class="facts">
+          <dt>為什麼放這裡</dt><dd>你的硬規則 #5 要求宣稱完成前走 <code>/verify</code> 並附實際指令輸出。mattpocock 的 <code>/implement</code> 沒有這一步，需要你自己補。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">開 PR：叫 Claude 開，不用另外打指令</span><span class="tag auto">自動</span></div>
+        <dl class="facts">
+          <dt>怎麼做</dt><dd>說「幫我開 PR」。Claude 寫 PR 本文時會自己載入 <code>pr</code> skill。</dd>
+          <dt>本文長相</dt><dd><b>Summary</b>（最小而能說清楚的圖：偽碼、呼叫樹、檔案樹或 diff 草圖）→ <b>Evidence</b>（改前改後對照）→ <b>Merge Danger</b>（單向門或雙向門，加爆炸半徑）。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/retro</span><span class="what">收尾：改善環境，不是改程式碼</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>在這個 session 還沒 <code>/clear</code> 之前打。已經清掉的話，指定那個 session 的 log。</dd>
+          <dt>產出</dt><dd>依嚴重度排序的建議：導覽指標、可以自動化的檢查（優先做成 lint／hook／CI）、該給 reviewer 的新規則、太長的 <code>CLAUDE.md</code> 該如何瘦身。</dd>
+        </dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== B 修 bug ============================== -->
+  <section class="flow" id="flow-b">
+    <header>
+      <span class="letter">步驟卡 B</span>
+      <h2>修一個難纏的 bug</h2>
+      <p class="when">什麼時候用：壞掉、拋錯、間歇性失敗、突然變慢。小到一眼看得出來的就直接改，不必走這張卡。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="what">把症狀告訴 Claude</span><span class="tag auto">自動載入 diagnosing-bugs</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>說「diagnose 這個」或貼錯誤。沒自動載入就打 <span class="cmd">/diagnosing-bugs</span>。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">階段 1–2：它先建「紅燈指令」，再縮小</span></div>
+        <dl class="facts">
+          <dt>它做</dt><dd>找一個它已經跑過、能在「這個 bug」上變紅、結果穩定、幾秒就跑完的指令。沒有這個指令，不准進入猜原因。再把重現步驟逐項砍到每一項都是必要的。</dd>
+          <dt>你要做</dt><dd>它建不起來時會明講，並跟你要環境權限、log 或錄下的請求檔。盡量給。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">階段 3：看它的假設清單</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>它列出 3–5 個假設並排序，先給你看。你知道的背景（「昨天剛改過 X」）可以直接重排它們。你不在場時它會照自己的排序繼續。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">階段 4–6：埋點、修、回歸測試、清理</span></div>
+        <dl class="facts">
+          <dt>它做</dt><dd>每個 debug log 都加唯一前綴（例如 <code>[DEBUG-a4f2]</code>），最後一條 grep 清乾淨；先寫回歸測試再修；在 commit 訊息寫下確認的原因。</dd>
+          <dt>特別留意</dt><dd>如果找不到一個「能真實重現這個 bug」的測試位置，它會把這件事記為發現，而不是硬寫一個沒意義的測試。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/retro</span><span class="what">同一個 session 問「什麼能預防它」</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>接下來</dt><dd>如果結論是「這個 codebase 沒有好的測試位置」，就接 <span class="cmd">/improve-codebase-architecture</span>（步驟卡 E）。</dd>
+        </dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== C 整理 issue ============================== -->
+  <section class="flow" id="flow-c">
+    <header>
+      <span class="letter">步驟卡 C</span>
+      <h2>整理別人開的 issue</h2>
+      <p class="when">什麼時候用：bug 回報、功能需求堆在那邊。只用在「不是你自己用 <code>/to-tickets</code> 產生的」issue，後者本來就是 agent 可直接做的。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="cmd">/triage</span><span class="what">看有哪些要處理</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>用平常的話下指令，例如「Show me anything that needs my attention」。它列三堆，由舊到新：從沒處理過的、<code>needs-triage</code>、以及回報人有新回覆的 <code>needs-info</code>。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">挑一張：「看一下 #42」</span></div>
+        <dl class="facts">
+          <dt>它做</dt><dd>讀完整串留言、查 codebase 是否早就有這功能、查 <code>.out-of-scope/</code> 是否曾被拒絕、<b>實際重現</b>回報的問題，然後給你分類和狀態建議。</dd>
+          <dt>你要做</dt><dd>同意或改它的建議。需要把需求問清楚時，它會自動接上拷問。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">套用結果</span></div>
+        <dl class="facts">
+          <dt>狀態</dt><dd><code>ready-for-agent</code> 貼 agent brief；<code>needs-info</code> 貼具體的提問；<code>wontfix</code> 帶理由關閉（被拒絕的功能需求會記進 <code>.out-of-scope/</code>）。</dd>
+          <dt>留言規定</dt><dd>它在 tracker 上貼的每則留言開頭都有一行「由 AI 在 triage 時產生」的聲明。</dd>
+        </dl>
+        <p class="note">這步會直接在 tracker 上貼留言、改標籤、關閉 issue，別人看得到。</p>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/implement</span><span class="what">做標了 ready-for-agent 的票</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd><span class="cmd">/implement #42</span>。它會先抓下票、說出標題，再接步驟卡 A 第 6 步的流程。</dd>
+        </dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== D 大案子 ============================== -->
+  <section class="flow" id="flow-d">
+    <header>
+      <span class="letter">步驟卡 D</span>
+      <h2>一個 session 裝不下的大案子</h2>
+      <p class="when">什麼時候用：新專案，或大到方向都還模糊的功能。範圍明確的功能不要用，會浪費力氣。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="cmd">/wayfinder</span><span class="what">畫地圖，這個 session 到此為止</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>講出大方向。它先用拷問幫你「命名終點」，再用拷問找出現在就能問的決策，最後在 tracker 建一張地圖和一批「決策票」。</dd>
+          <dt>它不做</dt><dd>不解任何一張票，也不寫程式。</dd>
+        </dl>
+        <p class="note">它的 research 子 agent 會把查到的資料放在 <code>research/&lt;name&gt;</code> 分支並 push 到遠端，不開 PR。</p>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/wayfinder &lt;地圖網址或編號&gt;</span><span class="what">每個新 session 解一張票</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>不指定票的話，它會從沒被擋住的票挑第一張並先認領。依票的類型：research 由子 agent 查資料；prototype 和 grilling 要你在場回答；task 是先做某件事才能做決定。解完就貼結論、關票、更新地圖。</dd>
+          <dt>規則</dt><dd>一個 session 只解一張票（research 票除外）。你可以同時開幾個 session 各解不同票。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="cmd">/to-spec</span><span class="what">地圖清楚後，在這裡接回主流程</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>為什麼不直接 /implement</dt><dd>/to-spec 會把地圖上互相連結的決策整合成一份可建置的計畫，直接跳過會丟掉那些細節。</dd>
+          <dt>接下來</dt><dd><span class="cmd">/to-tickets</span> → <span class="cmd">/implement</span>，同步驟卡 A 的第 5、6 步。</dd>
+        </dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== E 定期保養 ============================== -->
+  <section class="flow" id="flow-e">
+    <header>
+      <span class="letter">步驟卡 E</span>
+      <h2>定期保養 codebase</h2>
+      <p class="when">什麼時候用：作者建議每隔幾天跑一次。它找候選，不會幫你解開已經纏在一起的舊程式。</p>
+    </header>
+    <ol class="steps">
+      <li>
+        <div class="step-title"><span class="cmd">/improve-codebase-architecture</span><span class="tag">手動</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>可以直接指定方向（某個模組、某個痛點）；沒指定的話它看 git 歷史找最常變動的地方。</dd>
+          <dt>產出</dt><dd>一份視覺化 HTML 報告寫到系統暫存目錄（不進 repo），每個候選有改前改後圖和建議強度，最後有「最推薦哪個」。報告會自動開啟。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">選一個候選</span></div>
+        <dl class="facts">
+          <dt>你要做</dt><dd>它問「想探索哪個」，你選一個。此時它自動接上拷問，聊限制、依賴、深化後的模組長什麼樣、哪些測試能留下。必要時更新 <code>GLOSSARY.md</code>，你否決時它會問要不要記成 ADR。</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="step-title"><span class="what">把結果帶進步驟卡 A</span></div>
+        <dl class="facts">
+          <dt>接下來</dt><dd>從 <span class="cmd">/grill-with-docs</span> 開始，或規模小就直接 <span class="cmd">/implement</span>。</dd>
+        </dl>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============================== F 隨時可用 ============================== -->
+  <section class="flow" id="flow-f">
+    <header>
+      <span class="letter">步驟卡 F</span>
+      <h2>隨時可以插進任何流程的工具</h2>
+      <p class="when">它們不屬於哪一條流程，需要時直接打。</p>
+    </header>
+    <div class="scroll" style="margin-bottom:18px">
+      <table>
+        <thead><tr><th>情況</th><th>打什麼</th><th>會發生什麼</th></tr></thead>
+        <tbody>
+          <tr><td>不知道該用哪個</td><td class="k"><span class="cmd">/ask-matt</span></td><td>描述你的情境，它告訴你走哪條流程。</td></tr>
+          <tr><td>它剛講的我看不懂</td><td class="k"><span class="cmd">/wait-what</span></td><td>它補上你缺的背景，用簡化技術英文，加上 <code>GLOSSARY.md</code> 的詞，重講一遍。</td></tr>
+          <tr><td>沒有 repo，只想把計畫想清楚</td><td class="k"><span class="cmd">/grill-me</span></td><td>同樣的拷問，但什麼都不存。有 repo 時改用 <code>/grill-with-docs</code>。</td></tr>
+          <tr><td>要換 harness、換目錄，或交給同事</td><td class="k"><span class="cmd">/handoff</span></td><td>存一份交接文件到系統暫存目錄，已在 spec、issue、commit 裡的內容只放連結。</td></tr>
+          <tr><td>要查官方文件，自己不想停下來</td><td class="k">說「幫我 research …」</td><td><code>research</code> 自動載入，背景 agent 查第一手來源，寫成附引用的 Markdown。</td></tr>
+          <tr><td>決定要問別人才能做</td><td class="k"><span class="cmd">/to-questionnaire</span></td><td>它先問你這份問卷要寄給誰、你要拿回什麼，再產生 <code>to-questionnaire-&lt;slug&gt;.md</code>。</td></tr>
+          <tr><td>要手動去後台設定、設 secrets</td><td class="k">說「做個 wizard」</td><td><code>wizard</code> 產生互動式 bash 精靈，帶你一個畫面一個畫面地完成。</td></tr>
+          <tr><td>要設計一個模組的介面</td><td class="k">說「幫我設計這個模組」</td><td><code>codebase-design</code> 提供深模組的詞彙與原則。</td></tr>
+          <tr><td>要學一個新東西</td><td class="k"><span class="cmd">/teach</span></td><td>把目前目錄當學習工作區，跨 session 出課、記錄學習進度。</td></tr>
+          <tr><td>要寫或精簡 skill、CLAUDE.md</td><td class="k">說「幫我改這個 skill」</td><td><code>writing-for-agents</code> 自動載入，提供寫給 agent 看的文件準則。</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== 我該用哪個 ============================== -->
+  <section id="which">
+    <div class="section-head">
+      <h2>我現在該用哪個</h2>
+      <p class="sub">從上往下找第一個符合的情況。</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>我的情況</th><th>去哪</th></tr></thead>
+        <tbody>
+          <tr><td>有個新點子要做</td><td>步驟卡 A，從 <span class="cmd">/grill-with-docs</span> 開始</td></tr>
+          <tr><td>東西壞了，而且不是一眼看得出原因</td><td>步驟卡 B</td></tr>
+          <tr><td>有一堆別人開的 issue</td><td>步驟卡 C，<span class="cmd">/triage</span></td></tr>
+          <tr><td>已經有一張 ready-for-agent 的票</td><td><span class="cmd">/implement #編號</span></td></tr>
+          <tr><td>已經有 spec 和一整組票，想一次跑完</td><td><span class="cmd">/implement-spec</span></td></tr>
+          <tr><td>專案或功能大到方向都不清楚</td><td>步驟卡 D，<span class="cmd">/wayfinder</span></td></tr>
+          <tr><td>只想用 TDD 蓋一個具體行為，不寫 spec</td><td>直接說「用 TDD 做這個」，<code>tdd</code> 會載入</td></tr>
+          <tr><td>只想審一個 branch 或 PR</td><td>說「review 自 main 以來的變更」，<code>code-review</code> 會載入（撞名時打 <span class="cmd">/mattpocock-skills:code-review</span>）</td></tr>
+          <tr><td>agent 一直講行話、命名亂</td><td><span class="cmd">/grill-with-docs</span> 建 <code>GLOSSARY.md</code></td></tr>
+          <tr><td>做完一輪覺得一路踩坑</td><td><span class="cmd">/retro</span></td></tr>
+          <tr><td>都不是</td><td><span class="cmd">/ask-matt</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== 27 個 skill ============================== -->
+  <section id="all">
+    <div class="section-head">
+      <h2>27 個 skill 一覽</h2>
+      <p class="sub">手動 16 個、自動 11 個。「自動」表示你不打指令，Claude 也會依情境自己載入。</p>
+    </div>
+    <div class="filters" role="group" aria-label="篩選觸發方式">
+      <button type="button" id="f-all" aria-pressed="true">全部 27</button>
+      <button type="button" id="f-manual" aria-pressed="false">只看手動 16</button>
+      <button type="button" id="f-auto" aria-pressed="false">只看自動 11</button>
+    </div>
+    <div class="scroll">
+      <table id="skill-table">
+        <thead><tr><th>Skill</th><th>觸發</th><th>一句話</th><th>屬於哪張卡</th></tr></thead>
+        <tbody>
+          <tr data-kind="manual"><td class="k"><span class="cmd">ask-matt</span></td><td>手動</td><td>路由器：描述情境，告訴你走哪條流程。</td><td>F</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">setup-matt-pocock-skills</span></td><td>手動</td><td>每個 repo 設定一次：tracker、標籤、詞彙表位置。</td><td>A 第 1 步</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">grill-with-docs</span></td><td>手動</td><td>拷問，同時寫 <code>GLOSSARY.md</code> 和 ADR。</td><td>A 第 2 步</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">to-spec</span></td><td>手動</td><td>把對話整理成 spec 並發佈到 tracker。</td><td>A 第 5 步、D</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">to-tickets</span></td><td>手動</td><td>切成帶阻擋關係的薄切片票。</td><td>A 第 5 步、D</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">implement</span></td><td>手動</td><td>做一張票或一份 spec：tdd → code-review → commit。</td><td>A 第 6 步、C</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">implement-spec</span></td><td>手動</td><td>整份 spec 在一條 integration branch 上用子 agent 平行做完。</td><td>A 第 6 步</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">retro</span></td><td>手動</td><td>回顧 session，建議改善 agent 的環境。</td><td>A 第 9 步、B</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">triage</span></td><td>手動</td><td>把別人開的 issue 和 PR 放進狀態機，產出 agent brief。</td><td>C</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">wayfinder</span></td><td>手動</td><td>把大案子畫成決策票的地圖，一次解一張。</td><td>D</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">improve-codebase-architecture</span></td><td>手動</td><td>掃出可深化的模組，輸出 HTML 報告。</td><td>E</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">grill-me</span></td><td>手動</td><td>無狀態版的拷問，不存任何東西。</td><td>F</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">handoff</span></td><td>手動</td><td>把對話壓成交接文件，給另一個 agent 或同事。</td><td>A 第 3 步、F</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">to-questionnaire</span></td><td>手動</td><td>把你答不出來的決定做成問卷給別人填。</td><td>F</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">wait-what</span></td><td>手動</td><td>沒看懂時，要求用簡單的話加上背景重講。</td><td>F</td></tr>
+          <tr data-kind="manual"><td class="k"><span class="cmd">teach</span></td><td>手動</td><td>跨 session 的學習工作區與課程。</td><td>F</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">grilling</span></td><td>自動</td><td>拷問的基本元件：一輪問完所有能問的問題，附推薦答案。</td><td>A 第 2 步內部</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">domain-modeling</span></td><td>自動</td><td>挑戰術語、釐清含糊用語、當場更新詞彙表與 ADR。</td><td>A 第 2 步內部</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">prototype</span></td><td>自動</td><td>做拋棄式原型回答一個設計問題。</td><td>A 第 3 步</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">tdd</span></td><td>自動</td><td>先確認 seam，再一次一個紅綠切片。</td><td>A 第 6 步內部</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">code-review</span></td><td>自動</td><td>Standards 與 Spec 兩軸、各派一個子 agent 的審查。</td><td>A 第 6 步內部</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">pr</span></td><td>自動</td><td>PR 本文的形狀：Summary、Evidence、Merge Danger。</td><td>A 第 8 步</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">diagnosing-bugs</span></td><td>自動</td><td>先建紅燈指令，再重現、假設、埋點、修、回歸測試。</td><td>B</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">research</span></td><td>自動</td><td>背景 agent 查第一手來源，寫成附引用的 Markdown。</td><td>D、F</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">codebase-design</span></td><td>自動</td><td>深模組的詞彙與原則：module、interface、depth、seam…</td><td>E、F</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">wizard</span></td><td>自動</td><td>產生互動式 bash 精靈，帶人完成只有人能做的步驟。</td><td>F</td></tr>
+          <tr data-kind="auto"><td class="k"><span class="cmd">writing-for-agents</span></td><td>自動</td><td>寫 skill、CLAUDE.md 這類給 agent 讀的文件的準則。</td><td>F</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== Phase 交界 ============================== -->
+  <section id="boundary">
+    <div class="section-head">
+      <h2>一個階段做完了，接下來清掉還是壓縮？</h2>
+      <p class="sub">「階段」就是你心想「好，這段做完了」的時候，例如拷問結束、實作結束。只在交界處決定，中途就繼續做。從上往下問，第一個答案是「是」就停。</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>順序</th><th>問題</th><th>答案是「是」就</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td>下一階段需要這一階段的原始對話，或剩下的空間（約 150k tokens）還夠？</td><td><b>繼續</b>，什麼都不做。拷問接實作就是標準的「是」。</td></tr>
+          <tr><td class="n">2</td><td>這個 session 裡的東西，對下一步全部沒用？</td><td><span class="cmd">/clear</span></td></tr>
+          <tr><td class="n">3</td><td>要換 harness、換目錄、給同事，或階段中途想分出一個支線？</td><td><span class="cmd">/handoff</span></td></tr>
+          <tr><td class="n">4</td><td>任務夠小，你不在場也能自己跑完？（自動 review 是典型）</td><td>丟給<b>子 agent</b></td></tr>
+          <tr><td class="n">5</td><td>以上皆否</td><td><span class="cmd">/compact</span>，並帶一句下一步要做什麼，例如 <code>/compact 接下來要 QA 這一塊</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub">除了「繼續」，其他每一種都會把原始對話換成摘要，會有資訊損失。所以第 1 題問「能不能繼續」。這些都是判斷題，同一個交界在不同天可能走不同路。</p>
+  </section>
+
+  <!-- ============================== 注意事項 ============================== -->
+  <section id="caveats">
+    <div class="section-head">
+      <h2>用之前要知道的事</h2>
+      <p class="sub">只列事實。要不要調整你的制度，是另外的決定。</p>
+    </div>
+    <ul class="plain">
+      <li><b>撞名：</b><code>code-review</code> 和 Claude Code 內建的 <code>/code-review</code> 同名。要用 plugin 版請打 <span class="cmd">/mattpocock-skills:code-review</span>。<code>/implement</code> 內部呼叫 <code>code-review</code> 時會用到哪一個，我沒有驗證過。</li>
+      <li><b>會自動 commit：</b><code>/implement</code> 最後一步是 commit 到目前的 branch；<code>/implement-spec</code> 會建 integration branch，可能開 draft PR。你的全域規則是「未經要求不 commit／push」，而 plugin 沒有規定 commit 訊息格式。</li>
+      <li><b>會做別人看得到的事：</b><code>/to-spec</code>、<code>/to-tickets</code>、<code>/triage</code>、<code>/wayfinder</code> 在 tracker 上建 issue、貼留言、改標籤；<code>/triage</code> 和 <code>/wayfinder</code> 會關閉 issue；<code>/implement-spec</code> 會開 PR；<code>/setup-matt-pocock-skills</code> 會建標籤。</li>
+      <li><b>會派子 agent：</b><code>/implement-spec</code>、<code>code-review</code>、<code>research</code>、<code>improve-codebase-architecture</code>、<code>grilling</code>、<code>wayfinder</code> 都會。你手動打指令時，可以視為你要求派工；由模型自動載入的那幾個，要對照你的硬規則 #11。</li>
+      <li><b>會改專案檔：</b><code>/setup-matt-pocock-skills</code> 會編輯該 repo 的 <code>CLAUDE.md</code>（沒有才找 <code>AGENTS.md</code>）。在 claude-institution 這個 repo 跑它，會動到制度相關檔案。</li>
+      <li><b>功能重疊：</b><code>diagnosing-bugs</code> 對應你的 <code>/debug-protocol</code>，<code>retro</code> 對應 <code>/lesson</code>（時機不同：一個是 session 後回顧環境，一個是被糾正當下記錄）。你的 <code>CLAUDE.md</code> 規定外部 plugin 的 skill 在條文衝突時排最低。</li>
+      <li><b>語言：</b><code>/wait-what</code> 指定用簡化技術<b>英文</b>重講。想要中文請另外說。</li>
+      <li><b>新裝的 plugin：</b>安裝當下已開啟的 session，skill 清單裡沒有它們。通常重開 session 後才會出現，這一點我沒有驗證過。</li>
+    </ul>
+  </section>
+
+  <footer>
+    資料來源：<code>~/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/1.3.1/</code> 下的 <code>plugin.json</code>、27 個 <code>SKILL.md</code>、<code>ask-matt/PHASE-BOUNDARIES.md</code>、<code>README.md</code>。
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var btns = { all: document.getElementById('f-all'), manual: document.getElementById('f-manual'), auto: document.getElementById('f-auto') };
+    var rows = document.querySelectorAll('#skill-table tbody tr');
+    function apply(kind) {
+      rows.forEach(function (r) { r.hidden = kind !== 'all' && r.getAttribute('data-kind') !== kind; });
+      Object.keys(btns).forEach(function (k) { btns[k].setAttribute('aria-pressed', String(k === kind)); });
+    }
+    Object.keys(btns).forEach(function (k) { btns[k].addEventListener('click', function () { apply(k); }); });
+  })();
+</script>
+</body>
+</html>
