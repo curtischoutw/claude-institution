@@ -26,7 +26,7 @@
 
 | 情境 | 去處 |
 |---|---|
-| 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md`，照強度分級執行 |
+| 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md`，照強度分級執行；判準表、分數表、風險欄照該檔要求交，不受「簡潔」約束 |
 | 除錯 | plugin skill `diagnosing-bugs`（mattpocock-skills） |
 | 新功能、需求模糊 | `/grill-with-docs`；一個 session 做不完再 `/to-spec` → `/to-tickets` → `/implement` |
 | 審查 | 內建 `/code-review`（正確性）、`/simplify`、`/security-review`；plugin 的 `/mattpocock-skills:code-review` 是 Standards／Spec 兩軸，撞名時明打全名 |
