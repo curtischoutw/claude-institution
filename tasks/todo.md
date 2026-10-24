@@ -189,3 +189,15 @@ Claude Code 2.1.241 的 hooks 已從 5 個事件擴充到 31 個，handler 除 `
 使用者 2026-07-19 決定暫緩（時間成本過高）。日後重啟時的起點：
 eval/cases/ 案例台帳 + maintenance.md 准入條款；現況僅 hard-rules #15 有完整
 「失敗案例→規則」的完整迴圈（lessons.md 假同步教訓），可作首個範本。
+
+## 2026-10-24 刪 debug-protocol 時 read-back 發現的既有問題（未處理，待使用者裁定）
+
+1. **hard-rules #6 與 judgment.md §2 的換路時點不同**：#6「修 2 次沒好進 diagnosing-bugs、第 3 次停手 revert」
+   vs judgment.md §2「同一假設連 2 輪被證偽即停手 revert、回 plan mode 換路」。兩者都是行為層規則，
+   依 CLAUDE.md 衝突條款不自行選邊。
+2. **`skills/lesson/SKILL.md:40`** 寫「加進 CLAUDE.md 的『硬規則』」，硬規則實際在 `rules/hard-rules.md`。
+3. **`rules-lib/reporting.md:4`** 寫「dispatch.md §6 回報合約」，§6 是「交辦三要素與派工包」；
+   回報合約實際在 hard-rules #13 與 dispatch.md §7 末句。
+4. **CLAUDE.md 優先序「外部 plugin 排最後」vs 路由表「使用者親手打 mattpocock 指令照原文問使用者」**：
+   後者只管「要不要提問」，不是條文衝突，但方向相反，需裁定是否在優先序段落補一句。
+5. `/verify` 模板無 fresh-context 驗證欄位，與 hard-rules #12 有缺口（`/implement` 自動 commit 後尤其明顯）。

@@ -61,6 +61,10 @@ plugin agent 的 description 常寫「Use PROACTIVELY」——那是 plugin 作�
 | 過度工程、可簡化處 | `/simplify` |
 | 安全問題 | `/security-review` |
 
+**撞名**：`code-review` 有內建 `/code-review`（審正確性）與 plugin 版
+`/mattpocock-skills:code-review`（Standards／Spec 兩軸，需指定固定點）兩個，用途不同、互補不取代。
+mattpocock 的 `/implement` 內部呼叫哪一個未驗證；要確定就明打全名。
+
 要「多個獨立意見」的設計題（不是程式碼審查）→ `uplift.md` 方法 2：派 2–3 個 fresh-context
 subagent 走不同路線，照 §6 派工包寫，各自作答後比對分歧點。
 
@@ -110,7 +114,7 @@ subagent 走不同路線，照 §6 派工包寫，各自作答後比對分歧點
 - **同一子任務最多重試 2 輪**（升級也算輪）：仍失敗 → 停，向使用者回報事實、已排除的假設、卡點。
 - **`fable` 原則不派為 subagent**，僅使用者明說才用；用後回報實際消耗。
 - 層級區分（別跟除錯搞混）：本節的「輪」指指揮官重新交辦 subagent 的次數；
-  hard-rules #6 的「2 次沒好進 /debug-protocol、第 3 次停手 revert」指單一 agent
+  hard-rules #6 的「2 次沒好進 diagnosing-bugs、第 3 次停手 revert」指單一 agent
   在自己 context 內的除錯修改次數。兩者各自計數，互不抵扣。
 - **反例（量大不等於需要升級）**：要改 40 個檔案的 import 路徑，覺得「量大很難」就升 `opus`
   → 錯，這是機械活，`haiku` 批次做＋抽查即可。

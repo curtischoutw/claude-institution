@@ -20,7 +20,9 @@
 | 高風險判斷：架構決策、多方案取捨、規格模糊、難根因 | 讀 `~/.claude/rules-lib/uplift.md` 照強度分級執行 |
 | 重大結論要對抗審查 | 用內建 `/code-review`、`/simplify`、`/security-review`（分工見 `~/.claude/rules-lib/dispatch.md` §3） |
 | 準備宣稱「完成」或 commit | 用 skill `/verify` |
-| 除錯卡住、同一問題修 2 次沒好 | 用 skill `/debug-protocol` |
+| 除錯卡住、同一問題修 2 次沒好 | 用 plugin skill `diagnosing-bugs`（mattpocock-skills） |
+| 新功能、需求模糊 | 用 `/grill-with-docs`；一個 session 做不完再 `/to-spec` → `/to-tickets` → `/implement`（mattpocock-skills） |
+| 使用者親手打 mattpocock 指令 | 其內部確認點（tdd 的 seam、to-tickets 的粒度）照指令原文問使用者，不套起手式「能不問就不問」；`/implement` 的自動 commit 之後仍要走 `/verify` |
 | 被使用者糾正 | 用 skill `/lesson` |
 | 想修改 ~/.claude/ 下任何制度檔 | 先讀 `~/.claude/rules-lib/maintenance.md` |
 

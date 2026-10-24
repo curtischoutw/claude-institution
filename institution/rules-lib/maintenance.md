@@ -61,4 +61,4 @@
     範例：hard-rules #11 曾兩次覆核走出兩種不同處理——第一次只是理由過期（換理由），
     第二次是內建 Agent tool 說明從「較貴的路徑」變成「Do not spawn agents unless the
     user asks」，行為被反轉，只能回報使用者裁定。同一條規則會走哪一種，看的是這個分野。
-- 逐條比對表與判定分類見 `docs/harness-overlap-2026-08.md`，該檔文末有重跑步驟。
+- 逐條比對表與判定分類的歷史版本：`git show cfa168a^:docs/harness-overlap-2026-08.md`（該檔已自工作樹刪除）。

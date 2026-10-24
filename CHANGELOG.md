@@ -7,8 +7,22 @@
 
 ## [Unreleased]
 
+### Removed
+
+- **skill `/debug-protocol`**（2026-10-24）。裝了 mattpocock-skills 後，`diagnosing-bugs` 涵蓋並超過它
+  （紅燈指令、最小化、3–5 個可證偽假設、`[DEBUG-xxxx]` 清理、回歸測試 seam）；eval 2026-10-03 該 skill 0 次呼叫。
+  獨有的「3 輪停損」已在 hard-rules #6，「不准改測試預期值」已在 #2（就地補了判準）。
+  其餘 skill／rules／hooks 評估後保留：plugin 沒有機器強制與行為底線，且 `/implement` 會自動 commit，
+  commit_guard 與 `/verify` 反而更需要。
+
+### Added
+
+- CLAUDE.md 路由表 2 行 mattpocock 入口（`/grill-with-docs`→`/to-spec`→`/to-tickets`→`/implement`；
+  使用者親手打的 plugin 指令，其確認點照原文問使用者）；dispatch.md §3 補 `code-review` 撞名說明。
+
 ### Fixed
 
+- 修正 `cfa168a` 刪除兩份評估文件後遺留的斷連結（`maintenance.md`、`README.md`）。
 - **`statusline.sh` 的 ctx 進度條顏色反向**（2026-08-31）。使用者回報 context 才用掉
   5%（`/context` 顯示 `50.2k/1m (5%)`），狀態列的 `ctx` 卻顯示 95% 且是紅色。根因：
   `ctx` 欄位讀的是 `.context_window.remaining_percentage`（剩餘），但 `make_bar()`

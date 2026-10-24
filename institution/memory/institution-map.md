@@ -9,7 +9,7 @@ metadata:
 
 Curtis 的跨專案制度：正本在 `~/.claude/`（CLAUDE.md 索引；`rules/` 下 `hard-rules.md`／
 `code-standards.md` 無 `paths:` frontmatter，Claude Code 自動常載，不需 `@import`；
-`rules-lib/` 6 個情境載入檔；skills/ 3 個（含 `verify`，2026-10-03 由 `done-check` 改名）；hooks/ 4 個層 0 腳本；
+`rules-lib/` 6 個情境載入檔；skills/ 2 個（`verify`〔2026-10-03 由 `done-check` 改名〕、`lesson`；`debug-protocol` 2026-10-24 刪，改用 mattpocock-skills 的 `diagnosing-bugs`）；hooks/ 4 個層 0 腳本；
 無自製 agent——審查用內建 `/code-review`／`/simplify`／`/security-review`，原三個審查 agent 2026-10-03 已刪）。
 2026-08-24 跟上 Claude Code 2.1.241 的精簡：hard-rules #11 由「一律派 subagent」改條件式
 （內建 Agent tool 說明行為層對撞）；rules-lib 9→6 檔（刪 `intake.md`、

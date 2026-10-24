@@ -31,7 +31,7 @@
    或重試；(b) 向上拋——原樣拋或包一層加 context，讓知道的人決定；(c) 記錄後降級——
    功能非關鍵、失敗可接受，log warning ＋ 回退行為，且**回退行為要寫進 docstring**。
    `except: pass` 與「catch 後只 return None 不記錄」不屬於任何一類，一律禁止
-   （與 /debug-protocol 禁止事項一致）。
+   （吞例外來「修好」也是 judgment.md §2 訊號 4）。
    - 反例：資料庫寫入失敗被 `except Exception: return None` 吞掉，呼叫端以為成功
      → 資料默默丟失，最貴的一種 bug。
 

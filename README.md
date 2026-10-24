@@ -13,7 +13,7 @@
 |---|---|---|---|
 | `CLAUDE.md` | 每次對話開場自動載入的核心背景與規範 | 讓 AI 一開始就具備足夠先備知識，不必每次重講 | 索引式主檔（≤150 行）：起手式、路由表、分層表 |
 | `rules/` | 同樣常載的工作規範檔（無 `paths:` frontmatter 者自動載入） | 把「每次都必須守」的行為標準寫死，避免不合預期的做法 | 層 1：`hard-rules.md`、`code-standards.md` |
-| `skills/` | 可重複使用的工作流程指令包（`SKILL.md`，可另附腳本），命中情境才展開 | 程序模組化，用到才進 context，不佔常載預算 | 層 2：`/verify`、`/lesson`、`/debug-protocol` |
+| `skills/` | 可重複使用的工作流程指令包（`SKILL.md`，可另附腳本），命中情境才展開 | 程序模組化，用到才進 context，不佔常載預算 | 層 2：`/verify`、`/lesson`（除錯改用 mattpocock-skills 的 `diagnosing-bugs`） |
 | `commands/` | 自訂快捷指令：把常用工作流程封裝成 `/名稱`，不必每次重打 | 省去重複手打長 prompt | **本制度未使用**——同樣需求由 skill 承擔（skill 一樣能用 `/名稱` 呼叫） |
 | `agents/` | 帶獨立 context、自有指示與工具集的分身 | 把會淹沒主對話的粗活隔離出去，或要一份沒有前情包袱的第二意見 | **本制度未使用自製 agent**——審查用內建 `/code-review`／`/simplify`／`/security-review`；需要時派內建的 `Explore`／`general-purpose`（派工是例外，見 hard-rules #11） |
 | `hooks/` | 特定工具呼叫前後由 harness 自動執行的腳本 | 讓檢查、驗證、攔截自動觸發，不因模型自律失效而遺漏 | 層 0：`backup_gate`／`rm_guard`／`commit_guard`／`verify_gate` |
@@ -51,8 +51,8 @@ Claude Code 日常四大痛點：
 2026-10-03 在 Opus 5.5 上重跑：t3／t4 兩組皆滿分；t5 架構取捨有制度 5.0／零制度 2.25
 （`uplift.md` 因此完整保留）；t6 差距在誤差內——零制度 5 例中 4 例已自行辨識 XY problem
 （Opus 5 時是 0/6），起手式的 XY 檢查因此刪除。
-見 `docs/capability-transfer-assessment.md`、`docs/harness-overlap-2026-08.md` 與
-`eval/results/2026-10-03-opus5.5-有制度vs零制度.md`。
+見 `eval/results/2026-10-03-opus5.5-有制度vs零制度.md`（已刪的 `docs/capability-transfer-assessment.md`、
+`docs/harness-overlap-2026-08.md` 可用 `git show cfa168a^:<路徑>` 取回）。
 
 ## 快照與正本
 
@@ -149,7 +149,7 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 
 條文衝突優先序：誠實條款（judgment.md）> hard-rules > 情境載入檔/skills > lessons.md（hooks 機器強制，不參與排序）。
 
-## 檔案清單（快照內容，共 21 檔）
+## 檔案清單（快照內容，共 20 檔）
 
 ### institution/CLAUDE.md
 索引式主檔（≤150 行）：起手式、路由表、制度分層表。
@@ -170,11 +170,10 @@ PreToolUse（`backup_gate` 攔無備份改制度檔／`commit_guard` 攔除錯�
 | `reporting.md` | 對使用者的回報規則，依「一則回報從頭到尾」分節：開頭結論先行、主體選擇性省略、結尾分岔（選項表／一個下一步）、通篇長度與格式、送出前檢查 |
 | `maintenance.md` | 制度檔維護：權限分級、加常載規則前兩題測試、精簡門檻、過期檢查 |
 
-### institution/skills/（3 個 SKILL.md）
+### institution/skills/（2 個 SKILL.md）
 - `verify` — 宣稱完成前的驗證 checklist，每個 ✅ 必附指令與輸出（原名 `done-check`；
   Claude Code 2.1.287 起名為 `verify` 的 skill 會被內建 commit 指引要求在 commit 前執行）
 - `lesson` — 被糾正後把教訓寫成 if-then 規則，含第 2 次觸發的升級程序
-- `debug-protocol` — 系統化除錯 + 假設生成優先序 + 3-strike 停損規則
 
 ### institution/hooks/（4 檔，層 0 機器可判定規則）
 借鑑自 Miguok/fable-harness 的同款機制，判斷邏輯保留、訊息改寫成指向本專案自己的規則；
@@ -216,11 +215,6 @@ git history 可還原）。
 - `docs/plugin-guide.md` — 已安裝 plugin 的用途、指令與注意事項；依安裝當下的
   plugin 檔案整理，plugin 升版後可能不準。
 
-- `docs/capability-transfer-assessment.md` — 能力轉移評估基線；2026-08-06（Opus 5）與
-  2026-10-03（Opus 5.5）已用 `eval/` t3–t6 各實測一輪（現行制度 vs 零制度），結果與原推測值不同，
-  詳見檔內各實測節與 Changelog。
-- `docs/harness-overlap-2026-08.md` — 逐條比對表：每條制度規則對照 harness 內建原文出處與判定
-  （2026-08-06、08-24、10-02 三輪覆核），供下次大版本更新後重跑覆核。
 - `eval/` — 制度蒸餾最小評測集（6 題＋fixtures＋答案卷＋`run.sh` 執行器）；只在制度改版時跑，
   用法與已知陷阱見 `eval/README.md`。
 - `tasks/` — 本 repo 自己的 lessons.md 與 todo.md。
