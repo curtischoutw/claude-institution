@@ -9,7 +9,7 @@
   這一頁回答「ws（claude-code-workflows）的 42 個 agent 要怎麼接進 mattpocock 的流程」，
   讓每個情境都有「第幾步、打什麼、派誰」。
   關鍵設計：每個主張標【事實】（查得到來源）、【建議】（我的設計，非任一方官方做法）或【未驗證】（沒實際跑過）。
-  資料來源：mattpocock-skills v1.3.1 的 SKILL.md、docs/plugin-guide.md、~/.claude/rules-lib/dispatch.md、
+  資料來源：mattpocock-skills v1.3.1 的 SKILL.md、docs/plugin-guide.md、~/.claude/CLAUDE.md、
   Agent tool 的類型宣告。
   已知極限：手寫整理，plugin 升版後不會自動更新；子 agent 的實際行為（見頁尾「未驗證」）沒有實測。
 -->
@@ -237,7 +237,6 @@
       <span class="node ws">ws 語言型 agent 當 implementer</span><span class="arrow">→</span>
       <span class="node auto">code-review</span><span class="arrow">→</span>
       <span class="node ws">ws 審查型 agent</span><span class="arrow">→</span>
-      <span class="node">/verify</span><span class="arrow">→</span>
       <span class="node">/retro</span>
     </div>
     <div class="legend">
@@ -262,7 +261,7 @@
       <a href="#roster">42 個 agent</a>
       <a href="#template">派工範本</a>
       <a href="#avoid">不要這樣做</a>
-      <a href="#institution">你的制度</a>
+      <a href="#institution">派工規則與 rm_guard</a>
       <a href="#unverified">未驗證</a>
     </nav>
   </header>
@@ -286,8 +285,8 @@
       </div>
     </div>
     <ul class="plain" style="margin-top:16px">
-      <li><span class="tag fact">事實</span> mattpocock 的 27 個 SKILL.md 從不指定子 agent 的類型。它們只寫「sub-agent」「implementer subagent」「exploration subagent」。所以不會自動用到 ws 的 agent。要用，就在指令後面加一句話指名；沒指名，就由主對話模型依你的 <code>dispatch.md</code> §2 自己挑。</li>
-      <li><span class="tag fact">事實</span> 派工時的 <code>model</code> 參數會蓋過 agent 定義裡的 model（Agent tool 說明明載）。ws 有 11 個 agent 定義固定 opus、7 個固定 sonnet（見 <code>docs/plugin-guide.md</code>），你可以在派工時改。<code>dispatch.md</code> §2 也規定派工必明確指定 model。</li>
+      <li><span class="tag fact">事實</span> mattpocock 的 27 個 SKILL.md 從不指定子 agent 的類型。它們只寫「sub-agent」「implementer subagent」「exploration subagent」。所以不會自動用到 ws 的 agent。要用，就在指令後面加一句話指名；沒指名，就由主對話模型依 <code>CLAUDE.md</code> 的派工規則自己挑。</li>
+      <li><span class="tag fact">事實</span> 派工時的 <code>model</code> 參數會蓋過 agent 定義裡的 model（Agent tool 說明明載）。ws 有 11 個 agent 定義固定 opus、7 個固定 sonnet（見 <code>docs/plugin-guide.md</code>），你可以在派工時改。<code>CLAUDE.md</code> 的派工規則也要求派工必明確指定 model。</li>
       <li><span class="tag fact">事實</span> <code>/to-spec</code> 產出的 spec 有一節 <b>Testing Decisions</b>，寫明要測的 seam。<code>/implement-spec</code> 本來就要求子 agent 靠「脈絡指標」溝通（指向 spec、票、先前 commit）。</li>
       <li><span class="tag sug">建議</span> 把 spec 的 Testing Decisions 當成給所有子 agent 的共同指標：每個 implementer 先讀它，只在那裡列出的 seam 寫測試。這樣不同的 ws agent 不會各自決定測哪裡。</li>
     </ul>
@@ -317,13 +316,13 @@
     <header>
       <span class="letter">結合流程 A</span>
       <h2>後端功能（Python 為例）</h2>
-      <p class="when">主幹：mattpocock。小功能（一個 session 做得完）就跳過第 2、3 步，直接 <span class="cmd">/implement</span>；<code>dispatch.md</code> §1 的預設本來就是主對話自己做完，不派 agent。</p>
+      <p class="when">主幹：mattpocock。小功能（一個 session 做得完）就跳過第 2、3 步，直接 <span class="cmd">/implement</span>；預設本來就是主對話自己做完，不派 agent。</p>
     </header>
     <ol class="steps">
       <li>
         <div class="step-title"><span class="cmd">/grill-with-docs</span><span class="what">先把點子問清楚</span></div>
         <dl class="facts">
-          <dt>派誰</dt><dd>預設不派。需要查 repo 現況時，主對話會自己派找事實的子 agent，<span class="tag sug">建議</span> 指定 <code class="id">Explore</code>（<code>dispatch.md</code> §2：要歸納結論用 sonnet）。需要架構取捨的第二意見時，才請 <code class="id">backend-development:backend-development-backend-architect</code> 或 <code class="id">backend-development:event-sourcing-architect</code> 列出選項。</dd>
+          <dt>派誰</dt><dd>預設不派。需要查 repo 現況時，主對話會自己派找事實的子 agent，<span class="tag sug">建議</span> 指定 <code class="id">Explore</code>（<code>CLAUDE.md</code> 模型表：要歸納結論用 sonnet）。需要架構取捨的第二意見時，才請 <code class="id">backend-development:backend-development-backend-architect</code> 或 <code class="id">backend-development:event-sourcing-architect</code> 列出選項。</dd>
           <dt>你要做</dt><dd>回答每輪問題。架構型 agent 只給選項，<span class="tag fact">事實</span> <code>grilling</code> 規定「決定是使用者的」。</dd>
           <dt>產出</dt><dd><code>GLOSSARY.md</code>、<code>docs/adr/</code>。</dd>
         </dl>
@@ -353,7 +352,7 @@
             一般 Python → <code class="id">python-development:python-pro</code><br>
             Temporal 工作流 → <code class="id">backend-development:temporal-python-pro</code>
           </dd>
-          <dt>你要做</dt><dd>在 <span class="cmd">/implement-spec</span> 後面貼<a href="#template">派工範本</a>，並明確指定 model。規格清楚的實作 <code>dispatch.md</code> §2 建議 sonnet；有難度的票才升 opus。</dd>
+          <dt>你要做</dt><dd>在 <span class="cmd">/implement-spec</span> 後面貼<a href="#template">派工範本</a>，並明確指定 model。規格清楚的實作 <code>CLAUDE.md</code> 的模型表建議 sonnet；有難度的票才升 opus。</dd>
           <dt>產出</dt><dd>一條 integration branch。每張票在自己的 worktree 做，全部完成後 worktree 會被清掉，成果留在 integration branch。</dd>
         </dl>
         <p class="note">不要讓 <code>backend-development:backend-development-tdd-orchestrator</code> 或 <code>…test-automator</code> 自己決定測哪裡。<code>tdd</code> 規定沒經你確認的 seam 不准寫測試。</p>
@@ -372,12 +371,8 @@
             安全 → <code class="id">backend-development:backend-development-security-auditor</code>（定義為 sonnet），再加內建 <code>/security-review</code><br>
             效能、查詢、併發 → <code class="id">backend-development:backend-development-performance-engineer</code>（定義為 sonnet）
           </dd>
-          <dt>你要做</dt><dd>用<a href="#template">審查範本</a>派，指定審查 <code>git diff &lt;固定點&gt;...HEAD</code>。審查者沒有參與實作，符合你的硬規則 #12。</dd>
+          <dt>你要做</dt><dd>用<a href="#template">審查範本</a>派，指定審查 <code>git diff &lt;固定點&gt;...HEAD</code>。審查者沒有參與實作，符合「驗證不自驗」。</dd>
         </dl>
-      </li>
-      <li>
-        <div class="step-title"><span class="cmd">/verify</span><span class="what">宣稱完成前</span><span class="tag sug">你的制度</span></div>
-        <dl class="facts"><dt>為什麼</dt><dd>硬規則 #5。mattpocock 的 <code>/implement</code>、<code>/implement-spec</code> 沒有這一步。</dd></dl>
       </li>
       <li>
         <div class="step-title"><span class="what">開 PR，然後 </span><span class="cmd">/retro</span></div>
@@ -438,7 +433,7 @@
         </dl>
       </li>
       <li>
-        <div class="step-title"><span class="cmd">/verify</span><span class="what">→ PR → </span><span class="cmd">/retro</span></div>
+        <div class="step-title"><span class="what">開 PR → </span><span class="cmd">/retro</span></div>
         <dl class="facts"><dt>特別留意</dt><dd><span class="tag fact">事實</span> <code>pr</code> 把截圖列為最好的證據（S-tier），UI 改動記得附改前改後截圖。</dd></dl>
       </li>
     </ol>
@@ -484,7 +479,7 @@
             三平台同步功能 → <span class="cmd">/multi-platform-apps:multi-platform</span>
           </dd>
           <dt>你要做</dt><dd>在指令的需求描述裡貼 spec 的 Problem Statement、Solution 和 Out of Scope。</dd>
-          <dt>派誰</dt><dd><span class="tag fact">事實</span> 要看是哪個指令。<code>ml-pipeline</code>、<code>data-driven-feature</code>、<code>finetune</code>、<code>multi-platform</code> 會分階段自己派 agent，你不用指名；<code>data-pipeline</code>、<code>monitor-setup</code>、<code>slo-implement</code> 是單一長 prompt，不派子 agent，由主對話照著做。你親手輸入這個指令，符合 <code>dispatch.md</code> §1 的 (c)「使用者明講要派」。</dd>
+          <dt>派誰</dt><dd><span class="tag fact">事實</span> 要看是哪個指令。<code>ml-pipeline</code>、<code>data-driven-feature</code>、<code>finetune</code>、<code>multi-platform</code> 會分階段自己派 agent，你不用指名；<code>data-pipeline</code>、<code>monitor-setup</code>、<code>slo-implement</code> 是單一長 prompt，不派子 agent，由主對話照著做。你親手輸入這個指令，等於使用者明講要派。</dd>
         </dl>
       </li>
       <li>
@@ -495,7 +490,7 @@
         </dl>
       </li>
       <li>
-        <div class="step-title"><span class="cmd">/verify</span><span class="what">→ </span><span class="cmd">/retro</span></div>
+        <div class="step-title"><span class="what">驗證，然後 </span><span class="cmd">/retro</span></div>
         <dl class="facts"><dt>你要做</dt><dd>跑得出指令輸出的驗證（測試、pipeline 的 dry run）才算數。收尾 <span class="cmd">/retro</span> 看 orchestrator 這一輪暴露了哪些環境問題。</dd></dl>
       </li>
     </ol>
@@ -537,14 +532,14 @@
         <div class="step-title"><span class="what">階段 3：看假設清單</span></div>
         <dl class="facts">
           <dt>你要做</dt><dd>它列 3–5 個假設並排序，先給你看。你知道的背景可以直接重排。</dd>
-          <dt>想要第二意見</dt><dd><span class="tag sug">建議</span> 把同一份假設清單派給一隻領域型 agent（例如 <code class="id">python-development:python-pro</code>），只問「哪個假設最可疑、為什麼」，符合 <code>dispatch.md</code> (b)「需要 fresh-context 第二意見」。</dd>
+          <dt>想要第二意見</dt><dd><span class="tag sug">建議</span> 把同一份假設清單派給一隻領域型 agent（例如 <code class="id">python-development:python-pro</code>），只問「哪個假設最可疑、為什麼」，這是 fresh-context 第二意見的用法。</dd>
         </dl>
       </li>
       <li>
         <div class="step-title"><span class="what">階段 4–6：埋點、修、回歸測試、清理</span></div>
         <dl class="facts">
           <dt>派誰</dt><dd>小修補由主對話自己做。<span class="tag sug">建議</span> 修補很大、要換語言型專家時，才用<a href="#template">派工範本</a>派 implementer。</dd>
-          <dt>事實</dt><dd><span class="tag fact">事實</span> debug log 都加了 <code>[DEBUG-xxxx]</code> 前綴，最後 grep 清掉。你的 <code>commit_guard.py</code> 在 commit 前只掃少數明確的除錯寫法：<code>console.log(</code>、<code>debugger</code>、<code>breakpoint()</code>、<code>set_trace(</code>、<code>binding.pry</code>、<code>var_dump(</code>、<code>dd(</code>。它刻意不含裸 <code>print</code>，所以帶前綴的 <code>print</code> 或 logger 呼叫它擋不到，清理要靠那條 grep。另外它有 <code>SKIP_DEBUG_GUARD=1</code> 逃生口，內部出錯時放行。</dd>
+          <dt>事實</dt><dd><span class="tag fact">事實</span> debug log 都加了 <code>[DEBUG-xxxx]</code> 前綴，最後 grep 清掉。清理要靠那條 grep（plugin 不會自動檢查）。</dd>
         </dl>
       </li>
       <li>
@@ -552,7 +547,6 @@
         <dl class="facts">
           <dt>接下來</dt><dd>如果結論是「這個 codebase 沒有能鎖住這種 bug 的測試位置」，轉到<a href="#flow-e">流程 E</a>。</dd>
         </dl>
-        <p class="note">你的 <code>/debug-protocol</code>（硬規則 #6：同一問題修 2 次沒好就進）和 <code>diagnosing-bugs</code> 目的相近。兩者同時載入時誰先主導，我沒有驗證過。</p>
       </li>
     </ol>
   </section>
@@ -568,7 +562,7 @@
       <li>
         <div class="step-title"><span class="cmd">/improve-codebase-architecture</span><span class="what">掃出可深化的模組</span></div>
         <dl class="facts">
-          <dt>派誰</dt><dd><span class="tag fact">事實</span> 它自己會派一個子 agent 走訪 codebase，不指定類型。<span class="tag sug">建議</span> 指定 <code class="id">Explore</code>，model 用 sonnet（要跨處歸納，<code>dispatch.md</code> §2）。</dd>
+          <dt>派誰</dt><dd><span class="tag fact">事實</span> 它自己會派一個子 agent 走訪 codebase，不指定類型。<span class="tag sug">建議</span> 指定 <code class="id">Explore</code>，model 用 sonnet（要跨處歸納，見 <code>CLAUDE.md</code> 模型表）。</dd>
           <dt>產出</dt><dd>HTML 報告寫到系統暫存目錄並自動開啟，每個候選有改前改後圖和建議強度。</dd>
         </dl>
       </li>
@@ -670,7 +664,7 @@
   <section id="template">
     <div class="section-head">
       <h2>派工範本</h2>
-      <p class="sub"><span class="tag sug">建議</span> 照你的 <code>dispatch.md</code> §6 三要素（目標與動機、驗收條件、回報格式）寫。尖括號 &lt;…&gt; 的地方換成你的內容。</p>
+      <p class="sub"><span class="tag sug">建議</span> 照 <code>CLAUDE.md</code> 派工包的三要素（目標與動機、驗收條件、回報格式）寫。尖括號 &lt;…&gt; 的地方換成你的內容。</p>
     </div>
 
     <div class="tpl-head"><h3>1. 指名 implementer（接在 /implement-spec 後面）</h3></div>
@@ -713,22 +707,20 @@ implementer 請這樣派，每個都明確指定 model：
     </ul>
   </section>
 
-  <!-- ============================== 你的制度 ============================== -->
+  <!-- ============================== 派工規則與 rm_guard ============================== -->
   <section id="institution">
     <div class="section-head">
-      <h2>和你的制度、hooks 怎麼銜接</h2>
-      <p class="sub">你的 <code>CLAUDE.md</code> 規定：條文衝突時，外部 plugin 的 skill、agent、command 排最後。</p>
+      <h2>和派工規則、rm_guard 怎麼銜接</h2>
+      <p class="sub">你自己留下的只有 <code>CLAUDE.md</code> 的派工規則和 <code>rm_guard</code> hook；其餘都交給兩個 plugin。</p>
     </div>
     <div class="scroll">
       <table>
         <thead><tr><th>你在做的事</th><th>碰到的規則或 hook</th><th>說明</th></tr></thead>
         <tbody>
-          <tr><td>手動打 <code>/implement-spec</code>、<code>/wayfinder</code> 或 ws 的 orchestrator</td><td>硬規則 #11 的 (c)</td><td><span class="tag fact">事實</span> <code>dispatch.md</code> §1：使用者親手輸入的 plugin orchestrator 算「使用者明講要派」。模型自己載入的 <code>code-review</code>、<code>research</code>、<code>grilling</code> 不算，要看是否符合 (a)(b)。</td></tr>
-          <tr><td>派額外審查 agent</td><td>硬規則 #12：驗證不自驗</td><td>審查者是 fresh context、沒參與實作，派工包只給規格與程式碼，不給實作者自述（<code>dispatch.md</code> §6、§7）。</td></tr>
-          <tr><td>任何派工</td><td><code>dispatch.md</code> §2</td><td>必明確指定 model，並在任務描述標明 agent 類型與模型。</td></tr>
-          <tr><td><code>/implement</code> 最後一步 commit</td><td>Git 紀律、<code>commit_guard.py</code></td><td><span class="tag fact">事實</span> <code>/implement</code> 明寫「Commit your work to the current branch」，是無條件 commit。你的規則是「未經要求不 commit／push」，所以兩者直接衝突；你手動打 <code>/implement</code> 算不算「要求」，由你判斷。訊息格式你的規則是 <code>type(scope): description</code>，skill 沒有規定。<code>commit_guard</code> 只掃少數除錯寫法，不管有沒有被要求 commit。</td></tr>
-          <tr><td>宣稱完成</td><td>硬規則 #5、<code>verify_gate.py</code>（Stop）</td><td><span class="tag fact">事實</span> <code>/implement</code> 沒有 <code>/verify</code>，要你自己補。<code>verify_gate</code> 只驗「有沒有出現測試指令」，不驗是否通過。</td></tr>
-          <tr><td><code>/retro</code> 建議改全域設定</td><td><code>backup_gate.py</code>、硬規則 #9</td><td><span class="tag fact">事實</span> <code>/retro</code> 會看「repo 或使用者全域」的 CLAUDE.md。硬規則 #9 要求動 <code>~/.claude/</code> 下的制度檔先備份。<code>backup_gate</code> 只攔 Edit／Write／NotebookEdit 對 <code>CLAUDE.md</code>、<code>settings.json</code>、<code>rules/</code>、<code>skills/</code>、<code>hooks/</code> 和 <code>agents/</code> 頂層 <code>.md</code> 的修改；Bash 直接改（例如 <code>sed -i</code>）它擋不到，新建檔案也直接放行。</td></tr>
+          <tr><td>派額外審查 agent</td><td>驗證不自驗</td><td>審查者是 fresh context、沒參與實作，派工包只給規格與程式碼，不給實作者自述。</td></tr>
+          <tr><td>任何派工</td><td><code>CLAUDE.md</code> 的模型表</td><td>必明確指定 model，並在任務描述標明 agent 類型與模型。</td></tr>
+          <tr><td><code>/implement</code> 最後一步 commit</td><td>無</td><td><span class="tag fact">事實</span> <code>/implement</code> 明寫「Commit your work to the current branch」，是無條件 commit，沒有除錯碼檢查，也沒有宣稱完成前的驗證步驟，要自己確認。</td></tr>
+          <tr><td>任何 Bash 刪除指令</td><td><code>rm_guard.py</code></td><td><span class="tag fact">事實</span> 擋下會清空家目錄或系統目錄的 <code>rm</code>／<code>rmdir</code>／<code>find -delete</code>，plugin 的 skill 或 agent 跑出來的指令也一樣會被擋。</td></tr>
         </tbody>
       </table>
     </div>
@@ -744,16 +736,14 @@ implementer 請這樣派，每個都明確指定 model：
       <li><span class="tag unv">未驗證</span> implementer 指定成 ws agent 之後，它能不能呼叫 <code>tdd</code> skill。agent 的工具清單寫 All tools，但我沒實測。</li>
       <li><span class="tag unv">未驗證</span> 子 agent 是否真的照派工包裡的 seam 約定走，而不是照自己 system prompt 的習慣。</li>
       <li><span class="tag unv">未驗證</span> <code>code-review</code> 和 Claude Code 內建 <code>/code-review</code> 撞名時，<code>/implement</code> 內部呼叫會解析到哪一個。</li>
-      <li><span class="tag unv">未驗證</span> <code>diagnosing-bugs</code> 與你的 <code>/debug-protocol</code> 同時載入時，誰先主導。</li>
       <li><span class="tag unv">未驗證</span> <code>tdd</code> 的 mocking 指引和 <code>python-testing-patterns</code>、<code>javascript-testing-patterns</code> 的做法是否矛盾，我沒有逐條比對。</li>
-      <li><span class="tag unv">未驗證</span> <code>verify_gate.py</code> 對「檔案是子 agent 改的、不是主對話改的」會怎麼判斷。</li>
       <li><span class="tag unv">未驗證</span> 不同 ws agent 各自的 system prompt 偏好（例如 <code>fastapi-pro</code> 的慣用寫法）會不會和 spec、<code>GLOSSARY.md</code> 的用語衝突。</li>
     </ul>
   </section>
 
   <footer>
     資料來源：mattpocock-skills v1.3.1 的 <code>plugin.json</code> 與 27 個 <code>SKILL.md</code>（含 <code>codebase-design/DESIGN-IT-TWICE.md</code>）；
-    repo 的 <code>docs/plugin-guide.md</code>；<code>~/.claude/rules-lib/dispatch.md</code>；<code>~/.claude/hooks/</code> 下四支 hook 的檔頭說明；Agent tool 的類型宣告。
+    repo 的 <code>docs/plugin-guide.md</code>；<code>~/.claude/CLAUDE.md</code> 的派工規則；<code>~/.claude/hooks/rm_guard.py</code> 的檔頭說明；Agent tool 的類型宣告。
     單獨看 mattpocock 的用法，見另一頁 <code>docs/mattpocock-skills-guide.html</code>。
   </footer>
 </div>

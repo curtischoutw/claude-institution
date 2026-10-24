@@ -19,34 +19,11 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write|NotebookEdit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/<username>/.claude/hooks/backup_gate.py"
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
             "command": "/Users/<username>/.claude/hooks/rm_guard.py"
-          },
-          {
-            "type": "command",
-            "command": "/Users/<username>/.claude/hooks/commit_guard.py"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/<username>/.claude/hooks/verify_gate.py 2>/dev/null || true"
           }
         ]
       }

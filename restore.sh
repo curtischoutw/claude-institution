@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 #
 # 把本專案 institution/ 快照中的制度檔還原回 ~/.claude/。
-# 遵守制度硬規則 #9：覆寫任何既有檔前，先備份到 ~/.claude/backups/restore-<timestamp>/。
-# memory 因路徑含專案名、屬 project-scope，僅印出提示不自動覆寫。
+# 覆寫任何既有檔前，先備份到 ~/.claude/backups/restore-<timestamp>/。
 #
 # Features:
-#   - 還原 CLAUDE.md、rules/、rules-lib/、skills/（動態列舉）、statusline.sh 到 ~/.claude/
+#   - 還原 CLAUDE.md、rules/、rules-lib/、statusline.sh 到 ~/.claude/
 #   - hooks/ 預設略過，需 --with-hooks 才還原（還原後補 +x）：快照裡的 hooks 是
 #     去識別化版本，註解中的路徑範例已改為 <username> 佔位，整包還原會劣化正本
 #   - settings.json 預設略過，需 --with-settings 才還原：快照裡 hook 綁定的絕對
@@ -109,10 +108,6 @@ for f in "$SRC"/rules-lib/*.md; do
   restore_file "rules-lib/$(basename "$f")"
 done
 
-for f in "$SRC"/skills/*/SKILL.md; do
-  restore_file "skills/$(basename "$(dirname "$f")")/SKILL.md"
-done
-
 if [ "$WITH_HOOKS" = 1 ]; then
   for f in "$SRC"/hooks/*; do
     restore_file "hooks/$(basename "$f")"
@@ -131,14 +126,6 @@ else
   echo "略過 settings.json：快照是去識別化版本（hook 路徑 <username> 佔位）。"
   echo "  確定要還原請加 --with-settings（還原時自動替換為 $(whoami)）。"
 fi
-
-# ==============================
-# memory：project-scope，不自動覆寫
-# ==============================
-echo
-echo "提醒：memory 屬 project-scope，未自動還原。若需要，手動複製："
-echo "  cp $SRC/memory/*.md \\"
-echo "     \"$DEST/projects/-Users-$(whoami)-GitHub-claude-institution/memory/\""
 
 echo
 if [ "$DRY_RUN" = 1 ]; then
