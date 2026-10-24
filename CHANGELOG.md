@@ -7,6 +7,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- **個人偏好併入設定**（2026-10-24）。把 claude.ai 的個人偏好精簡後帶進 Claude Code：
+  `CLAUDE.md` 新增「溝通與判斷」「範圍與主動性」「工程底線」三節；新增路徑限定的
+  `rules/writing-style.md`（只在讀寫 .md／.html 時載入）；`rules/code-standards.md` 補回
+  Args／Returns 與區塊分隔。「工程底線」與已刪的 hard-rules #2／#4／#6 內容部分重疊，
+  是這份個人偏好的精簡版，不是舊制度復活。與內建重複的項目（最簡單做法、不做多餘功能等）沒有帶入。
+  「只在三種情況才問」補了 plugin 指令的確認點例外，避免和 `tdd`、`/to-tickets` 的強制確認衝突。
+
 ### Removed
 
 - **制度最小化**（2026-10-24）。改以 mattpocock-skills＋ws 當開發流程，自製制度只留：

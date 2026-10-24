@@ -13,8 +13,9 @@
 
 | 檔案 | 做什麼 |
 |---|---|
-| `CLAUDE.md` | 常載。路由（除錯、新功能、審查各去哪）＋派工規則：情境對應的 agent 類型與模型、必指定 `model`、升降級、派工包範本、驗證不自驗 |
-| `rules/code-standards.md` | 常載。原始碼檔頭怎麼寫（不寫作者／日期／版本）＋安全底線（輸入驗證、secret、參數化、新增依賴先問） |
+| `CLAUDE.md` | 常載。個人偏好（簡潔、別附和、範圍與主動性、工程底線）＋路由（除錯、新功能、審查各去哪）＋派工規則：情境對應的 agent 類型與模型、必指定 `model`、升降級、派工包範本、驗證不自驗 |
+| `rules/code-standards.md` | 常載。原始碼檔頭怎麼寫（不寫作者／日期／版本）、docstring 含 Args／Returns、安全底線（輸入驗證、secret、參數化、新增依賴先問） |
+| `rules/writing-style.md` | 路徑限定（`paths: **/*.md`、`**/*.html`），只在讀寫文件時載入。寫進檔案的文字規則：用描述不用比喻、不用誇飾詞、不淡化或放大工作量、術語不換同義詞 |
 | `rules-lib/uplift.md` | 情境載入（`CLAUDE.md` 路由到它）。高風險判斷用的 6 個方法：先寫判準、多答案評審、紅隊自查、結論要能被證偽、決策日誌、問題重述 |
 | `hooks/rm_guard.py` | PreToolUse hook。擋下會清空家目錄或系統目錄的 `rm`／`rmdir`／`find -delete`（含 `~`、`$HOME`、glob、未防呆的變數路徑） |
 | `settings.json` | 快照（去識別化）：`permissions.deny` 的 rm 規則、`rm_guard` 綁定、plugin 與 marketplace、model 設定 |
